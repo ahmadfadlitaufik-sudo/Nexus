@@ -1,0 +1,528 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile with role assignment",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["owner", "konsultan", "klien", "tim_grup", "tim_konten", "staf_operasional", "consultant", "client"] },
+        "clientId": { "type": "string" },
+        "phone": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "displayName", "role"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "SME client under business consulting advisory",
+      "type": "object",
+      "properties": {
+        "namaPemilik": { "type": "string" },
+        "namaBisnis": { "type": "string" },
+        "industri": { "type": "string" },
+        "kota": { "type": "string" },
+        "lamaUsaha": { "type": "string" },
+        "jumlahKaryawan": { "type": "string" },
+        "kontak": { "type": "string" },
+        "status": { "type": "string", "enum": ["Prospek", "Onboarding", "Aktif", "Selesai", "Berhenti"] },
+        "programId": { "type": "string" },
+        "primaryConsultantId": { "type": "string" },
+        "consultantIds": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["namaPemilik", "namaBisnis", "industri", "status"]
+    },
+    "ClientConsultant": {
+      "title": "ClientConsultant",
+      "description": "Assignment relationship between clients and multiple consultants",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "consultantId": { "type": "string" },
+        "role": { "type": "string" },
+        "assignedAt": { "type": "string" }
+      },
+      "required": ["clientId", "consultantId"]
+    },
+    "Program": {
+      "title": "Program",
+      "description": "Consulting service packages: Fundamental or Private Mentoring with editable milestone templates",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Fundamental", "Mentoring"] },
+        "description": { "type": "string" },
+        "durationWeeks": { "type": "number" },
+        "totalSessions": { "type": "number" },
+        "price": { "type": "number" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "milestoneTemplates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase": { "type": "string" },
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "targetWeek": { "type": "string" },
+              "order": { "type": "number" }
+            },
+            "required": ["phase", "title"]
+          }
+        },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "type"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Client registration into a consulting program with session tracking",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "programId": { "type": "string" },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "durationWeeks": { "type": "number" },
+        "totalSessions": { "type": "number" },
+        "completedSessions": { "type": "number" },
+        "remainingSessions": { "type": "number" },
+        "status": { "type": "string", "enum": ["Aktif", "Selesai", "Tertunda"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientId", "programId", "startDate", "status"]
+    },
+    "Session": {
+      "title": "Session",
+      "description": "Consulting session details visible to assigned client & consultants",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "consultantId": { "type": "string" },
+        "programId": { "type": "string" },
+        "dateTime": { "type": "string" },
+        "durationMinutes": { "type": "number" },
+        "meetingUrl": { "type": "string" },
+        "agenda": { "type": "string" },
+        "jenis": { "type": "string", "enum": ["Individu", "Grup"] },
+        "groupId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Terjadwal", "Selesai", "Dibatalkan"] },
+        "catatanDibagikan": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientId", "consultantId", "dateTime", "status"]
+    },
+    "Group": {
+      "title": "Group",
+      "description": "Cohort/mastermind groups for clients",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "programId": { "type": "string" },
+        "facilitatorId": { "type": "string" },
+        "facilitatorIds": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["Aktif", "Persiapan", "Selesai"] },
+        "schedule": { "type": "string" },
+        "meetingUrl": { "type": "string" },
+        "totalSessions": { "type": "number" },
+        "completedSessions": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "facilitatorId", "status"]
+    },
+    "GroupMember": {
+      "title": "GroupMember",
+      "description": "Membership link of a client to a group",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Aktif", "Pasif", "Alumni"] },
+        "joinedAt": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["groupId", "clientId", "status"]
+    },
+    "GroupAttendance": {
+      "title": "GroupAttendance",
+      "description": "Session attendance per member (hadir, izin, absen)",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Hadir", "Izin", "Absen"] },
+        "notes": { "type": "string" },
+        "recordedAt": { "type": "string" },
+        "recordedBy": { "type": "string" }
+      },
+      "required": ["groupId", "sessionId", "clientId", "status"]
+    },
+    "GroupAnnouncement": {
+      "title": "GroupAnnouncement",
+      "description": "Announcements and updates posted to group members",
+      "type": "object",
+      "properties": {
+        "groupId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorRole": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["groupId", "title", "content"]
+    },
+    "SessionInternal": {
+      "title": "SessionInternal",
+      "description": "Internal session notes strictly restricted to consultants and owners only",
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string" },
+        "clientId": { "type": "string" },
+        "catatanInternal": { "type": "string" },
+        "keyObservations": { "type": "string" },
+        "actionItemsRaw": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["sessionId", "clientId"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "Action items and deliverables assigned to client or consultant",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "title": { "type": "string" },
+        "assigneeName": { "type": "string" },
+        "assigneeRole": { "type": "string", "enum": ["Konsultan", "Klien", "Tim"] },
+        "deadline": { "type": "string" },
+        "status": { "type": "string", "enum": ["Belum", "Berjalan", "Selesai", "Terlambat"] },
+        "proofUrl": { "type": "string" },
+        "notes": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientId", "title", "status"]
+    },
+    "RoadmapItem": {
+      "title": "RoadmapItem",
+      "description": "Strategic milestone roadmap stages per client",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "tahapan": { "type": "string" },
+        "sasaran": { "type": "string" },
+        "tenggat": { "type": "string" },
+        "status": { "type": "string", "enum": ["Belum", "Berjalan", "Selesai"] },
+        "urutan": { "type": "number" },
+        "deskripsi": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientId", "tahapan", "sasaran", "status"]
+    },
+    "Kpi": {
+      "title": "Kpi",
+      "description": "Key performance indicator metrics with progress tracking",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "nama": { "type": "string" },
+        "nilaiAwal": { "type": "number" },
+        "target": { "type": "number" },
+        "nilaiSaatIni": { "type": "number" },
+        "satuan": { "type": "string" },
+        "tanggalPembaruan": { "type": "string" },
+        "kategori": { "type": "string" }
+      },
+      "required": ["clientId", "nama", "nilaiAwal", "target", "nilaiSaatIni"]
+    },
+    "Diagnosis": {
+      "title": "Diagnosis",
+      "description": "Business diagnostic report across five key areas with 1-5 scoring and notes",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "keuangan": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "notes": { "type": "string" }
+          },
+          "required": ["score"]
+        },
+        "pemasaran": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "notes": { "type": "string" }
+          },
+          "required": ["score"]
+        },
+        "operasional": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "notes": { "type": "string" }
+          },
+          "required": ["score"]
+        },
+        "sdm": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "notes": { "type": "string" }
+          },
+          "required": ["score"]
+        },
+        "produk": {
+          "type": "object",
+          "properties": {
+            "score": { "type": "number" },
+            "notes": { "type": "string" }
+          },
+          "required": ["score"]
+        },
+        "overallNotes": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientId", "keuangan", "pemasaran", "operasional", "sdm", "produk"]
+    },
+    "Document": {
+      "title": "Document",
+      "description": "Shared templates and client files",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "title": { "type": "string" },
+        "fileUrl": { "type": "string" },
+        "category": { "type": "string" },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["clientId", "title"]
+    },
+    "Feedback": {
+      "title": "Feedback",
+      "description": "Client session ratings and feedback",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "rating": { "type": "number" },
+        "comments": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["clientId", "rating"]
+    },
+    "ContentItem": {
+      "title": "ContentItem",
+      "description": "Content calendar and program material resource item",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "type": { "type": "string", "enum": ["materi_program", "konten_pemasaran"] },
+        "status": { "type": "string", "enum": ["Ide", "Produksi", "Review", "Terjadwal", "Terbit"] },
+        "channel": { "type": "string" },
+        "publishDate": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "fileUrl": { "type": "string" },
+        "externalUrl": { "type": "string" },
+        "format": { "type": "string" },
+        "isLibraryMaterial": { "type": "boolean" },
+        "usageCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["title", "type", "status", "channel", "authorId"]
+    },
+    "ContentConsent": {
+      "title": "ContentConsent",
+      "description": "Case study publication consent from client with anonymization default",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "businessName": { "type": "string" },
+        "anonymizedName": { "type": "string" },
+        "anonymizedOwnerName": { "type": "string" },
+        "industry": { "type": "string" },
+        "city": { "type": "string" },
+        "caseStudyTitle": { "type": "string" },
+        "caseStudySummary": { "type": "string" },
+        "keyMetricsAchievement": { "type": "string" },
+        "status": { "type": "string", "enum": ["Menunggu", "Disetujui_Anonim", "Disetujui_Terbuka", "Ditolak"] },
+        "requestedBy": { "type": "string" },
+        "requestedAt": { "type": "string" },
+        "respondedAt": { "type": "string" },
+        "clientNotes": { "type": "string" },
+        "isAnonymizedDefault": { "type": "boolean" },
+        "allowedChannels": { "type": "array", "items": { "type": "string" } },
+        "contentItemId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["clientId", "caseStudyTitle", "status"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "Audit trail of actions in the hub",
+      "type": "object",
+      "properties": {
+        "clientId": { "type": "string" },
+        "action": { "type": "string" },
+        "actorName": { "type": "string" },
+        "actorRole": { "type": "string" },
+        "details": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["action", "actorName", "createdAt"]
+    },
+    "TeamCheckin": {
+      "title": "TeamCheckin",
+      "description": "Daily morning check-in and evening checkout for team members",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userRole": { "type": "string" },
+        "date": { "type": "string" },
+        "workStatus": { "type": "string", "enum": ["WFA", "Tidak tersedia", "Izin"] },
+        "priorities": { "type": "array", "items": { "type": "string" } },
+        "blockers": { "type": "string" },
+        "morningCheckinAt": { "type": "string" },
+        "eveningCheckoutAt": { "type": "string" },
+        "checkoutNotes": { "type": "string" },
+        "completedCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "date", "workStatus"]
+    },
+    "PlanItem": {
+      "title": "PlanItem",
+      "description": "Daily planned task item or priority with client privacy",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "date": { "type": "string" },
+        "title": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientId": { "type": "string" },
+        "groupName": { "type": "string" },
+        "groupId": { "type": "string" },
+        "sourceType": { "type": "string", "enum": ["manual", "session", "task", "content"] },
+        "sourceId": { "type": "string" },
+        "isPriority": { "type": "boolean" },
+        "priorityOrder": { "type": "number" },
+        "status": { "type": "string", "enum": ["Belum", "Selesai", "Pindah ke besok"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "date", "title", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and assigned role"
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Client business profile"
+    },
+    "/client_consultants/{ccId}": {
+      "schema": { "$ref": "#/entities/ClientConsultant" },
+      "description": "Multi-consultant assignments"
+    },
+    "/programs/{programId}": {
+      "schema": { "$ref": "#/entities/Program" },
+      "description": "Consulting service packages with template milestones"
+    },
+    "/groups/{groupId}": {
+      "schema": { "$ref": "#/entities/Group" },
+      "description": "Client cohort groups and mastermind batches"
+    },
+    "/group_members/{memberId}": {
+      "schema": { "$ref": "#/entities/GroupMember" },
+      "description": "Group members linkage"
+    },
+    "/group_attendance/{attendanceId}": {
+      "schema": { "$ref": "#/entities/GroupAttendance" },
+      "description": "Group session attendance records"
+    },
+    "/group_announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/GroupAnnouncement" },
+      "description": "Group announcements"
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": { "$ref": "#/entities/Enrollment" },
+      "description": "Client program enrollments with duration and session tracking"
+    },
+    "/sessions/{sessionId}": {
+      "schema": { "$ref": "#/entities/Session" },
+      "description": "Consulting sessions"
+    },
+    "/session_internals/{sessionId}": {
+      "schema": { "$ref": "#/entities/SessionInternal" },
+      "description": "Restricted internal notes hidden from clients"
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Client and consultant action items"
+    },
+    "/roadmap_items/{itemId}": {
+      "schema": { "$ref": "#/entities/RoadmapItem" },
+      "description": "Strategic roadmap milestones"
+    },
+    "/kpis/{kpiId}": {
+      "schema": { "$ref": "#/entities/Kpi" },
+      "description": "Business key performance indicators"
+    },
+    "/diagnoses/{diagnosisId}": {
+      "schema": { "$ref": "#/entities/Diagnosis" },
+      "description": "Business diagnostic report"
+    },
+    "/documents/{docId}": {
+      "schema": { "$ref": "#/entities/Document" },
+      "description": "Consulting documents and worksheets"
+    },
+    "/feedback/{feedbackId}": {
+      "schema": { "$ref": "#/entities/Feedback" },
+      "description": "Client post-session ratings and comments"
+    },
+    "/activity_log/{logId}": {
+      "schema": { "$ref": "#/entities/ActivityLog" },
+      "description": "Activity log stream"
+    },
+    "/content_items/{itemId}": {
+      "schema": { "$ref": "#/entities/ContentItem" },
+      "description": "Content calendar and library materials"
+    },
+    "/content_consents/{consentId}": {
+      "schema": { "$ref": "#/entities/ContentConsent" },
+      "description": "Case study publication consents from clients"
+    },
+    "/team_checkins/{checkinId}": {
+      "schema": { "$ref": "#/entities/TeamCheckin" },
+      "description": "Daily team checkins and standup records"
+    },
+    "/plan_items/{planId}": {
+      "schema": { "$ref": "#/entities/PlanItem" },
+      "description": "Daily work plans and priority items"
+    }
+  }
+}

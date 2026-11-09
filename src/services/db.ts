@@ -1,4 +1,5 @@
 import {
+  db,
   collection,
   doc,
   getDoc,
@@ -8,11 +9,10 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { OperationType, handleFirestoreError } from '../firebase/error-handler';
+  deleteField,
+} from './store';
+import { DEMO_MODE } from '../config/appMode';
+import { OperationType, handleFirestoreError } from './errors';
 import {
   Client,
   UserProfile,
@@ -77,6 +77,8 @@ import {
 
 // Helper to seed data to Firestore if not yet populated
 export async function seedInitialDatabaseIfEmpty(): Promise<boolean> {
+  // Data contoh hanya boleh ditulis di mode demo, jangan pernah di produksi.
+  if (!DEMO_MODE) return false;
   const path = 'clients';
   try {
     const snap = await getDocs(collection(db, path));
@@ -201,6 +203,7 @@ export const getUsers = getAllUsers;
 
 export async function saveUserProfile(user: UserProfile): Promise<void> {
   const path = `users/${user.id}`;
+  if (user.email) user = { ...user, email: user.email.trim().toLowerCase() };
   try {
     await setDoc(doc(db, 'users', user.id), user, { merge: true });
     const idx = SEED_USERS.findIndex((u) => u.id === user.id);
@@ -211,6 +214,7 @@ export async function saveUserProfile(user: UserProfile): Promise<void> {
     }
   } catch (error) {
     console.warn('Failed to save user profile in Firestore:', error);
+    if (!DEMO_MODE) throw error;
     const idx = SEED_USERS.findIndex((u) => u.id === user.id);
     if (idx !== -1) {
       SEED_USERS[idx] = { ...SEED_USERS[idx], ...user };
@@ -245,6 +249,7 @@ export async function updateUserProfile(
     });
   } catch (error) {
     console.warn('Failed to update user profile in Firestore:', error);
+    if (!DEMO_MODE) throw error;
     const idx = SEED_USERS.findIndex((u) => u.id === userId);
     if (idx !== -1) {
       SEED_USERS[idx] = { ...SEED_USERS[idx], ...updates };
@@ -318,54 +323,35 @@ export async function getPendingUsers(): Promise<UserProfile[]> {
 export async function registerNewAccount(
   data: Omit<UserProfile, 'id' | 'createdAt'> & { id?: string; rawPassword?: string }
 ): Promise<UserProfile> {
-  const id = data.id || `user-reg-${Date.now()}`;
+  // Password TIDAK PERNAH disimpan di Firestore; autentikasi ditangani Firebase Auth.
+  const { rawPassword: _ignored, ...profileData } = data;
+  const id = profileData.id || `user-reg-${Date.now()}`;
   const now = new Date().toISOString();
   const newUser: UserProfile = {
-    ...data,
+    ...profileData,
+    email: profileData.email.trim().toLowerCase(),
     id,
-    status: data.status || 'pending',
+    // Pendaftaran mandiri selalu menunggu persetujuan Owner.
+    status: 'pending',
     createdAt: now,
     updatedAt: now,
   };
+  // clientId hanya boleh diberikan Owner saat persetujuan.
+  delete (newUser as Partial<UserProfile>).clientId;
 
   try {
     await setDoc(doc(db, 'users', id), newUser);
   } catch (err) {
     console.warn('Failed to save registration in Firestore:', err);
+    if (!DEMO_MODE) throw err;
   }
 
   // Cache in-memory
-  const existingIdx = SEED_USERS.findIndex((u) => u.id === id || u.email.toLowerCase() === newUser.email.toLowerCase());
+  const existingIdx = SEED_USERS.findIndex((u) => u.id === id || u.email.toLowerCase() === newUser.email);
   if (existingIdx !== -1) {
     SEED_USERS[existingIdx] = newUser;
   } else {
     SEED_USERS.push(newUser);
-  }
-
-  // Also if client, register prospek client if client fields are filled
-  if (newUser.role === 'klien' || newUser.registrationCategory === 'client') {
-    const clientId = `client-reg-${Date.now()}`;
-    const newClientData: Client = {
-      id: clientId,
-      namaPemilik: newUser.displayName,
-      namaBisnis: newUser.companyName || `${newUser.displayName} Business`,
-      industri: newUser.industry || 'Umum & Jasa',
-      kota: newUser.city || 'Indonesia',
-      lamaUsaha: '1-3 Tahun',
-      jumlahKaryawan: newUser.teamSize || '1-5 Karyawan',
-      kontak: newUser.phone || newUser.email,
-      status: 'Prospek',
-      createdAt: now,
-      updatedAt: now,
-    };
-    try {
-      await setDoc(doc(db, 'clients', clientId), newClientData);
-      SEED_CLIENTS.push(newClientData);
-      newUser.clientId = clientId;
-      await setDoc(doc(db, 'users', id), { clientId }, { merge: true });
-    } catch (clientErr) {
-      console.warn('Failed to auto-create client record for registrant:', clientErr);
-    }
   }
 
   await logActivity({
@@ -391,8 +377,32 @@ export async function approveUserRegistration(
     title: assignedTitle,
     approvedBy: approverName,
     approvedAt: now,
-    rejectionReason: undefined,
+    rejectionReason: deleteField() as unknown as string,
   };
+
+  // Klien baru otomatis dibuatkan data bisnis (Prospek) saat disetujui Owner.
+  if (assignedRole === 'klien' || assignedRole === 'client') {
+    const user = await getUserProfile(userId);
+    if (user && !user.clientId) {
+      const clientId = `client-reg-${Date.now()}`;
+      const newClientData: Client = {
+        id: clientId,
+        namaPemilik: user.displayName,
+        namaBisnis: user.companyName || `${user.displayName} Business`,
+        industri: user.industry || 'Umum & Jasa',
+        kota: user.city || 'Indonesia',
+        lamaUsaha: '1-3 Tahun',
+        jumlahKaryawan: user.teamSize || '1-5 Karyawan',
+        kontak: user.phone || user.email,
+        status: 'Prospek',
+        createdAt: now,
+        updatedAt: now,
+      };
+      await setDoc(doc(db, 'clients', clientId), newClientData);
+      SEED_CLIENTS.push(newClientData);
+      updates.clientId = clientId;
+    }
+  }
 
   await updateUserProfile(userId, updates, approverName, 'Owner / Managing Partner');
 
@@ -1420,7 +1430,7 @@ export async function getActivityLogs(clientId?: string): Promise<ActivityLog[]>
 }
 
 export async function logActivity(log: Omit<ActivityLog, 'id' | 'createdAt'>): Promise<void> {
-  const logId = `log-${Date.now()}`;
+  const logId = `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const entry: ActivityLog = {
     ...log,
     id: logId,

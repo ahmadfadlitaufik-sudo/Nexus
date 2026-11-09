@@ -22,6 +22,7 @@ import {
   Camera,
 } from 'lucide-react';
 import { AvatarPickerModal } from './AvatarPickerModal';
+import { DEMO_MODE } from '../config/appMode';
 
 interface SidebarProps {
   currentTab: string;
@@ -122,14 +123,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="p-3 mx-3 mt-3 bg-slate-50 border border-slate-200/80 rounded-xl">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                Simulasi Peran
+                {DEMO_MODE ? 'Simulasi Peran' : 'Akun Aktif'}
               </span>
+              {DEMO_MODE && (
               <button
                 onClick={() => setShowRoleSelector(!showRoleSelector)}
                 className="text-[10px] font-semibold text-[#0051d5] hover:underline flex items-center gap-0.5 cursor-pointer"
               >
                 Ganti <ChevronDown className="w-3 h-3" />
               </button>
+              )}
             </div>
             <div className="flex items-center justify-between mt-1.5">
               <span className="text-xs font-semibold text-slate-900 truncate max-w-[120px]">
@@ -140,7 +143,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </span>
             </div>
 
-            {showRoleSelector && (
+            {DEMO_MODE && showRoleSelector && (
               <div className="mt-2 pt-2 border-t border-slate-200 space-y-1 animate-in fade-in">
                 {availableDemoUsers.map((u) => (
                   <button

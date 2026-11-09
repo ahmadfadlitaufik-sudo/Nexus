@@ -1,28 +1,33 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import {
-  User,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-} from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { UserProfile, UserRole } from '../types';
-import { getUserProfile, saveUserProfile, seedInitialDatabaseIfEmpty, getAllUsers } from '../services/db';
+import { UserProfile } from '../types';
+import { registerNewAccount, seedInitialDatabaseIfEmpty, getAllUsers } from '../services/db';
 import { SEED_USERS } from '../data/seedData';
+import { DEMO_MODE } from '../config/appMode';
+
+type RegistrationData = Omit<UserProfile, 'id' | 'createdAt'> & {
+  rawPassword?: string;
+  /** Hanya untuk membuat akun owner pertama (email owner). */
+  setupCode?: string;
+};
 
 interface AuthContextType {
-  currentUser: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
+  /** Login Google tersedia bila GOOGLE_CLIENT_ID/SECRET diatur di Cloudflare. */
+  googleEnabled: boolean;
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
-  registerAccount: (data: Omit<UserProfile, 'id' | 'createdAt'> & { rawPassword?: string }) => Promise<UserProfile>;
+  registerAccount: (data: RegistrationData) => Promise<UserProfile>;
+  /** Info tautan aktivasi / atur ulang kata sandi (?akun=...). */
+  getPasswordLinkInfo: (token: string) => Promise<{ email: string; displayName?: string }>;
+  setPasswordWithLink: (token: string, password: string) => Promise<void>;
+  /** Owner: buat tautan aktivasi akun / atur ulang kata sandi untuk pengguna. */
+  createPasswordLink: (userId: string) => Promise<{ url: string; expiresInDays: number; email: string }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   refreshCurrentUser: () => Promise<void>;
   updateAvatar: (newAvatarUrl: string) => Promise<void>;
   logout: () => Promise<void>;
-  // Quick role switcher for seamless evaluation of all 3 roles (Owner, Konsultan, Klien)
+  // Pemilih akun simulasi — HANYA aktif saat DEMO_MODE.
   switchDemoRole: (roleOrUserId: string) => Promise<void>;
   availableDemoUsers: UserProfile[];
   refreshDemoUsers: () => Promise<void>;
@@ -30,193 +35,147 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const DEMO_STORAGE_KEY = 'nexust_active_user_id';
+
+async function api<T = any>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: body === undefined ? 'GET' : 'POST',
+    credentials: 'same-origin',
+    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || `Permintaan gagal (${res.status}).`);
+  return json as T;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [availableDemoUsers, setAvailableDemoUsers] = useState<UserProfile[]>(SEED_USERS);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [availableDemoUsers, setAvailableDemoUsers] = useState<UserProfile[]>(
+    DEMO_MODE ? SEED_USERS : []
+  );
 
-  // Initialize DB and Auth listener
   useEffect(() => {
     let isMounted = true;
-
-    async function initAuth() {
+    (async () => {
+      if (DEMO_MODE) {
+        try {
+          await seedInitialDatabaseIfEmpty();
+        } catch (err) {
+          console.warn('DB initialization check:', err);
+        }
+      }
       try {
-        await seedInitialDatabaseIfEmpty();
-        const users = await getAllUsers();
-        if (isMounted && users && users.length > 0) {
-          setAvailableDemoUsers(users);
+        const me = await api<{ user: UserProfile | null; googleEnabled: boolean }>('/api/auth/me');
+        if (!isMounted) return;
+        setGoogleEnabled(!!me.googleEnabled);
+        if (me.user) {
+          setUserProfile(me.user);
+        } else if (DEMO_MODE) {
+          const activeId = localStorage.getItem(DEMO_STORAGE_KEY);
+          setUserProfile(SEED_USERS.find((u) => u.id === activeId) || null);
         }
       } catch (err) {
-        console.warn('DB initialization check:', err);
-      }
-
-      // Check local storage for active demo user if offline/testing
-      const savedDemoUserId = localStorage.getItem('nexust_active_user_id');
-      if (savedDemoUserId) {
-        const found = SEED_USERS.find((u) => u.id === savedDemoUserId);
-        if (found && isMounted) {
-          setUserProfile(found);
-        }
-      }
-
-      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (!isMounted) return;
-        setCurrentUser(firebaseUser);
-
-        if (firebaseUser) {
-          // If real user is logged in via Firebase
-          try {
-            let profile = await getUserProfile(firebaseUser.uid);
-            if (!profile) {
-              // Check if email matches owner or any seed user
-              const matchedSeed = SEED_USERS.find(
-                (u) => u.email.toLowerCase() === (firebaseUser.email || '').toLowerCase()
-              );
-
-              const role: UserRole =
-                matchedSeed?.role ||
-                (firebaseUser.email === 'Ahmadfadlitaufik@gmail.com' ? 'owner' : 'consultant');
-
-              profile = {
-                id: firebaseUser.uid,
-                email: firebaseUser.email || '',
-                displayName: firebaseUser.displayName || matchedSeed?.displayName || 'Pengguna Nexust',
-                role,
-                clientId: matchedSeed?.clientId,
-                title: matchedSeed?.title || (role === 'owner' ? 'Managing Partner' : 'Konsultan'),
-                avatarUrl: firebaseUser.photoURL || matchedSeed?.avatarUrl,
-                createdAt: new Date().toISOString(),
-              };
-              await saveUserProfile(profile);
-            }
-            if (isMounted) {
-              setUserProfile(profile);
-              localStorage.setItem('nexust_active_user_id', profile.id);
-            }
-          } catch (err) {
-            console.warn('Error loading user profile:', err);
-          }
-        } else {
-          // If no Firebase user, check if we still have a local demo session
-          const activeId = localStorage.getItem('nexust_active_user_id');
-          if (activeId) {
-            const found = SEED_USERS.find((u) => u.id === activeId);
-            if (found && isMounted) {
-              setUserProfile(found);
-            }
-          }
-        }
+        console.warn('Gagal memeriksa sesi login:', err);
+      } finally {
         if (isMounted) setLoading(false);
-      });
-
-      return () => {
-        isMounted = false;
-        unsubscribe();
-      };
-    }
-
-    initAuth();
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const loginWithGoogle = async () => {
-    setLoading(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error('Google Sign-In failed:', error);
-      throw error;
-    } finally {
-      setLoading(false);
+  // Daftar pengguna (untuk notifikasi pendaftar baru, dll.) dimuat setelah login.
+  useEffect(() => {
+    if (DEMO_MODE) return;
+    if (userProfile && userProfile.status !== 'pending' && userProfile.status !== 'rejected') {
+      getAllUsers()
+        .then((users) => setAvailableDemoUsers(users))
+        .catch(() => setAvailableDemoUsers([]));
+    } else {
+      setAvailableDemoUsers([]);
     }
+  }, [userProfile?.id, userProfile?.status]);
+
+  const loginWithGoogle = async () => {
+    window.location.href = '/api/auth/google/start';
   };
 
   const refreshDemoUsers = async () => {
     try {
       const users = await getAllUsers();
-      if (users && users.length > 0) {
-        setAvailableDemoUsers(users);
-      }
+      if (users && users.length > 0) setAvailableDemoUsers(users);
     } catch (err) {
-      console.warn('Failed to refresh demo users:', err);
+      console.warn('Failed to refresh users:', err);
     }
   };
 
   const refreshCurrentUser = async () => {
-    if (!userProfile) return;
+    if (DEMO_MODE) return;
     try {
-      const refreshed = await getUserProfile(userProfile.id);
-      if (refreshed) {
-        setUserProfile(refreshed);
-      }
+      const me = await api<{ user: UserProfile | null }>('/api/auth/me');
+      if (me.user) setUserProfile(me.user);
     } catch (err) {
       console.warn('Failed to refresh current user:', err);
     }
   };
 
-  const registerAccount = async (
-    data: Omit<UserProfile, 'id' | 'createdAt'> & { rawPassword?: string }
-  ): Promise<UserProfile> => {
-    setLoading(true);
-    try {
-      const { registerNewAccount } = await import('../services/db');
+  const registerAccount = async (data: RegistrationData): Promise<UserProfile> => {
+    if (DEMO_MODE) {
       const newUser = await registerNewAccount(data);
       await refreshDemoUsers();
       return newUser;
-    } finally {
-      setLoading(false);
     }
+    const { rawPassword, setupCode, ...profile } = data;
+    const res = await api<{ user: UserProfile }>('/api/auth/register', {
+      ...profile,
+      password: rawPassword || '',
+      setupCode,
+    });
+    return res.user;
   };
 
+  /** Dipanggil setelah layar "pendaftaran berhasil" agar aplikasi masuk ke sesi baru. */
   const loginWithEmail = async (email: string, pass: string) => {
-    setLoading(true);
-    try {
+    if (DEMO_MODE) {
       const normalized = email.trim().toLowerCase();
-      // First check in-memory / seed users
-      let matchedUser = SEED_USERS.find((u) => u.email.toLowerCase() === normalized);
-      
-      // If not in seed, check Firestore via getUserByEmail
-      if (!matchedUser) {
-        const { getUserByEmail } = await import('../services/db');
-        const dbUser = await getUserByEmail(normalized);
-        if (dbUser) {
-          matchedUser = dbUser;
-        }
-      }
-
+      const matchedUser = SEED_USERS.find((u) => u.email.toLowerCase() === normalized);
       if (matchedUser) {
         setUserProfile(matchedUser);
-        localStorage.setItem('nexust_active_user_id', matchedUser.id);
-        setLoading(false);
+        localStorage.setItem(DEMO_STORAGE_KEY, matchedUser.id);
         return;
       }
-
-      // Try Firebase auth as fallback
-      await signInWithEmailAndPassword(auth, email, pass);
-    } catch (error) {
-      console.error('Email sign-in failed:', error);
-      throw error;
-    } finally {
-      setLoading(false);
     }
+    const res = await api<{ user: UserProfile }>('/api/auth/login', { email: email.trim(), password: pass });
+    setUserProfile(res.user);
+  };
+
+  const getPasswordLinkInfo = (token: string) =>
+    api<{ email: string; displayName?: string }>('/api/auth/password-link/info', { token });
+
+  const setPasswordWithLink = async (token: string, password: string) => {
+    const res = await api<{ user: UserProfile }>('/api/auth/set-password', { token, password });
+    setUserProfile(res.user);
+  };
+
+  const createPasswordLink = (userId: string) =>
+    api<{ url: string; expiresInDays: number; email: string }>('/api/auth/password-link', { userId });
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await api('/api/auth/change-password', { currentPassword, newPassword });
   };
 
   const switchDemoRole = async (roleOrUserId: string) => {
-    setLoading(true);
-    try {
-      // Find by ID or by role in available users or SEED_USERS
-      const pool = availableDemoUsers.length > 0 ? availableDemoUsers : SEED_USERS;
-      let targetUser = pool.find((u) => u.id === roleOrUserId);
-      if (!targetUser) {
-        targetUser = pool.find((u) => u.role === roleOrUserId);
-      }
-      if (targetUser) {
-        setUserProfile(targetUser);
-        localStorage.setItem('nexust_active_user_id', targetUser.id);
-      }
-    } finally {
-      setLoading(false);
+    if (!DEMO_MODE) return;
+    const pool = availableDemoUsers.length > 0 ? availableDemoUsers : SEED_USERS;
+    const targetUser =
+      pool.find((u) => u.id === roleOrUserId) || pool.find((u) => u.role === roleOrUserId);
+    if (targetUser) {
+      setUserProfile(targetUser);
+      localStorage.setItem(DEMO_STORAGE_KEY, targetUser.id);
     }
   };
 
@@ -231,22 +190,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userProfile.role
       );
 
-      // Update in-memory state
-      const updatedProfile = { ...userProfile, avatarUrl: newAvatarUrl };
-      setUserProfile(updatedProfile);
-
+      setUserProfile({ ...userProfile, avatarUrl: newAvatarUrl });
       setAvailableDemoUsers((prev) =>
         prev.map((u) => (u.id === userProfile.id ? { ...u, avatarUrl: newAvatarUrl } : u))
       );
 
-      // Log in ActivityLog
       await logActivity({
         action: 'Ganti Foto Avatar Pengguna',
         actorName: userProfile.displayName,
         actorRole:
           userProfile.role === 'owner'
             ? 'Owner / BOD'
-            : userProfile.role === 'client'
+            : userProfile.role === 'client' || userProfile.role === 'klien'
             ? 'Klien UKM'
             : 'Tim Nexus',
         details: `${userProfile.displayName} (${userProfile.role}) memperbarui foto profil avatar ke gambar baru.`,
@@ -258,29 +213,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    setLoading(true);
+    localStorage.removeItem(DEMO_STORAGE_KEY);
+    setUserProfile(null);
     try {
-      localStorage.removeItem('nexust_active_user_id');
-      setUserProfile(null);
-      if (auth.currentUser) {
-        await firebaseSignOut(auth);
-      }
+      await api('/api/auth/logout', {});
     } catch (err) {
       console.error('Logout error:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        currentUser,
         userProfile,
         loading,
+        googleEnabled,
         loginWithGoogle,
         loginWithEmail,
         registerAccount,
+        getPasswordLinkInfo,
+        setPasswordWithLink,
+        createPasswordLink,
+        changePassword,
         refreshCurrentUser,
         updateAvatar,
         logout,

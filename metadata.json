@@ -1,6 +1,0 @@
-{
-  "name": "Nexust Growth Partner Client Hub",
-  "description": "Hub klien dan manajemen konsultasi bisnis WFA untuk Pendampingan Fundamental dan Mentoring Private.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

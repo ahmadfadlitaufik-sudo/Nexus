@@ -16,6 +16,7 @@ import {
   Camera,
 } from 'lucide-react';
 import { AvatarPickerModal } from './AvatarPickerModal';
+import { DEMO_MODE } from '../config/appMode';
 
 interface NavbarProps {
   currentTab: string;
@@ -41,7 +42,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
           <span className="hidden sm:inline text-blue-200">| Zona Waktu WITA (UTC+8)</span>
         </div>
 
-        {/* Demo Role Switcher Quick Pill */}
+        {/* Demo Role Switcher Quick Pill — hanya di DEMO_MODE */}
+        {DEMO_MODE && (
         <div className="relative">
           <button
             onClick={() => setShowRoleMenu(!showRoleMenu)}
@@ -98,6 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
             </div>
           )}
         </div>
+        )}
       </div>
 
       {/* Main Navbar */}

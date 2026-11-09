@@ -1,3 +1,4 @@
+import { DEMO_MODE } from '../config/appMode';
 import {
   Client,
   UserProfile,
@@ -1903,3 +1904,34 @@ export const SEED_FEEDBACKS: Feedback[] = [
   },
 ];
 
+
+// Di mode produksi, data contoh tidak boleh muncul sebagai pengganti data asli
+// (misalnya saat Firestore menolak akses). Kosongkan semua array contoh,
+// kecuali katalog program yang memang bersifat publik.
+if (!DEMO_MODE) {
+  [
+    SEED_USERS,
+    SEED_CLIENTS,
+    SEED_CLIENT_CONSULTANTS,
+    SEED_ENROLLMENTS,
+    SEED_DIAGNOSES,
+    SEED_ROADMAP_ITEMS,
+    SEED_KPIS,
+    SEED_SESSIONS,
+    SEED_SESSION_INTERNALS,
+    SEED_TASKS,
+    SEED_DOCUMENTS,
+    SEED_FEEDBACK,
+    SEED_ACTIVITY_LOGS,
+    SEED_GROUPS,
+    SEED_GROUP_MEMBERS,
+    SEED_GROUP_ATTENDANCE,
+    SEED_GROUP_ANNOUNCEMENTS,
+    SEED_CONTENT_ITEMS,
+    SEED_CONTENT_CONSENTS,
+    SEED_SESSION_AUDIT_LOGS,
+    SEED_FEEDBACKS,
+  ].forEach((list: unknown[]) => {
+    list.length = 0;
+  });
+}

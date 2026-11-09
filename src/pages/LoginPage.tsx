@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Compass,
@@ -22,6 +22,23 @@ import {
 } from 'lucide-react';
 import { SEED_USERS } from '../data/seedData';
 import { RegistrationCategory, UserRole, UserProfile } from '../types';
+import { DEMO_MODE, isOwnerEmail } from '../config/appMode';
+
+/** Pesan error dari server sudah berbahasa Indonesia; pakai fallback bila kosong. */
+function authErrorMessage(err: any, fallback: string): string {
+  return (err && typeof err.message === 'string' && err.message) || fallback;
+}
+
+/** Ambil & hapus parameter dari URL (misal ?akun=... atau ?login_error=...). */
+function takeQueryParam(name: string): string | null {
+  const url = new URL(window.location.href);
+  const value = url.searchParams.get(name);
+  if (value !== null) {
+    url.searchParams.delete(name);
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+  return value;
+}
 
 interface LoginPageProps {
   onBackToLanding: () => void;
@@ -29,8 +46,62 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSuccess }) => {
-  const { loginWithGoogle, loginWithEmail, registerAccount, switchDemoRole, availableDemoUsers } =
-    useAuth();
+  const {
+    loginWithGoogle,
+    loginWithEmail,
+    registerAccount,
+    switchDemoRole,
+    availableDemoUsers,
+    googleEnabled,
+    getPasswordLinkInfo,
+    setPasswordWithLink,
+    refreshCurrentUser,
+  } = useAuth();
+  const [info, setInfo] = useState<string | null>(null);
+
+  // Tautan aktivasi / atur ulang kata sandi dari Owner (?akun=TOKEN).
+  const [linkToken, setLinkToken] = useState<string | null>(null);
+  const [linkInfo, setLinkInfo] = useState<{ email: string; displayName?: string } | null>(null);
+  const [linkPassword, setLinkPassword] = useState('');
+  const [linkConfirm, setLinkConfirm] = useState('');
+  const [setupCode, setSetupCode] = useState('');
+
+  useEffect(() => {
+    const loginError = takeQueryParam('login_error');
+    if (loginError) setError(loginError);
+    const token = takeQueryParam('akun');
+    if (token) {
+      setLinkToken(token);
+      getPasswordLinkInfo(token)
+        .then(setLinkInfo)
+        .catch((err) => {
+          setLinkToken(null);
+          setError(authErrorMessage(err, 'Tautan tidak valid.'));
+        });
+    }
+  }, []);
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (linkPassword.length < 8) {
+      setError('Kata sandi minimal 8 karakter.');
+      return;
+    }
+    if (linkPassword !== linkConfirm) {
+      setError('Konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await setPasswordWithLink(linkToken!, linkPassword);
+      onLoginSuccess();
+    } catch (err) {
+      setError(authErrorMessage(err, 'Gagal menyimpan kata sandi.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Mode: 'login' | 'register'
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -51,7 +122,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
 
   // BOD specific
   const [bodTitle, setBodTitle] = useState('Managing Partner / Direksi');
-  const [bodAccessCode, setBodAccessCode] = useState('');
 
   // Staff specific
   const [staffRole, setStaffRole] = useState<UserRole>('konsultan');
@@ -79,10 +149,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
     }
     setIsSubmitting(true);
     try {
-      await loginWithEmail(email, password || 'password123');
+      if (!DEMO_MODE && !password) {
+        setError('Silakan masukkan kata sandi Anda.');
+        setIsSubmitting(false);
+        return;
+      }
+      await loginWithEmail(email, password);
       onLoginSuccess();
     } catch (err: any) {
-      setError('Email atau kata sandi tidak sesuai. Jika Anda baru mendaftar, pastikan email telah disetujui oleh Owner.');
+      setError(authErrorMessage(err, 'Email atau kata sandi tidak sesuai.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -96,10 +171,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       await loginWithGoogle();
       onLoginSuccess();
     } catch (err) {
-      setError('Gagal masuk dengan Google. Silakan coba kembali.');
+      setError(authErrorMessage(err, 'Gagal masuk dengan Google. Silakan coba kembali.'));
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    setError(null);
+    setInfo(
+      'Untuk mengatur ulang kata sandi, hubungi Owner (Ahmad Fadli Taufik). Owner akan mengirimkan tautan atur ulang kata sandi kepada Anda.'
+    );
   };
 
   // Handle Quick Demo Account Selection
@@ -130,7 +212,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       setError('Silakan isi alamat email resmi.');
       return;
     }
-    if (regPassword && regPassword !== regConfirmPassword) {
+    if (!DEMO_MODE && regPassword.length < 8) {
+      setError('Kata sandi minimal 8 karakter.');
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
       setError('Konfirmasi kata sandi tidak cocok.');
       return;
     }
@@ -144,12 +230,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       if (regCategory === 'bod') {
         finalRole = 'owner';
         finalTitle = bodTitle || 'Managing Partner / Direksi';
-        // If master code matches, activate immediately; otherwise pending approval
-        if (bodAccessCode.trim().toUpperCase() === 'BOD-NEXUST' || bodAccessCode.trim() === '2026') {
-          initialStatus = 'active';
-        } else {
-          initialStatus = 'pending';
-        }
+        // Akun BOD selalu menunggu persetujuan Owner (tidak ada kode akses di sisi browser).
+        initialStatus = 'pending';
       } else if (regCategory === 'staff') {
         finalRole = staffRole;
         finalTitle = staffTitle;
@@ -174,20 +256,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
         teamSize: clientTeamSize || undefined,
         programInterest: clientProgramInterest || undefined,
         notes: (regCategory === 'client' ? clientNotes : staffNotes).trim() || undefined,
-        rawPassword: regPassword || 'password123',
+        rawPassword: regPassword,
+        setupCode: isOwnerEmail(regEmail) ? setupCode.trim() : undefined,
       });
 
       setRegisteredUser(newProfile);
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError('Terjadi kesalahan saat menyimpan data pendaftaran. Silakan coba lagi.');
+      setError(authErrorMessage(err, 'Terjadi kesalahan saat menyimpan data pendaftaran. Silakan coba lagi.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Use dynamic demo users pool
-  const demoUsersList = availableDemoUsers.length > 0 ? availableDemoUsers : SEED_USERS;
+  const demoUsersList = DEMO_MODE
+    ? availableDemoUsers.length > 0
+      ? availableDemoUsers
+      : SEED_USERS
+    : [];
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-['Inter']">
@@ -266,8 +353,70 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
             </div>
           )}
 
-          {/* ===================== REGISTRATION SUCCESS STATE ===================== */}
-          {registeredUser ? (
+          {info && (
+            <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span>{info}</span>
+            </div>
+          )}
+
+          {/* ===================== AKTIVASI / ATUR ULANG KATA SANDI ===================== */}
+          {linkToken ? (
+            <form className="space-y-4" onSubmit={handleSetPassword}>
+              <div className="text-center space-y-1">
+                <h3 className="text-lg font-black text-slate-900 font-['Plus_Jakarta_Sans']">
+                  Buat Kata Sandi Akun
+                </h3>
+                <p className="text-xs text-slate-600">
+                  {linkInfo ? (
+                    <>
+                      Untuk <span className="font-bold">{linkInfo.displayName || linkInfo.email}</span> ({linkInfo.email})
+                    </>
+                  ) : (
+                    'Memeriksa tautan...'
+                  )}
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Kata Sandi Baru</label>
+                <input
+                  type="password"
+                  required
+                  value={linkPassword}
+                  onChange={(e) => setLinkPassword(e.target.value)}
+                  placeholder="Minimal 8 karakter"
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0051d5]"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Konfirmasi Kata Sandi</label>
+                <input
+                  type="password"
+                  required
+                  value={linkConfirm}
+                  onChange={(e) => setLinkConfirm(e.target.value)}
+                  placeholder="Ketik ulang kata sandi"
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0051d5]"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting || !linkInfo}
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#00236f] hover:bg-[#1e3a8a] text-white py-2.5 px-4 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? 'Menyimpan...' : 'Simpan Kata Sandi & Masuk'}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkToken(null)}
+                className="w-full text-[11px] text-slate-500 hover:underline cursor-pointer"
+              >
+                Batal, kembali ke halaman masuk
+              </button>
+            </form>
+          ) : /* ===================== REGISTRATION SUCCESS STATE ===================== */
+          registeredUser ? (
             <div className="text-center py-4 space-y-4 animate-in fade-in zoom-in-95">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
                 <CheckCircle2 className="w-8 h-8" />
@@ -282,6 +431,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 ) : (
                   <span> Akun Anda saat ini berstatus <span className="font-bold text-amber-700">Menunggu Persetujuan (Pending Approval)</span> dari Owner / BOD Nexust Growth Partner (Ahmad Fadli Taufik).</span>
                 )}
+
               </p>
 
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left text-xs space-y-2 max-w-md mx-auto">
@@ -311,7 +461,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 <button
                   type="button"
                   onClick={async () => {
-                    await loginWithEmail(registeredUser.email, 'password123');
+                    if (DEMO_MODE) {
+                      await loginWithEmail(registeredUser.email, '');
+                    } else {
+                      // Akun sudah otomatis masuk setelah mendaftar.
+                      await refreshCurrentUser();
+                    }
                     onLoginSuccess();
                   }}
                   className="w-full py-2.5 px-4 bg-[#00236f] hover:bg-[#1e3a8a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
@@ -355,9 +510,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                     <label className="block text-xs font-semibold text-slate-700">
                       Kata Sandi
                     </label>
-                    <span className="text-[11px] text-[#0051d5] hover:underline cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[11px] text-[#0051d5] hover:underline cursor-pointer"
+                    >
                       Lupa sandi?
-                    </span>
+                    </button>
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -381,6 +540,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 </button>
               </form>
 
+              {googleEnabled && (
               <div className="mt-6">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
@@ -422,6 +582,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   </button>
                 </div>
               </div>
+              )}
 
               {/* Callout to register */}
               <div className="mt-6 pt-4 border-t border-slate-100 text-center">
@@ -571,6 +732,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   />
                 </div>
 
+                {!DEMO_MODE && isOwnerEmail(regEmail) && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Kode Setup Owner <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={setupCode}
+                      onChange={(e) => setSetupCode(e.target.value)}
+                      placeholder="Kode rahasia OWNER_SETUP_CODE dari Cloudflare"
+                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    />
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -581,7 +758,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                       required
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter"
+                      placeholder="Minimal 8 karakter"
                       className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0051d5]"
                     />
                   </div>
@@ -622,18 +799,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Kode Akses Otorisasi BOD <span className="text-slate-400 font-normal">(Opsional jika diverifikasi manual)</span>
-                      </label>
-                      <input
-                        type="password"
-                        value={bodAccessCode}
-                        onChange={(e) => setBodAccessCode(e.target.value)}
-                        placeholder="Masukkan kode khusus jika Anda memiliki undangan resmi"
-                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      />
-                    </div>
                   </div>
                 )}
 
@@ -831,7 +996,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
             </div>
           )}
 
-          {/* Quick Demo Simulator for Evaluators */}
+          {/* Quick Demo Simulator for Evaluators — hanya di DEMO_MODE */}
+          {DEMO_MODE && (
           <div className="mt-8 pt-6 border-t border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -895,6 +1061,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
               })}
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

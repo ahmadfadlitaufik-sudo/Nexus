@@ -207,6 +207,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       const activeClient = clients.find((c) => c.id === clientId);
       const res = await fetch('/api/ai/summarize-session', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           agenda: agenda.trim(),
@@ -216,7 +217,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         }),
       });
 
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       if (!res.ok || !json.success) {
         throw new Error(json.error || 'Gagal memproses AI');
       }

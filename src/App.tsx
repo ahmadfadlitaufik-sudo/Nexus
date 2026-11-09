@@ -28,7 +28,6 @@ import { OwnerNotificationCenter } from './components/OwnerNotificationCenter';
 import { ActivityLog } from './components/ActivityLog';
 import { SessionFormModal } from './components/SessionFormModal';
 import { NewClientModal } from './components/NewClientModal';
-import { testFirestoreConnection } from './firebase/config';
 import { Menu, Plus, Compass } from 'lucide-react';
 
 function MainApp() {
@@ -44,11 +43,6 @@ function MainApp() {
   const [activeSessionId, setActiveSessionId] = useState<string | undefined>(undefined);
   const [sessionTargetClientId, setSessionTargetClientId] = useState<string | undefined>(undefined);
   const [showNewClientModal, setShowNewClientModal] = useState(false);
-
-  // Test Firestore connection on boot as mandated by skill
-  useEffect(() => {
-    testFirestoreConnection();
-  }, []);
 
   // Sync route on login or role change
   useEffect(() => {

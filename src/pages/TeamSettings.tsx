@@ -26,6 +26,7 @@ import {
   ChevronRight,
   UserCheck,
   Camera,
+  KeyRound,
 } from 'lucide-react';
 import { AvatarPickerModal } from '../components/AvatarPickerModal';
 import { UserProfile, Client, UserRole, Program, ProgramMilestoneTemplate } from '../types';
@@ -41,6 +42,7 @@ import {
   deleteProgram,
 } from '../services/db';
 import { formatRupiah } from '../utils/formatters';
+import { DEMO_MODE } from '../config/appMode';
 
 const ROLE_PERMISSIONS_INFO: Record<
   string,
@@ -170,7 +172,28 @@ const ROLE_PERMISSIONS_INFO: Record<
 };
 
 export const TeamSettings: React.FC = () => {
-  const { userProfile, updateAvatar } = useAuth();
+  const { userProfile, updateAvatar, createPasswordLink } = useAuth();
+  const [accountLink, setAccountLink] = useState<{ name: string; url: string; days: number } | null>(null);
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  // Owner membuat tautan aktivasi akun / atur ulang kata sandi, lalu membagikannya (mis. via WhatsApp).
+  const handleCreateAccountLink = async (u: UserProfile) => {
+    setLinkError(null);
+    setAccountLink(null);
+    try {
+      const res = await createPasswordLink(u.id);
+      setAccountLink({ name: u.displayName, url: res.url, days: res.expiresInDays });
+      try {
+        await navigator.clipboard.writeText(res.url);
+      } catch {
+        /* clipboard tidak tersedia */
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: any) {
+      setLinkError(err?.message || 'Gagal membuat tautan akun.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
   const [activeTab, setActiveTab] = useState<'users' | 'programs'>('users');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -298,7 +321,9 @@ export const TeamSettings: React.FC = () => {
       });
 
       setUsers([...users, newUser]);
-      setSuccessMessage(`Akses untuk ${displayName} (${email}) berhasil ditambahkan ke sistem.`);
+      setSuccessMessage(
+        `Akses untuk ${displayName} (${email}) berhasil ditambahkan. Klik "Tautan Akun" pada daftar pengguna untuk membuat tautan aktivasi, lalu kirimkan ke ${displayName}.`
+      );
       setDisplayName('');
       setEmail('');
       setTitle('');
@@ -600,6 +625,25 @@ export const TeamSettings: React.FC = () => {
               Karena tidak ada pendaftaran mandiri publik, seluruh akun konsultan dan perwakilan klien dibuat secara langsung oleh Owner.
             </p>
 
+            {accountLink && (
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
+                <div className="font-bold">Tautan akun untuk {accountLink.name} (sudah disalin)</div>
+                <input
+                  readOnly
+                  value={accountLink.url}
+                  onFocus={(e) => e.currentTarget.select()}
+                  className="w-full px-2.5 py-1.5 border border-amber-300 rounded-lg bg-white text-[11px]"
+                />
+                <div>
+                  Kirim tautan ini ke {accountLink.name} (misalnya via WhatsApp). Berlaku {accountLink.days} hari dan
+                  hanya bisa dipakai sekali untuk membuat / mengganti kata sandi.
+                </div>
+              </div>
+            )}
+            {linkError && (
+              <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">{linkError}</div>
+            )}
+
             {successMessage && (
               <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -773,6 +817,17 @@ export const TeamSettings: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-1 border-l border-slate-200 pl-2">
+                          {!DEMO_MODE && userProfile?.role === 'owner' && (
+                            <button
+                              type="button"
+                              onClick={() => handleCreateAccountLink(u)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-amber-300 hover:bg-amber-50 text-slate-700 hover:text-amber-700 text-xs font-semibold transition cursor-pointer"
+                              title="Buat tautan aktivasi akun / atur ulang kata sandi"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" />
+                              <span>Tautan Akun</span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => handleOpenEditUser(u)}
@@ -864,6 +919,17 @@ export const TeamSettings: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-1 border-l border-slate-200 pl-2">
+                          {!DEMO_MODE && userProfile?.role === 'owner' && (
+                            <button
+                              type="button"
+                              onClick={() => handleCreateAccountLink(u)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-amber-300 hover:bg-amber-50 text-slate-700 hover:text-amber-700 text-xs font-semibold transition cursor-pointer"
+                              title="Buat tautan aktivasi akun / atur ulang kata sandi"
+                            >
+                              <KeyRound className="w-3.5 h-3.5" />
+                              <span>Tautan Akun</span>
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => handleOpenEditUser(u)}
@@ -947,6 +1013,17 @@ export const TeamSettings: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        {!DEMO_MODE && userProfile?.role === 'owner' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCreateAccountLink(u)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-amber-300 hover:bg-amber-50 text-slate-700 hover:text-amber-700 text-xs font-semibold transition cursor-pointer"
+                            title="Buat tautan aktivasi akun / atur ulang kata sandi"
+                          >
+                            <KeyRound className="w-3.5 h-3.5" />
+                            <span>Tautan Akun</span>
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleOpenEditUser(u)}

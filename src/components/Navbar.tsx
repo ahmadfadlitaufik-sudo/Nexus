@@ -1,3 +1,4 @@
+import { UserAvatar } from './UserAvatar';
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -50,7 +51,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
             title="Ganti peran untuk menguji hak akses"
           >
             <span>Simulasi Peran:</span>
-            <span className="font-bold uppercase text-white bg-[#0051d5] px-1.5 py-0.2 rounded text-[10px]">
+            <span className="font-bold uppercase text-white bg-[#0051d5] px-1.5 py-0.2 rounded text-xs">
               {role === 'owner' ? 'Owner' : role === 'consultant' ? 'Konsultan' : 'Klien'}
             </span>
             <ChevronDown className="w-3 h-3 text-blue-300" />
@@ -58,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
 
           {showRoleMenu && (
             <div className="absolute right-0 mt-1.5 w-72 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50 text-slate-800 animate-in fade-in slide-in-from-top-1">
-              <div className="px-3 py-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+              <div className="px-3 py-1.5 border-b border-slate-100 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Pilih Akun / Peran Pengujian:
               </div>
               <div className="max-h-80 overflow-y-auto divide-y divide-slate-50">
@@ -84,16 +85,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
                     >
                       <div>
                         <div className="text-slate-900 font-medium">{u.displayName}</div>
-                        <div className="text-[11px] text-slate-500">{u.title || u.email}</div>
+                        <div className="text-xs text-slate-500">{u.title || u.email}</div>
                       </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase ${roleBadge}`}>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold uppercase ${roleBadge}`}>
                         {u.role === 'owner' ? 'Owner' : u.role === 'consultant' ? 'Konsultan' : 'Klien'}
                       </span>
                     </button>
                   );
                 })}
               </div>
-              <div className="px-3 pt-2 pb-1 border-t border-slate-100 text-[10px] text-slate-400">
+              <div className="px-3 pt-2 pb-1 border-t border-slate-100 text-xs text-slate-500">
                 Peralihan ini menguji pembatasan data & izin internal.
               </div>
             </div>
@@ -112,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
               <span className="text-lg font-bold text-slate-900 tracking-tight block leading-tight font-['Plus_Jakarta_Sans']">
                 Nexus Growth Partner
               </span>
-              <span className="text-[11px] font-medium text-slate-500 block leading-tight">
+              <span className="text-xs font-medium text-slate-500 block leading-tight">
                 Client Hub • Pendampingan WFA
               </span>
             </div>
@@ -227,18 +228,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
                 onClick={() => setShowAvatarModal(true)}
                 title="Ganti Foto Avatar Profil"
               >
-                <img
-                  src={
-                    userProfile?.avatarUrl ||
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-                  }
-                  alt={userProfile?.displayName || 'User'}
-                  className="w-9 h-9 rounded-full object-cover ring-2 ring-slate-100 group-hover:ring-[#0051d5] transition shadow-xs"
-                />
+                <UserAvatar url={userProfile?.avatarUrl} name={userProfile?.displayName || 'User'} className="w-9 h-9 rounded-full ring-2 ring-slate-100 group-hover:ring-[#0051d5] transition shadow-xs" />
                 <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white">
                   <Camera className="w-4 h-4 drop-shadow-sm" />
                 </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#0051d5] text-white rounded-full flex items-center justify-center shadow-xs text-[9px] font-bold ring-1 ring-white">
+                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-[#0051d5] text-white rounded-full flex items-center justify-center shadow-xs text-xs font-bold ring-1 ring-white">
                   ✎
                 </span>
               </div>
@@ -247,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
                 <div className="text-xs font-semibold text-slate-900 leading-tight">
                   {userProfile?.displayName}
                 </div>
-                <div className="text-[10px] text-slate-500 leading-tight">
+                <div className="text-xs text-slate-500 leading-tight">
                   {role === 'owner'
                     ? 'Owner / Principal'
                     : role === 'consultant'
@@ -257,7 +251,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
               </div>
               <button
                 onClick={() => logout()}
-                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
                 title="Keluar"
               >
                 <LogOut className="w-4 h-4" />

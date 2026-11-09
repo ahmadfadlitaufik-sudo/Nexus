@@ -1,3 +1,4 @@
+import { UserAvatar } from './UserAvatar';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -385,7 +386,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
               <h2 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
                 {title}
               </h2>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#00236f]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-[#00236f]">
                 <Clock className="w-3 h-3" />
                 WITA (UTC+8)
               </span>
@@ -407,7 +408,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                 )
               </span>
               <span className="text-emerald-400">|</span>
-              <span className="text-[11px] font-bold">
+              <span className="text-xs font-bold">
                 {completedUserPriorities}/{totalUserPriorities} Selesai
               </span>
             </div>
@@ -455,7 +456,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
           {/* Collapse / Expand Toggle Button */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer border border-transparent hover:border-slate-200"
+            className="p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer border border-transparent hover:border-slate-200"
             title={isCollapsed ? 'Buka detail tracker' : 'Ciutkan tracker'}
           >
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -553,7 +554,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         <div>
                           <div className="text-xs font-bold">{ws.label}</div>
                           <div
-                            className={`text-[10px] ${
+                            className={`text-xs ${
                               isSelected ? 'text-white/80' : 'text-slate-500'
                             }`}
                           >
@@ -583,7 +584,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                     <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                       2. Fokus Utama Hari Ini (1 - 3 Target Prioritas)
                     </label>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Tuliskan 1 hingga 3 deliverable paling penting yang ingin Anda tuntaskan hari ini.
                     </p>
                   </div>
@@ -656,7 +657,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         onChange={(e) => p.setVal(e.target.value)}
                         placeholder={p.placeholder}
                         className={`flex-1 text-xs px-2 py-1.5 bg-transparent focus:outline-none ${
-                          p.status === 'Selesai' ? 'line-through text-slate-400 font-normal' : 'text-slate-800 font-medium'
+                          p.status === 'Selesai' ? 'line-through text-slate-500 font-normal' : 'text-slate-800 font-medium'
                         }`}
                       />
 
@@ -666,7 +667,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           <button
                             type="button"
                             onClick={() => handleTogglePriorityStatus(idx)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition flex items-center gap-1 ${
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1 ${
                               p.status === 'Selesai'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                 : p.status === 'Berjalan'
@@ -707,7 +708,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                     className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00236f]/20 focus:border-[#00236f] transition"
                   />
                   {blockers.trim() && (
-                    <div className="mt-1.5 flex items-center gap-1.5 text-[11px] text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
+                    <div className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
                       <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
                       <span>
                         Kendala ini akan ditampilkan di radar tim agar rekan konsultan/tim lain bisa saling bantu.
@@ -729,9 +730,9 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           key={offer.id}
                           className="bg-white p-2.5 rounded-lg border border-blue-100 text-xs text-slate-700 shadow-2xs"
                         >
-                          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-900 mb-1">
+                          <div className="flex items-center justify-between text-xs font-semibold text-slate-900 mb-1">
                             <span>{offer.fromUserName || offer.helperName || 'Rekan Tim'}</span>
-                            <span className="text-slate-400 font-normal">
+                            <span className="text-slate-500 font-normal">
                               {offer.createdAt ? formatWITA(offer.createdAt) : ''}
                             </span>
                           </div>
@@ -751,7 +752,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                     <span>4. Refleksi &amp; Check-out Sore (Opsional)</span>
                   </label>
                   {userCheckin?.eveningCheckoutAt && (
-                    <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                    <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
                       Check-out: {formatWITA(userCheckin.eveningCheckoutAt)}
                     </span>
                   )}
@@ -767,7 +768,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-100">
-                <div className="text-[11px] text-slate-400">
+                <div className="text-xs text-slate-500">
                   {userCheckin?.updatedAt
                     ? `Terakhir diperbarui: ${formatWITA(userCheckin.updatedAt)}`
                     : 'Belum disimpan ke database hari ini.'}
@@ -809,49 +810,49 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
               {/* Summary Metric Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Check-in Rate
                   </div>
                   <div className="text-xl font-extrabold text-[#00236f] font-['Plus_Jakarta_Sans'] mt-1">
                     {checkinRate}%
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-xs text-slate-500 mt-0.5">
                     {checkedInUsersCount} dari {internalUsersCount} anggota
                   </div>
                 </div>
 
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Distribusi Mode
                   </div>
                   <div className="text-xl font-extrabold text-emerald-700 font-['Plus_Jakarta_Sans'] mt-1">
                     {wfaCount} WFA
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-xs text-slate-500 mt-0.5">
                     {officeCount} Kantor Hub • 0 Cuti
                   </div>
                 </div>
 
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Target Tercapai
                   </div>
                   <div className="text-xl font-extrabold text-[#0051d5] font-['Plus_Jakarta_Sans'] mt-1">
                     {teamCheckins.reduce((acc, c) => acc + (c.completedCount || 0), 0)} Selesai
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-xs text-slate-500 mt-0.5">
                     Dari akumulasi prioritas hari ini
                   </div>
                 </div>
 
                 <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Kendala / Blocker
                   </div>
                   <div className="text-xl font-extrabold text-amber-700 font-['Plus_Jakarta_Sans'] mt-1">
                     {blockersCount} Kendala
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">
+                  <div className="text-xs text-slate-500 mt-0.5">
                     {blockersCount > 0 ? 'Membutuhkan dukungan tim' : 'Semua berjalan lancar'}
                   </div>
                 </div>
@@ -863,7 +864,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                   <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Daftar Check-in Anggota Tim Nexus ({teamUsers.length} Anggota)
                   </h3>
-                  <span className="text-[11px] text-slate-400">Diurutkan berdasarkan waktu check-in</span>
+                  <span className="text-xs text-slate-500">Diurutkan berdasarkan waktu check-in</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -896,26 +897,19 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         {/* Member Header */}
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div className="flex items-center gap-2.5">
-                            <img
-                              src={
-                                member.avatarUrl ||
-                                'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-                              }
-                              alt={member.displayName}
-                              className="w-9 h-9 rounded-full object-cover ring-1 ring-slate-200"
-                            />
+                            <UserAvatar url={member.avatarUrl} name={member.displayName} className="w-9 h-9 rounded-full ring-1 ring-slate-200" />
                             <div>
                               <div className="flex items-center gap-1.5">
                                 <span className="text-xs font-bold text-slate-900">
                                   {member.displayName}
                                 </span>
                                 {isCurrentUser && (
-                                  <span className="text-[9px] font-bold bg-[#00236f] text-white px-1.5 py-0.2 rounded">
+                                  <span className="text-xs font-bold bg-[#00236f] text-white px-1.5 py-0.2 rounded">
                                     Anda
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[10px] text-slate-500 block leading-tight">
+                              <span className="text-xs text-slate-500 block leading-tight">
                                 {member.title || roleLabel}
                               </span>
                             </div>
@@ -925,7 +919,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           {memberCheckin ? (
                             <div className="text-right shrink-0">
                               <span
-                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
                                   memberCheckin.workStatus === 'WFA'
                                     ? 'bg-emerald-100 text-emerald-800'
                                     : memberCheckin.workStatus === 'Kantor'
@@ -940,14 +934,14 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                                 )}
                                 <span>{memberCheckin.workStatus}</span>
                               </span>
-                              <div className="text-[9px] text-slate-400 mt-0.5">
+                              <div className="text-xs text-slate-500 mt-0.5">
                                 {memberCheckin.morningCheckinAt
                                   ? formatWITA(memberCheckin.morningCheckinAt)
                                   : 'Aktif'}
                               </div>
                             </div>
                           ) : (
-                            <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                            <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
                               Belum Check-in
                             </span>
                           )}
@@ -955,7 +949,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
 
                         {/* Location Note if available */}
                         {memberCheckin?.locationNote && (
-                          <div className="text-[11px] text-slate-600 mb-2 italic">
+                          <div className="text-xs text-slate-600 mb-2 italic">
                             📍 {memberCheckin.locationNote}
                           </div>
                         )}
@@ -963,7 +957,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         {/* Priorities List */}
                         {memberCheckin?.priorities && memberCheckin.priorities.length > 0 ? (
                           <div className="space-y-1 mb-3">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                               Fokus Hari Ini:
                             </span>
                             {memberCheckin.priorities.map((item, idx) => {
@@ -976,14 +970,14 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                                   <span
                                     className={`truncate ${
                                       st === 'Selesai'
-                                        ? 'line-through text-slate-400'
+                                        ? 'line-through text-slate-500'
                                         : 'text-slate-700'
                                     }`}
                                   >
                                     {idx + 1}. {item}
                                   </span>
                                   <span
-                                    className={`text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0 ${
+                                    className={`text-xs font-bold px-1.5 py-0.2 rounded shrink-0 ${
                                       st === 'Selesai'
                                         ? 'bg-emerald-100 text-emerald-800'
                                         : st === 'Berjalan'
@@ -998,7 +992,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                             })}
                           </div>
                         ) : (
-                          <div className="text-[11px] text-slate-400 italic mb-2">
+                          <div className="text-xs text-slate-500 italic mb-2">
                             {memberCheckin
                               ? 'Tidak ada target prioritas tertulis.'
                               : 'Menunggu anggota check-in.'}
@@ -1011,10 +1005,10 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                             <div className="flex items-start gap-1.5 text-xs text-amber-900">
                               <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                               <div>
-                                <span className="font-bold text-[11px] uppercase tracking-wider text-amber-800 block">
+                                <span className="font-bold text-xs uppercase tracking-wider text-amber-800 block">
                                   Kendala / Butuh Dukungan:
                                 </span>
-                                <p className="text-[11px] text-amber-800 mt-0.5">
+                                <p className="text-xs text-amber-800 mt-0.5">
                                   {memberCheckin?.blockers}
                                 </p>
                               </div>
@@ -1023,13 +1017,13 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                             {/* Help Offers List */}
                             {memberCheckin?.helpOffers && memberCheckin.helpOffers.length > 0 && (
                               <div className="pt-1.5 border-t border-amber-200/60 space-y-1">
-                                <span className="text-[10px] font-bold text-amber-900 block">
+                                <span className="text-xs font-bold text-amber-900 block">
                                   Bantuan Masuk:
                                 </span>
                                 {memberCheckin.helpOffers.map((ho) => (
                                   <div
                                     key={ho.id}
-                                    className="text-[10px] bg-white/80 p-1.5 rounded text-slate-700 border border-amber-100"
+                                    className="text-xs bg-white/80 p-1.5 rounded text-slate-700 border border-amber-100"
                                   >
                                     <strong className="text-slate-900">
                                       {ho.fromUserName || ho.helperName}:
@@ -1059,8 +1053,8 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
 
                         {/* Evening Notes / Checkout */}
                         {(memberCheckin?.checkoutNotes || memberCheckin?.eveningNotes) && (
-                          <div className="p-2 rounded-lg bg-indigo-50/60 border border-indigo-100 text-[11px] text-indigo-900">
-                            <span className="font-bold text-[10px] uppercase text-indigo-800 block">
+                          <div className="p-2 rounded-lg bg-indigo-50/60 border border-indigo-100 text-xs text-indigo-900">
+                            <span className="font-bold text-xs uppercase text-indigo-800 block">
                               Catatan Sore:
                             </span>
                             <p className="mt-0.5">
@@ -1091,7 +1085,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
               </div>
               <button
                 onClick={() => setShowAgendaModal(false)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer text-xs"
+                className="text-slate-500 hover:text-slate-600 cursor-pointer text-xs"
               >
                 ✕
               </button>
@@ -1110,13 +1104,13 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                 >
                   <div className="overflow-hidden">
                     <div className="font-bold text-slate-900 truncate">{item.title}</div>
-                    <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                    <div className="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
                       <span>{item.clientOrGroupName || item.clientName}</span>
                       <span>•</span>
                       <span>{item.timeOrDeadline ? formatWITA(item.timeOrDeadline) : 'Hari Ini'}</span>
                     </div>
                   </div>
-                  <span className="text-[10px] font-bold text-[#0051d5] bg-blue-100 px-2 py-0.5 rounded-full shrink-0">
+                  <span className="text-xs font-bold text-[#0051d5] bg-blue-100 px-2 py-0.5 rounded-full shrink-0">
                     + Pasang
                   </span>
                 </div>
@@ -1148,14 +1142,14 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
               </div>
               <button
                 onClick={() => setHelpTargetCheckin(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer text-xs"
+                className="text-slate-500 hover:text-slate-600 cursor-pointer text-xs"
               >
                 ✕
               </button>
             </div>
 
             <div className="my-3 p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900">
-              <span className="font-bold block text-[10px] uppercase tracking-wider text-amber-800">
+              <span className="font-bold block text-xs uppercase tracking-wider text-amber-800">
                 Kendala yang dialami:
               </span>
               <p className="mt-0.5">{helpTargetCheckin.blockers}</p>

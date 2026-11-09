@@ -128,3 +128,23 @@
     animation: none !important;
   }
 }
+
+/* Layar sentuh (HP/tablet): tombol & isian minimal 40px agar mudah disentuh jari. */
+@media (pointer: coarse) {
+  button,
+  select,
+  input:not([type='checkbox']):not([type='radio']):not([type='range']),
+  [role='button'] {
+    min-height: 40px;
+  }
+  button:not(:has(> span, > div)) {
+    min-width: 40px;
+  }
+  /* Tautan aksi (Gabung meeting, WhatsApp, tautan luar) ikut diperbesar area sentuhnya. */
+  a[target='_blank'],
+  a[href^='https://wa.me'] {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}

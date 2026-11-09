@@ -20,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 import { ActivityLog, Client, Session, Task, TeamCheckin, UserProfile } from '../types';
 import { getActivityLogs, getAllUsers, getClients, getSessions, getTasks } from '../services/db';
 import { getCheckinsByDate, getTodosForUser, isOpen, TodoItem } from '../services/teamDaily';
-import { dateWITA, evaluateClientRisk, isTaskOverdue, shiftDate, timeWITA, todayWITA } from '../utils/formatters';
+import { dateWITA, assessClientRisk, isTaskOverdue, shiftDate, timeWITA, todayWITA } from '../utils/formatters';
 import { OwnerNotificationCenter } from '../components/OwnerNotificationCenter';
 
 interface OwnerDashboardProps {
@@ -263,13 +263,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           .filter((s) => s.clientId === c.id && s.status === 'Selesai')
           .sort((a, b) => b.dateTime.localeCompare(a.dateTime))[0];
         const ct = tasks.filter((t) => t.clientId === c.id);
-        // Masa tenggang: klien baru (< 14 hari) tanpa sesi belum dianggap berisiko.
-        const lastSession = done?.dateTime || c.lastSessionDate;
-        const ageDays = c.createdAt ? (Date.now() - new Date(c.createdAt).getTime()) / 86400000 : Infinity;
-        const risk =
-          !lastSession && ageDays < 14 && !ct.some((t) => isTaskOverdue(t.deadline, t.status))
-            ? { isAtRisk: false, reason: undefined }
-            : evaluateClientRisk(lastSession, ct);
+        const risk = assessClientRisk(c, done?.dateTime || c.lastSessionDate, ct);
         const consultant = userName(c.primaryConsultantId) || userName(c.consultantIds?.[0]);
         return { client: c, ...risk, consultant };
       })
@@ -405,7 +399,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           value={
             <>
               {m.present}
-              <span className="text-lg text-slate-400 font-semibold">/{m.team.length}</span>
+              <span className="text-lg text-slate-500 font-semibold">/{m.team.length}</span>
             </>
           }
           icon={UserCheck}
@@ -423,14 +417,14 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             action={<LinkButton onClick={() => onNavigate('attendance')}>To-do saya</LinkButton>}
           />
           {agendaEmpty ? (
-            <p className="text-xs text-slate-400 py-6 text-center">
+            <p className="text-xs text-slate-500 py-6 text-center">
               Tidak ada sesi, tugas jatuh tempo, atau to-do untuk hari ini.
             </p>
           ) : (
             <div className="space-y-4">
               {m.todaySessions.length > 0 && (
                 <div>
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
                     Sesi hari ini ({m.todaySessions.length})
                   </div>
                   <ul className="divide-y divide-slate-100">
@@ -445,7 +439,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                           className="flex-1 min-w-0 text-left cursor-pointer"
                         >
                           <div className="text-xs font-semibold text-slate-900 truncate">{m.clientName(s.clientId)}</div>
-                          <div className="text-[11px] text-slate-500 truncate">
+                          <div className="text-xs text-slate-500 truncate">
                             {s.agenda || 'Sesi pendampingan'} · {m.userName(s.consultantId) || 'Konsultan'}
                           </div>
                         </button>
@@ -454,7 +448,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                             href={s.meetingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[11px] font-semibold text-[#0051d5] inline-flex items-center gap-1 hover:underline"
+                            className="text-xs font-semibold text-[#0051d5] inline-flex items-center gap-1 hover:underline"
                           >
                             <Video className="w-3.5 h-3.5" /> Gabung
                           </a>
@@ -467,7 +461,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
 
               {m.dueTasks.length > 0 && (
                 <div>
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">
                     Tugas klien jatuh tempo ({m.dueTasks.length})
                   </div>
                   <ul className="divide-y divide-slate-100">
@@ -481,7 +475,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                             className="w-full flex items-center gap-3 py-2 text-left cursor-pointer"
                           >
                             <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                              className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
                                 late ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
                               }`}
                             >
@@ -489,7 +483,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                             </span>
                             <span className="flex-1 min-w-0">
                               <span className="block text-xs font-semibold text-slate-900 truncate">{t.title}</span>
-                              <span className="block text-[11px] text-slate-500 truncate">
+                              <span className="block text-xs text-slate-500 truncate">
                                 {m.clientName(t.clientId)} · PIC {t.assigneeName || t.assigneeRole}
                               </span>
                             </span>
@@ -499,7 +493,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                     })}
                   </ul>
                   {m.dueTasks.length > 5 && (
-                    <div className="text-[11px] text-slate-400 mt-1">+{m.dueTasks.length - 5} tugas lainnya</div>
+                    <div className="text-xs text-slate-500 mt-1">+{m.dueTasks.length - 5} tugas lainnya</div>
                   )}
                 </div>
               )}
@@ -517,7 +511,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                       {m.todayTodos.length - m.todayTodosOpen.length}/{m.todayTodos.length} selesai
                     </strong>
                   </span>
-                  <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
                 </button>
               )}
             </div>
@@ -559,7 +553,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             title={`Klien Perlu Perhatian${m.atRisk.length ? ` (${m.atRisk.length})` : ''}`}
           />
           {m.atRisk.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center flex items-center justify-center gap-1.5">
+            <p className="text-xs text-slate-500 py-4 text-center flex items-center justify-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Semua klien aktif dalam kondisi baik.
             </p>
           ) : (
@@ -576,9 +570,9 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                     </span>
                     <span className="flex-1 min-w-0">
                       <span className="block text-xs font-semibold text-slate-900 truncate">{r.client.namaBisnis}</span>
-                      <span className="block text-[11px] text-rose-600 truncate">{r.reason || 'Perlu ditinjau'}</span>
+                      <span className="block text-xs text-rose-600 truncate">{r.reason || 'Perlu ditinjau'}</span>
                     </span>
-                    <span className="text-[11px] text-slate-500 text-right shrink-0 max-w-[40%] truncate">
+                    <span className="text-xs text-slate-500 text-right shrink-0 max-w-[40%] truncate">
                       {r.consultant || 'Belum ada konsultan'}
                     </span>
                   </button>
@@ -595,7 +589,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             action={<LinkButton onClick={() => onNavigate('team')}>Atur tim</LinkButton>}
           />
           {m.workload.length === 0 ? (
-            <p className="text-xs text-slate-400 py-4 text-center">Belum ada konsultan atau tim grup aktif.</p>
+            <p className="text-xs text-slate-500 py-4 text-center">Belum ada konsultan atau tim grup aktif.</p>
           ) : (
             <ul className="space-y-3">
               {m.workload.slice(0, 6).map((w) => (
@@ -603,7 +597,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                   <div className="flex items-center justify-between gap-2 text-xs">
                     <span className="min-w-0">
                       <span className="font-semibold text-slate-900">{w.user.displayName}</span>
-                      <span className="text-slate-400"> · {ROLE_LABELS[w.user.role] || w.user.role}</span>
+                      <span className="text-slate-500"> · {ROLE_LABELS[w.user.role] || w.user.role}</span>
                     </span>
                     <span className="text-slate-500 shrink-0 tabular-nums">
                       <strong className="text-slate-900">{w.clients}</strong> klien · {w.sessions} sesi · {w.openTasks} tugas
@@ -627,7 +621,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           action={<LinkButton onClick={() => onNavigate('security-audit')}>Lihat semua</LinkButton>}
         />
         {m.recentLogs.length === 0 ? (
-          <p className="text-xs text-slate-400 py-4 text-center">Belum ada aktivitas.</p>
+          <p className="text-xs text-slate-500 py-4 text-center">Belum ada aktivitas.</p>
         ) : (
           <ul className="divide-y divide-slate-100">
             {m.recentLogs.map((l) => (
@@ -638,12 +632,12 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                     <span className="font-semibold">{l.action || 'Aktivitas'}</span>
                     {l.clientId && <span className="text-slate-500"> · {m.clientName(l.clientId)}</span>}
                   </div>
-                  <div className="text-[11px] text-slate-500 truncate">
+                  <div className="text-xs text-slate-500 truncate">
                     oleh {l.actorName || 'Sistem'}
                     {l.actorRole ? ` (${l.actorRole})` : ''}
                   </div>
                 </div>
-                <span className="text-[11px] text-slate-400 shrink-0">{relativeTime(l.createdAt)}</span>
+                <span className="text-xs text-slate-500 shrink-0">{relativeTime(l.createdAt)}</span>
               </li>
             ))}
           </ul>

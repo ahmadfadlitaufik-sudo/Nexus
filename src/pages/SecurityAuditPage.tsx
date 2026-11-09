@@ -215,7 +215,7 @@ export const SecurityAuditPage: React.FC = () => {
           Akses Terbatas: Khusus Peran Owner
         </h2>
         <p className="text-sm text-slate-500 max-w-md mt-1.5 leading-relaxed">
-          Halaman Security &amp; Activity Audit Log ini memuat rekam jejak akses sensitif sistem dan hanya dapat dibuka oleh akun Owner eksekutif (Ahmad Fadli Taufik).
+          Halaman Log Audit &amp; Keamanan ini memuat rekam jejak akses sensitif sistem dan hanya dapat dibuka oleh akun Owner eksekutif (Ahmad Fadli Taufik).
         </p>
         <div className="mt-4 px-3.5 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-mono">
           Peran Akun Saat Ini: {userProfile?.role || 'Pengguna Publik'}
@@ -236,17 +236,13 @@ export const SecurityAuditPage: React.FC = () => {
   return (
     <div className="space-y-6 pb-12 animate-in fade-in duration-300">
       {/* Executive Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-[#00236f] to-[#1e3a8a] rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-emerald-300 text-xs font-semibold backdrop-blur-xs mb-3 border border-emerald-400/20">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Audit Trail &amp; Access Compliance Engine</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-['Plus_Jakarta_Sans'] tracking-tight">
-            Security &amp; Activity Audit Log
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
+            Log Audit &amp; Keamanan
           </h1>
-          <p className="text-sm text-blue-100 mt-1.5 max-w-2xl leading-relaxed">
-            Pemantauan langsung seluruh peristiwa autentikasi, akses data sesi sensitif, aktivitas tim konsultan, dan verifikasi kepatuhan aturan keamanan database koleksi <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono text-white text-xs">ActivityLog</code>.
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
+            Rekam jejak aktivitas penting: login, pendaftaran, perubahan akses, dan akses catatan internal sesi.
           </p>
         </div>
 
@@ -254,7 +250,7 @@ export const SecurityAuditPage: React.FC = () => {
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-white/15 cursor-pointer disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition border border-slate-200 cursor-pointer disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Segarkan Data</span>
@@ -262,7 +258,7 @@ export const SecurityAuditPage: React.FC = () => {
 
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-1.5 bg-white text-[#00236f] hover:bg-blue-50 px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#00236f] text-white hover:bg-[#1e3a8a] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Ekspor Laporan (CSV)</span>
@@ -273,8 +269,8 @@ export const SecurityAuditPage: React.FC = () => {
       {/* 4 Summary Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Total Entri Audit</span>
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Total Entri Audit</span>
             <Activity className="w-4 h-4 text-[#00236f]" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -283,12 +279,12 @@ export const SecurityAuditPage: React.FC = () => {
             </span>
             <span className="text-xs text-slate-500 font-medium">peristiwa tercatat</span>
           </div>
-          <p className="text-[11px] text-slate-500">Koleksi activity_log (Cloudflare D1)</p>
+          <p className="text-xs text-slate-500">Tersimpan aman di database</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Akses Ilegal Dicegah</span>
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Akses Ilegal Dicegah</span>
             <ShieldAlert className="w-4 h-4 text-rose-600" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -297,14 +293,14 @@ export const SecurityAuditPage: React.FC = () => {
             </span>
             <span className="text-xs text-rose-700 font-medium">upaya terblokir</span>
           </div>
-          <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3" /> Security Rules Berfungsi Penuh
+          <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" /> Aturan akses aktif
           </p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Inspeksi Data Internal</span>
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Inspeksi Data Internal</span>
             <Eye className="w-4 h-4 text-amber-600" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -313,12 +309,12 @@ export const SecurityAuditPage: React.FC = () => {
             </span>
             <span className="text-xs text-slate-500 font-medium">akses notula tim</span>
           </div>
-          <p className="text-[11px] text-slate-500">session_internals dilindungi</p>
+          <p className="text-xs text-slate-500">catatan internal dilindungi</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Aktor Aktif</span>
+          <div className="flex items-center justify-between text-slate-500">
+            <span className="text-xs font-bold uppercase tracking-wider">Aktor Aktif</span>
             <User className="w-4 h-4 text-blue-600" />
           </div>
           <div className="flex items-baseline gap-2">
@@ -327,7 +323,7 @@ export const SecurityAuditPage: React.FC = () => {
             </span>
             <span className="text-xs text-slate-500 font-medium">pengguna unik</span>
           </div>
-          <p className="text-[11px] text-slate-500">Multi-Role RBAC terverifikasi</p>
+          <p className="text-xs text-slate-500">sesuai hak akses peran</p>
         </div>
       </div>
 
@@ -336,7 +332,7 @@ export const SecurityAuditPage: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative flex-1 min-w-[260px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari tindakan, nama aktor, kata kunci rincian, atau nama bisnis klien..."
@@ -409,11 +405,11 @@ export const SecurityAuditPage: React.FC = () => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead>
-              <tr className="bg-slate-50/80 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
+              <tr className="bg-slate-50/80 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
                 <th className="py-3 px-4">Waktu (WITA)</th>
                 <th className="py-3 px-4">Aktor / Pengguna</th>
                 <th className="py-3 px-4">Peran</th>
-                <th className="py-3 px-4">Tindakan / Action</th>
+                <th className="py-3 px-4">Tindakan</th>
                 <th className="py-3 px-4">Entitas Terkait</th>
                 <th className="py-3 px-4">Status &amp; Kepatuhan</th>
                 <th className="py-3 px-4 max-w-xs truncate">Rincian Peristiwa</th>
@@ -423,7 +419,7 @@ export const SecurityAuditPage: React.FC = () => {
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
                     <div className="inline-flex items-center gap-2">
                       <RefreshCw className="w-4 h-4 animate-spin text-[#00236f]" />
                       <span>Memuat log aktivitas dari database...</span>
@@ -432,7 +428,7 @@ export const SecurityAuditPage: React.FC = () => {
                 </tr>
               ) : paginatedLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-slate-500">
                     Tidak ada catatan aktivitas yang cocok dengan kriteria filter.
                   </td>
                 </tr>
@@ -454,7 +450,7 @@ export const SecurityAuditPage: React.FC = () => {
                           <span className="font-bold text-slate-900">
                             {formatWITA(log.createdAt, false)}
                           </span>
-                          <span className="text-[10px] text-slate-500 font-mono">
+                          <span className="text-xs text-slate-500 font-mono">
                             {new Date(log.createdAt).toLocaleTimeString('id-ID', {
                               hour: '2-digit',
                               minute: '2-digit',
@@ -469,7 +465,7 @@ export const SecurityAuditPage: React.FC = () => {
                       {/* Actor */}
                       <td className="py-3.5 px-4 font-semibold text-slate-900">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-[#00236f] text-white flex items-center justify-center text-[10px] font-bold">
+                          <div className="w-6 h-6 rounded-full bg-[#00236f] text-white flex items-center justify-center text-xs font-bold">
                             {log.actorName.charAt(0)}
                           </div>
                           <span className="truncate max-w-[130px]" title={log.actorName}>
@@ -481,7 +477,7 @@ export const SecurityAuditPage: React.FC = () => {
                       {/* Role */}
                       <td className="py-3.5 px-4">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getRoleBadge(
+                          className={`px-2 py-0.5 rounded-full text-xs font-bold border uppercase tracking-wider ${getRoleBadge(
                             log.actorRole
                           )}`}
                         >
@@ -503,18 +499,18 @@ export const SecurityAuditPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-slate-600">
                         {log.clientId ? (
                           <div className="flex items-center gap-1 max-w-[160px] truncate" title={getClientBusinessName(log.clientId)}>
-                            <Building2 className="w-3 h-3 text-slate-400 shrink-0" />
+                            <Building2 className="w-3 h-3 text-slate-500 shrink-0" />
                             <span className="truncate">{getClientBusinessName(log.clientId)}</span>
                           </div>
                         ) : (
-                          <span className="text-slate-400 font-mono text-[11px]">-</span>
+                          <span className="text-slate-500 font-mono text-xs">-</span>
                         )}
                       </td>
 
                       {/* Status / Compliance Badge */}
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${meta.badgeClass}`}
+                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${meta.badgeClass}`}
                         >
                           {meta.badgeLabel}
                         </span>
@@ -529,7 +525,7 @@ export const SecurityAuditPage: React.FC = () => {
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => setSelectedLogDetail(log)}
-                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:text-[#00236f] hover:bg-slate-100 transition text-[11px] font-semibold cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-600 hover:text-[#00236f] hover:bg-slate-100 transition text-xs font-semibold cursor-pointer"
                         >
                           Buka Detail
                         </button>
@@ -571,7 +567,7 @@ export const SecurityAuditPage: React.FC = () => {
               ) {
                 if (page === 2 || page === totalPages - 1) {
                   return (
-                    <span key={page} className="px-1 text-slate-400">
+                    <span key={page} className="px-1 text-slate-500">
                       ...
                     </span>
                   );
@@ -617,12 +613,12 @@ export const SecurityAuditPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Rincian Dokumen Log Aktivitas</h3>
-                  <p className="text-[11px] text-slate-400 font-mono">ID: {selectedLogDetail.id}</p>
+                  <p className="text-xs text-slate-500 font-mono">ID: {selectedLogDetail.id}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedLogDetail(null)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1.5 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -630,20 +626,20 @@ export const SecurityAuditPage: React.FC = () => {
 
             <div className="space-y-3 text-xs">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                  Tindakan / Action:
+                <span className="text-xs uppercase font-bold text-slate-500 tracking-wider">
+                  Tindakan:
                 </span>
                 <p className="text-sm font-bold text-slate-900">{selectedLogDetail.action}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <span className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                     Nama Aktor:
                   </span>
                   <p className="font-bold text-slate-900 mt-0.5">{selectedLogDetail.actorName}</p>
                   <span
-                    className={`inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${getRoleBadge(
+                    className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold uppercase ${getRoleBadge(
                       selectedLogDetail.actorRole
                     )}`}
                   >
@@ -652,19 +648,19 @@ export const SecurityAuditPage: React.FC = () => {
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <span className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                     Waktu Peristiwa:
                   </span>
                   <p className="font-bold text-slate-900 mt-0.5">
                     {formatWITA(selectedLogDetail.createdAt, true)}
                   </p>
-                  <span className="text-[10px] text-slate-500 mt-1 block">Zona WITA (UTC+8)</span>
+                  <span className="text-xs text-slate-500 mt-1 block">Zona WITA (UTC+8)</span>
                 </div>
               </div>
 
               {selectedLogDetail.clientId && (
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                  <span className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                     Entitas Klien Terkait:
                   </span>
                   <p className="font-bold text-slate-900 mt-0.5">
@@ -674,7 +670,7 @@ export const SecurityAuditPage: React.FC = () => {
               )}
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                <span className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                   Rincian Teknis &amp; Deskripsi Lengkap:
                 </span>
                 <p className="text-slate-700 leading-relaxed whitespace-pre-line font-medium">

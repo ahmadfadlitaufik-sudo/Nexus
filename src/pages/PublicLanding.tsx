@@ -1,3 +1,4 @@
+import { ArrowRight, BadgeCheck, CalendarDays, CheckCircle2, Clock, LineChart, Lock, MessageCircle, Network, RefreshCw } from 'lucide-react';
 import React, { useState } from 'react';
 import { formatRupiah } from '../utils/formatters';
 
@@ -54,7 +55,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
               <span className="font-['Plus_Jakarta_Sans'] text-xl font-bold tracking-tight text-[#00236f] leading-none">
                 Nexus Growth Partner
               </span>
-              <span className="text-[11px] font-semibold text-slate-500 tracking-wider uppercase mt-1">
+              <span className="text-xs font-semibold text-slate-500 tracking-wider uppercase mt-1">
                 Client Hub · Advisory WFA
               </span>
             </div>
@@ -170,16 +171,14 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#00236f] text-white text-sm font-semibold shadow-md hover:bg-[#1e3a8a] hover:-translate-y-0.5 hover:shadow-xl transition-all duration-200 cursor-pointer"
                   >
                     <span>Jadwalkan Konsultasi Awal</span>
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    <ArrowRight className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
                   </a>
 
                   <button
                     onClick={isLoggedIn ? onGoToDashboard : onOpenLogin}
                     className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-white text-[#00236f] text-sm font-semibold shadow-xs border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all duration-200 cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[18px] text-[#00236f]">
-                      lock
-                    </span>
+                    <Lock className="w-[18px] h-[18px] shrink-0 text-[#00236f]" aria-hidden="true" />
                     <span>{isLoggedIn ? 'Masuk ke Dashboard' : 'Portal Klien (Login)'}</span>
                   </button>
                 </div>
@@ -195,11 +194,11 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                       <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                       <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                       <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
-                      <span className="text-[11px] text-slate-400 ml-2 font-mono">
+                      <span className="text-xs text-slate-400 ml-2 font-mono">
                         nexus.id/hub/client-360
                       </span>
                     </div>
-                    <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+                    <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
                       Aktif · Sesi Q1
                     </span>
                   </div>
@@ -218,7 +217,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] text-slate-400 font-medium">Progres Rapor</div>
+                      <div className="text-xs text-slate-400 font-medium">Progres Rapor</div>
                       <div className="font-['Plus_Jakarta_Sans'] text-base font-bold text-[#00236f] tabular-nums">
                         78.4%
                       </div>
@@ -227,57 +226,51 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
 
                   {/* Milestone Checklist */}
                   <div className="space-y-2.5">
-                    <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                       Pelacak Milestone &amp; Indikator
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="material-symbols-outlined text-emerald-600 text-[18px]">
-                          check_circle
-                        </span>
+                        <CheckCircle2 className="w-[18px] h-[18px] shrink-0 text-emerald-600" aria-hidden="true" />
                         <div className="truncate">
                           <div className="text-xs font-semibold text-slate-800 truncate">
                             Audit Struktur Biaya Operasional (COGS)
                           </div>
-                          <div className="text-[10px] text-slate-400">Disetujui Lead Advisor</div>
+                          <div className="text-xs text-slate-400">Disetujui Lead Advisor</div>
                         </div>
                       </div>
-                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded shrink-0">
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded shrink-0">
                         Selesai
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="material-symbols-outlined text-amber-600 text-[18px]">
-                          sync
-                        </span>
+                        <RefreshCw className="w-[18px] h-[18px] shrink-0 text-amber-600" aria-hidden="true" />
                         <div className="truncate">
                           <div className="text-xs font-semibold text-slate-800 truncate">
                             Restrukturisasi KPI Tim Penjualan
                           </div>
-                          <div className="text-[10px] text-slate-400">Minggu ke-4 dari 6</div>
+                          <div className="text-xs text-slate-400">Minggu ke-4 dari 6</div>
                         </div>
                       </div>
-                      <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded shrink-0">
+                      <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded shrink-0">
                         Berjalan
                       </span>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="material-symbols-outlined text-rose-500 text-[18px]">
-                          schedule
-                        </span>
+                        <Clock className="w-[18px] h-[18px] shrink-0 text-rose-500" aria-hidden="true" />
                         <div className="truncate">
                           <div className="text-xs font-semibold text-slate-800 truncate">
                             Penyusunan Matriks Finansial Q2
                           </div>
-                          <div className="text-[10px] text-slate-400">Menunggu data akuntansi</div>
+                          <div className="text-xs text-slate-400">Menunggu data akuntansi</div>
                         </div>
                       </div>
-                      <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded shrink-0">
+                      <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded shrink-0">
                         Terlambat
                       </span>
                     </div>
@@ -286,12 +279,10 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                   {/* Footnote */}
                   <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                     <span className="flex items-center gap-1 font-medium text-[#00236f]">
-                      <span className="material-symbols-outlined text-[16px] text-blue-600">
-                        verified
-                      </span>
+                      <BadgeCheck className="w-4 h-4 shrink-0 text-blue-600" aria-hidden="true" />
                       Standar Protokol Nexus
                     </span>
-                    <span className="text-[11px] text-slate-400">Zona Waktu WITA</span>
+                    <span className="text-xs text-slate-400">Zona Waktu WITA</span>
                   </div>
                 </div>
               </div>
@@ -342,9 +333,9 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                 <div className="p-6 rounded-2xl bg-[#eff4ff]/60 border border-blue-100 flex flex-col justify-between">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-[#00236f] text-white flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+                      <CalendarDays className="w-5 h-5 shrink-0" aria-hidden="true" />
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-[#0051d5] uppercase">
+                    <span className="text-xs font-mono font-bold text-[#0051d5] uppercase">
                       01 · WFA
                     </span>
                     <h3 className="font-['Plus_Jakarta_Sans'] text-base font-bold text-slate-900 mt-1 mb-2">
@@ -359,9 +350,9 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                 <div className="p-6 rounded-2xl bg-[#eff4ff]/60 border border-blue-100 flex flex-col justify-between">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-[#00236f] text-white flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-[20px]">account_tree</span>
+                      <Network className="w-5 h-5 shrink-0" aria-hidden="true" />
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-[#0051d5] uppercase">
+                    <span className="text-xs font-mono font-bold text-[#0051d5] uppercase">
                       02 · Kurikulum
                     </span>
                     <h3 className="font-['Plus_Jakarta_Sans'] text-base font-bold text-slate-900 mt-1 mb-2">
@@ -376,9 +367,9 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                 <div className="p-6 rounded-2xl bg-[#eff4ff]/60 border border-blue-100 flex flex-col justify-between">
                   <div>
                     <div className="w-10 h-10 rounded-xl bg-[#00236f] text-white flex items-center justify-center mb-4">
-                      <span className="material-symbols-outlined text-[20px]">insights</span>
+                      <LineChart className="w-5 h-5 shrink-0" aria-hidden="true" />
                     </div>
-                    <span className="text-[11px] font-mono font-bold text-[#0051d5] uppercase">
+                    <span className="text-xs font-mono font-bold text-[#0051d5] uppercase">
                       03 · Evaluasi
                     </span>
                     <h3 className="font-['Plus_Jakarta_Sans'] text-base font-bold text-slate-900 mt-1 mb-2">
@@ -439,7 +430,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     <div className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-extrabold text-[#00236f] mt-0.5">
                       {formatRupiah(18500000)}
                     </div>
-                    <div className="text-[11px] text-slate-500 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       Termasuk 12 sesi Google Meet, modul, template kerja, &amp; akses Client Hub.
                     </div>
                   </div>
@@ -464,9 +455,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                         'Action items otomatis menjadi tugas di portal klien',
                       ].map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2.5">
-                          <span className="material-symbols-outlined text-emerald-600 text-[18px] shrink-0 mt-0.5">
-                            check_circle
-                          </span>
+                          <CheckCircle2 className="w-[18px] h-[18px] shrink-0 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -482,7 +471,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     className="w-full inline-flex items-center justify-center gap-2 bg-[#00236f] hover:bg-[#1e3a8a] text-white font-semibold py-3.5 px-5 rounded-xl text-sm transition shadow-sm"
                   >
                     <span>Daftar Konsultasi Program</span>
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    <ArrowRight className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
                   </a>
                 </div>
               </div>
@@ -515,7 +504,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     <div className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-extrabold text-[#00236f] mt-0.5">
                       {formatRupiah(25000000)}
                     </div>
-                    <div className="text-[11px] text-slate-600 mt-1">
+                    <div className="text-xs text-slate-600 mt-1">
                       Sesi privat intensif dengan slot terbatas (maksimal 5 klien per kuartal).
                     </div>
                   </div>
@@ -536,13 +525,11 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                         'Sesi private 1-on-1 mingguan 75-90 menit bersama Senior Advisor',
                         'Bedah laporan keuangan mendalam, perputaran piutang, dan efisiensi rantai pasok',
                         'Akses prioritas pesan instan WhatsApp langsung ke konsultan pendamping',
-                        'Penyusunan Executive KPI Dashboard &amp; target pertumbuhan omzet',
+                        'Penyusunan Executive KPI Dashboard & target pertumbuhan omzet',
                         'Perjanjian Kerahasiaan Data Bisnis (NDA) terlindungi penuh',
                       ].map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2.5">
-                          <span className="material-symbols-outlined text-[#0051d5] text-[18px] shrink-0 mt-0.5">
-                            verified
-                          </span>
+                          <BadgeCheck className="w-[18px] h-[18px] shrink-0 text-[#0051d5] shrink-0 mt-0.5" aria-hidden="true" />
                           <span>{item}</span>
                         </li>
                       ))}
@@ -558,7 +545,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     className="w-full inline-flex items-center justify-center gap-2 bg-[#0051d5] hover:bg-[#003ea8] text-white font-semibold py-3.5 px-5 rounded-xl text-sm transition shadow-md"
                   >
                     <span>Ajukan Mentoring Private</span>
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    <ArrowRight className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
                   </a>
                 </div>
               </div>
@@ -656,9 +643,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white text-[#00236f] text-sm sm:text-base font-bold shadow-lg hover:bg-blue-50 transition-all cursor-pointer whitespace-nowrap"
                   >
-                    <span className="material-symbols-outlined text-[22px] text-emerald-600">
-                      chat
-                    </span>
+                    <MessageCircle className="w-[22px] h-[22px] shrink-0 text-emerald-600" aria-hidden="true" />
                     <span>Hubungi via WhatsApp</span>
                   </a>
                 </div>
@@ -699,7 +684,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
             </div>
 
             <div className="space-y-3">
-              <div className="text-white font-semibold font-['Plus_Jakarta_Sans']">Kontak &amp; Hub</div>
+              <div className="text-white font-semibold font-['Plus_Jakarta_Sans']">Kontak</div>
               <ul className="space-y-2 text-xs">
                 <li>
                   <a
@@ -718,7 +703,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
             <div>&copy; 2026 Nexus Growth Partner. Seluruh Hak Cipta Dilindungi.</div>
-            <div>Platform Resmi Client Hub · Antarmuka Bahasa Indonesia</div>
+            <div>Platform resmi Nexus Client Hub</div>
           </div>
         </div>
       </footer>

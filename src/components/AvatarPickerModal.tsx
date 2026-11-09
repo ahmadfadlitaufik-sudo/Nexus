@@ -258,7 +258,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
                 Perbarui avatar profil untuk <strong>{userDisplayName}</strong>{' '}
-                {userRole && <span className="uppercase text-[10px] text-blue-600 font-bold">({userRole})</span>}
+                {userRole && <span className="uppercase text-xs text-blue-600 font-bold">({userRole})</span>}
               </p>
             </div>
           </div>
@@ -266,7 +266,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            className="p-1.5 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -293,7 +293,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
             </div>
 
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 block">
                 Pratinjau Avatar Terpilih
               </span>
               <span className="text-sm font-bold text-slate-900 block font-['Plus_Jakarta_Sans']">
@@ -389,7 +389,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
             <div className="space-y-4">
               {AVATAR_PRESETS.map((group) => (
                 <div key={group.category} className="space-y-2">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#0051d5]" />
                     <span>{group.category}</span>
                   </div>
@@ -413,7 +413,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                             alt={item.label}
                             className="w-14 h-14 rounded-xl object-cover transition group-hover:scale-105"
                           />
-                          <span className="text-[10px] text-slate-600 mt-1 font-medium truncate w-full text-center block">
+                          <span className="text-xs text-slate-600 mt-1 font-medium truncate w-full text-center block">
                             {item.label}
                           </span>
                           {isChosen && (
@@ -503,7 +503,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                       />
                       <span className="text-xs font-semibold text-slate-800">{c.name}</span>
                       {isSelected && (
-                        <span className="text-[10px] text-blue-700 font-bold inline-flex items-center gap-1">
+                        <span className="text-xs text-blue-700 font-bold inline-flex items-center gap-1">
                           <Check className="w-3 h-3" /> Dipilih
                         </span>
                       )}
@@ -523,7 +523,7 @@ export const AvatarPickerModal: React.FC<AvatarPickerModalProps> = ({
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <LinkIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <LinkIcon className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
                     <input
                       type="url"
                       value={customUrl}

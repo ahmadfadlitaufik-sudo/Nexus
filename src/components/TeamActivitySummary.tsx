@@ -1,3 +1,4 @@
+import { UserAvatar } from './UserAvatar';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -180,7 +181,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
   const getWorkStatusBadge = (ws?: WorkStatus) => {
     if (!ws) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500">
           Belum Check-in
         </span>
       );
@@ -188,42 +189,42 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
     switch (ws) {
       case 'WFA':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
             <Home className="w-3 h-3 text-emerald-600" />
             WFA
           </span>
         );
       case 'Kantor':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#00236f]">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-[#00236f]">
             <Building2 className="w-3 h-3 text-[#0051d5]" />
             Kantor Hub
           </span>
         );
       case 'Cuti':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-800">
             <Palmtree className="w-3 h-3 text-purple-600" />
             Cuti
           </span>
         );
       case 'Sakit':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800">
             <HeartPulse className="w-3 h-3 text-rose-600" />
             Sakit
           </span>
         );
       case 'Izin':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
             <FileQuestion className="w-3 h-3 text-amber-600" />
             Izin
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
             {ws}
           </span>
         );
@@ -290,7 +291,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
             <h2 className="text-base sm:text-lg font-bold text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
               {title}
             </h2>
-            <span className="text-[11px] font-bold bg-[#00236f]/10 text-[#00236f] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="text-xs font-bold bg-[#00236f]/10 text-[#00236f] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
               WITA Standup
             </span>
           </div>
@@ -350,7 +351,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
       {/* KPI Highlight Strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-100 bg-slate-50/40 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
         <div className="p-4 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Check-in Rate
           </span>
           <div className="flex items-baseline gap-2 mt-1">
@@ -370,7 +371,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
         </div>
 
         <div className="p-4 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Distribusi Kehadiran
           </span>
           <div className="flex items-baseline gap-2 mt-1">
@@ -381,13 +382,13 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
               • {officeCount} Kantor Hub
             </span>
           </div>
-          <span className="text-[11px] text-slate-500 mt-2">
+          <span className="text-xs text-slate-500 mt-2">
             {leaveCount > 0 ? `${leaveCount} sedang cuti/izin/sakit` : 'Tidak ada cuti'}
           </span>
         </div>
 
         <div className="p-4 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Progres Prioritas
           </span>
           <div className="flex items-baseline gap-2 mt-1">
@@ -407,7 +408,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
         </div>
 
         <div className="p-4 flex flex-col justify-between">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
             Kendala / Blocker
           </span>
           <div className="flex items-baseline gap-2 mt-1">
@@ -422,7 +423,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
               {activeBlockers.length > 0 ? 'Perlu respon' : 'Lancar'}
             </span>
           </div>
-          <span className="text-[11px] text-slate-500 mt-2">
+          <span className="text-xs text-slate-500 mt-2">
             {activeBlockers.length > 0
               ? 'Rekan tim saling berkolaborasi'
               : 'Seluruh tim bebas hambatan'}
@@ -434,7 +435,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
       <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2 flex-1 max-w-sm">
           <div className="relative w-full">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
             <input
               type="text"
               value={searchQuery}
@@ -448,7 +449,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           {/* Role Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-400 font-semibold text-[11px]">Peran:</span>
+            <span className="text-slate-500 font-semibold text-xs">Peran:</span>
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
@@ -464,7 +465,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
 
           {/* Status Filter */}
           <div className="flex items-center gap-1.5">
-            <span className="text-slate-400 font-semibold text-[11px]">Kehadiran:</span>
+            <span className="text-slate-500 font-semibold text-xs">Kehadiran:</span>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -485,7 +486,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
+              <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-xs">
                 <th className="py-3.5 px-4">Anggota Tim</th>
                 <th className="py-3.5 px-3">Peran</th>
                 <th className="py-3.5 px-3">Status Kehadiran</th>
@@ -499,7 +500,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
             <tbody className="divide-y divide-slate-100">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-400">
+                  <td colSpan={8} className="py-8 text-center text-slate-500">
                     Tidak ada anggota tim yang cocok dengan kriteria filter.
                   </td>
                 </tr>
@@ -531,24 +532,17 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                       {/* 1. Member Profile */}
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
-                          <img
-                            src={
-                              member.avatarUrl ||
-                              'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-                            }
-                            alt={member.displayName}
-                            className="w-8 h-8 rounded-full object-cover ring-1 ring-slate-200 shrink-0"
-                          />
+                          <UserAvatar url={member.avatarUrl} name={member.displayName} className="w-8 h-8 rounded-full ring-1 ring-slate-200 shrink-0" />
                           <div className="min-w-0">
                             <div className="font-bold text-slate-900 flex items-center gap-1.5 truncate">
                               <span>{member.displayName}</span>
                               {isCurrent && (
-                                <span className="text-[9px] font-bold bg-[#00236f] text-white px-1.5 py-0.2 rounded">
+                                <span className="text-xs font-bold bg-[#00236f] text-white px-1.5 py-0.2 rounded">
                                   Anda
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10px] text-slate-500 truncate">
+                            <div className="text-xs text-slate-500 truncate">
                               {member.title || member.email}
                             </div>
                           </div>
@@ -558,7 +552,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                       {/* 2. Role */}
                       <td className="py-3 px-3 whitespace-nowrap">
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getRoleBadgeStyle(
+                          className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getRoleBadgeStyle(
                             member.role
                           )}`}
                         >
@@ -571,7 +565,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                         <div>
                           {getWorkStatusBadge(checkin?.workStatus)}
                           {checkin?.locationNote && (
-                            <div className="text-[10px] text-slate-500 mt-0.5 truncate max-w-[130px]">
+                            <div className="text-xs text-slate-500 mt-0.5 truncate max-w-[130px]">
                               📍 {checkin.locationNote}
                             </div>
                           )}
@@ -579,20 +573,20 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                       </td>
 
                       {/* 4. Timestamp WITA */}
-                      <td className="py-3 px-3 whitespace-nowrap text-[11px] text-slate-500">
+                      <td className="py-3 px-3 whitespace-nowrap text-xs text-slate-500">
                         {checkin?.morningCheckinAt ? (
                           <div>
                             <div className="font-semibold text-slate-700">
                               {formatWITA(checkin.morningCheckinAt)}
                             </div>
                             {checkin.eveningCheckoutAt && (
-                              <div className="text-[10px] text-indigo-600 font-semibold mt-0.5">
+                              <div className="text-xs text-indigo-600 font-semibold mt-0.5">
                                 Sore: {formatWITA(checkin.eveningCheckoutAt)}
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-400 italic">-</span>
+                          <span className="text-slate-500 italic">-</span>
                         )}
                       </td>
 
@@ -603,7 +597,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                             {checkin.priorities.map((item, idx) => {
                               const st = checkin.priorityStatuses?.[idx] || 'Belum';
                               return (
-                                <div key={idx} className="flex items-center gap-1.5 text-[11px]">
+                                <div key={idx} className="flex items-center gap-1.5 text-xs">
                                   <span
                                     className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                                       st === 'Selesai'
@@ -615,7 +609,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                                   />
                                   <span
                                     className={`truncate max-w-[240px] ${
-                                      st === 'Selesai' ? 'line-through text-slate-400' : 'text-slate-700'
+                                      st === 'Selesai' ? 'line-through text-slate-500' : 'text-slate-700'
                                     }`}
                                   >
                                     {item}
@@ -625,7 +619,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                             })}
                           </div>
                         ) : (
-                          <span className="text-slate-400 italic text-[11px]">
+                          <span className="text-slate-500 italic text-xs">
                             {checkin ? 'Belum mencatat prioritas' : 'Menunggu check-in'}
                           </span>
                         )}
@@ -638,31 +632,31 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                             <span className="font-bold text-xs text-slate-900">
                               {memberCompletedPriorities}/{memberTotalPriorities}
                             </span>
-                            <span className="text-[10px] text-emerald-700 font-semibold">
+                            <span className="text-xs text-emerald-700 font-semibold">
                               {completionPercent}%
                             </span>
                           </div>
                         ) : (
-                          <span className="text-slate-400 text-[10px]">-</span>
+                          <span className="text-slate-500 text-xs">-</span>
                         )}
                       </td>
 
                       {/* 7. Blocker & Help Info */}
                       <td className="py-3 px-3">
                         {hasBlocker ? (
-                          <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-900 space-y-1">
+                          <div className="p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
                             <div className="flex items-start gap-1 font-semibold text-amber-800">
                               <AlertTriangle className="w-3 h-3 text-amber-600 shrink-0 mt-0.5" />
                               <span className="line-clamp-2">{checkin?.blockers}</span>
                             </div>
                             {checkin?.helpOffers && checkin.helpOffers.length > 0 && (
-                              <div className="text-[10px] text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold inline-block">
+                              <div className="text-xs text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold inline-block">
                                 ✓ {checkin.helpOffers.length} bantuan masuk
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-slate-400 text-[11px] italic">Tidak ada kendala</span>
+                          <span className="text-slate-500 text-xs italic">Tidak ada kendala</span>
                         )}
                       </td>
 
@@ -674,13 +668,13 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                               setHelpTargetCheckin(checkin!);
                               setHelpMessage('');
                             }}
-                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 ml-auto shadow-2xs"
+                            className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition cursor-pointer flex items-center gap-1 ml-auto shadow-2xs"
                           >
                             <MessageSquare className="w-3 h-3" />
                             <span>Bantu</span>
                           </button>
                         ) : (
-                          <span className="text-slate-300 text-[10px]">•</span>
+                          <span className="text-slate-300 text-xs">•</span>
                         )}
                       </td>
                     </tr>
@@ -696,7 +690,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
       {viewMode === 'cards' && (
         <div className="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredUsers.length === 0 ? (
-            <div className="col-span-full py-10 text-center text-slate-400 text-xs">
+            <div className="col-span-full py-10 text-center text-slate-500 text-xs">
               Tidak ada anggota tim yang cocok dengan kriteria filter.
             </div>
           ) : (
@@ -730,26 +724,19 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                     {/* Top Header: Avatar, Name, Role */}
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <img
-                          src={
-                            member.avatarUrl ||
-                            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-                          }
-                          alt={member.displayName}
-                          className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 shrink-0"
-                        />
+                        <UserAvatar url={member.avatarUrl} name={member.displayName} className="w-10 h-10 rounded-full ring-1 ring-slate-200 shrink-0" />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-xs font-bold text-slate-900 truncate">
                               {member.displayName}
                             </span>
                             {isCurrent && (
-                              <span className="text-[9px] font-bold bg-[#00236f] text-white px-1.5 py-0.2 rounded shrink-0">
+                              <span className="text-xs font-bold bg-[#00236f] text-white px-1.5 py-0.2 rounded shrink-0">
                                 Anda
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-slate-500 block truncate">
+                          <span className="text-xs text-slate-500 block truncate">
                             {member.title || getRoleLabel(member.role)}
                           </span>
                         </div>
@@ -758,7 +745,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                       <div className="text-right shrink-0">
                         {getWorkStatusBadge(checkin?.workStatus)}
                         {checkin?.morningCheckinAt && (
-                          <div className="text-[9px] text-slate-400 mt-1">
+                          <div className="text-xs text-slate-500 mt-1">
                             {formatWITA(checkin.morningCheckinAt)}
                           </div>
                         )}
@@ -767,14 +754,14 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
 
                     {/* Location Tag */}
                     {checkin?.locationNote && (
-                      <div className="text-[11px] text-slate-600 mb-2.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-100 italic truncate">
+                      <div className="text-xs text-slate-600 mb-2.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-100 italic truncate">
                         📍 {checkin.locationNote}
                       </div>
                     )}
 
                     {/* Priorities Section */}
                     <div className="space-y-1.5 mb-3 pt-2 border-t border-slate-100">
-                      <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <span>Fokus Prioritas Hari Ini:</span>
                         {memberTotalPriorities > 0 && (
                           <span className="text-emerald-700">
@@ -795,14 +782,14 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                                 <span
                                   className={`truncate ${
                                     st === 'Selesai'
-                                      ? 'line-through text-slate-400'
+                                      ? 'line-through text-slate-500'
                                       : 'text-slate-800 font-medium'
                                   }`}
                                 >
                                   {idx + 1}. {item}
                                 </span>
                                 <span
-                                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded shrink-0 ${
+                                  className={`text-xs font-bold px-1.5 py-0.2 rounded shrink-0 ${
                                     st === 'Selesai'
                                       ? 'bg-emerald-100 text-emerald-800'
                                       : st === 'Berjalan'
@@ -817,7 +804,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                           })}
                         </div>
                       ) : (
-                        <div className="text-[11px] text-slate-400 italic py-1">
+                        <div className="text-xs text-slate-500 italic py-1">
                           {checkin
                             ? 'Belum merincikan target prioritas.'
                             : 'Anggota belum melakukan check-in hari ini.'}
@@ -831,10 +818,10 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                         <div className="flex items-start gap-1.5">
                           <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                           <div>
-                            <span className="font-bold text-[10px] uppercase tracking-wider text-amber-800 block">
+                            <span className="font-bold text-xs uppercase tracking-wider text-amber-800 block">
                               Kendala / Butuh Dukungan:
                             </span>
-                            <p className="text-[11px] text-amber-800 mt-0.5">
+                            <p className="text-xs text-amber-800 mt-0.5">
                               {checkin?.blockers}
                             </p>
                           </div>
@@ -842,13 +829,13 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
 
                         {checkin?.helpOffers && checkin.helpOffers.length > 0 && (
                           <div className="pt-1.5 border-t border-amber-200/60 space-y-1">
-                            <span className="text-[10px] font-bold text-amber-900 block">
+                            <span className="text-xs font-bold text-amber-900 block">
                               Bantuan Rekan Tim ({checkin.helpOffers.length}):
                             </span>
                             {checkin.helpOffers.slice(0, 2).map((ho) => (
                               <div
                                 key={ho.id}
-                                className="text-[10px] bg-white/80 p-1.5 rounded text-slate-700 border border-amber-100"
+                                className="text-xs bg-white/80 p-1.5 rounded text-slate-700 border border-amber-100"
                               >
                                 <strong className="text-slate-900">
                                   {ho.fromUserName || ho.helperName}:
@@ -863,8 +850,8 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
 
                     {/* Evening Checkout Notes */}
                     {(checkin?.checkoutNotes || checkin?.eveningNotes) && (
-                      <div className="p-2 rounded-lg bg-indigo-50/60 border border-indigo-100 text-[11px] text-indigo-900 mb-2">
-                        <span className="font-bold text-[10px] uppercase text-indigo-800 block">
+                      <div className="p-2 rounded-lg bg-indigo-50/60 border border-indigo-100 text-xs text-indigo-900 mb-2">
+                        <span className="font-bold text-xs uppercase text-indigo-800 block">
                           Catatan Sore:
                         </span>
                         <p className="mt-0.5 line-clamp-2">
@@ -876,7 +863,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
 
                   {/* Card Footer: Offer Help or Status */}
                   <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-xs text-slate-500">
                       {checkin?.updatedAt
                         ? `Sinkron: ${formatWITA(checkin.updatedAt)}`
                         : 'Menunggu aktivitas'}
@@ -895,7 +882,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
                       </button>
                     ) : (
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getRoleBadgeStyle(
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getRoleBadgeStyle(
                           member.role
                         )}`}
                       >
@@ -923,14 +910,14 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
               </div>
               <button
                 onClick={() => setHelpTargetCheckin(null)}
-                className="text-slate-400 hover:text-slate-600 cursor-pointer text-xs"
+                className="text-slate-500 hover:text-slate-600 cursor-pointer text-xs"
               >
                 ✕
               </button>
             </div>
 
             <div className="my-3 p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900">
-              <span className="font-bold block text-[10px] uppercase tracking-wider text-amber-800">
+              <span className="font-bold block text-xs uppercase tracking-wider text-amber-800">
                 Kendala yang dihadapi:
               </span>
               <p className="mt-0.5">{helpTargetCheckin.blockers}</p>

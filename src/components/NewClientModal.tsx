@@ -142,7 +142,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 transition cursor-pointer"
+            className="p-1.5 rounded-lg text-slate-500 hover:text-slate-600 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -158,7 +158,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-5 text-xs">
           {/* SECTION 1: PROFIL BISNIS */}
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5] block mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5] block mb-2">
               1. Data Profil Bisnis Klien
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -259,7 +259,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({
 
           {/* SECTION 2: PENUGASAN SATU ATAU LEBIH KONSULTAN */}
           <div className="pt-3 border-t border-slate-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5] block mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5] block mb-2">
               2. Penugasan Konsultan Pendamping (Satu atau Lebih)
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -284,12 +284,12 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({
                       <div className="font-bold text-slate-900 flex items-center gap-1.5">
                         <span>{c.displayName}</span>
                         {c.role === 'owner' && (
-                          <span className="text-[9px] px-1.5 py-0.2 bg-purple-100 text-purple-800 rounded font-bold">
+                          <span className="text-xs px-1.5 py-0.2 bg-purple-100 text-purple-800 rounded font-bold">
                             Owner / Advisor
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-slate-500">{c.title || (c.role === 'owner' ? 'Founder & Advisor' : 'Konsultan Bisnis')}</div>
+                      <div className="text-xs text-slate-500">{c.title || (c.role === 'owner' ? 'Founder & Advisor' : 'Konsultan Bisnis')}</div>
                     </div>
                   </label>
                 );
@@ -299,7 +299,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({
 
           {/* SECTION 3: PENDAFTARAN PROGRAM & SESI */}
           <div className="pt-3 border-t border-slate-200">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5] block mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5] block mb-2">
               3. Pendaftaran Program & Rencana Sesi (Enrollment)
             </span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

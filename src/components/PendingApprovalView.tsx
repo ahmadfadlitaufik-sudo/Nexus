@@ -131,7 +131,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
             <div className="flex items-center justify-between">
               <span className="text-slate-500">Status Akun</span>
               <span
-                className={`font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-[10px] ${
+                className={`font-bold px-2 py-0.5 rounded-full uppercase tracking-wider text-xs ${
                   isRejected
                     ? 'bg-red-100 text-red-700'
                     : 'bg-amber-100 text-amber-700'
@@ -143,7 +143,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
           </div>
 
           {refreshMessage && (
-            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-[11px] text-center font-medium">
+            <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-xs text-center font-medium">
               {refreshMessage}
             </div>
           )}
@@ -183,7 +183,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-slate-400 mt-6">
+        <p className="text-center text-xs text-slate-500 mt-6">
           Sistem Pengawasan Keamanan &amp; Hak Akses Berjenjang • Nexus Growth Partner
         </p>
       </div>

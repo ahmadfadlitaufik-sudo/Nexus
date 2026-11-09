@@ -145,7 +145,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
         <div className="bg-slate-900/95 text-white p-3.5 rounded-xl shadow-xl border border-slate-700/80 text-xs space-y-1.5 backdrop-blur-xs">
           <div className="font-bold text-slate-200 border-b border-slate-700 pb-1 flex items-center justify-between gap-4">
             <span>Periode: {label}</span>
-            <span className="text-[10px] text-blue-300 font-mono">WITA / 2026</span>
+            <span className="text-xs text-blue-300 font-mono">WITA / 2026</span>
           </div>
           {payload.map((entry: any, index: number) => (
             <div key={`item-${index}`} className="flex items-center justify-between gap-4 py-0.5">
@@ -174,7 +174,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: data.color }}></span>
             <span className="font-bold">{data.name}</span>
           </div>
-          <div className="text-[11px] text-slate-300">
+          <div className="text-xs text-slate-300">
             Jumlah Responden: <strong className="text-white">{data.value} ulasan</strong> ({data.percentage}%)
           </div>
         </div>
@@ -234,7 +234,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5]">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5]">
                   Volume &amp; Pertumbuhan
                 </span>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
@@ -295,19 +295,19 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
           {/* 3 Metric Pills below Bar Chart */}
           <div className="grid grid-cols-3 gap-3 pt-4 mt-2 border-t border-slate-100 text-xs">
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Pertumbuhan Klien</span>
+              <span className="text-xs text-slate-500 uppercase font-bold block">Pertumbuhan Klien</span>
               <span className="text-sm font-bold text-[#00236f] flex items-center gap-1 mt-0.5">
                 <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> {growthLabel}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Sesi Selesai</span>
+              <span className="text-xs text-slate-500 uppercase font-bold block">Sesi Selesai</span>
               <span className="text-sm font-bold text-[#0051d5] flex items-center gap-1 mt-0.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" /> {completedSessionsCount} Sesi
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Sesi Terjadwal</span>
+              <span className="text-xs text-slate-500 uppercase font-bold block">Sesi Terjadwal</span>
               <span className="text-sm font-bold text-emerald-700 flex items-center gap-1 mt-0.5">
                 <Calendar className="w-3.5 h-3.5 text-emerald-600" /> {activeSessionsCount} Sesi Aktif
               </span>
@@ -320,7 +320,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-2">
               <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
                   Customer Satisfaction (CSAT)
                 </span>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
@@ -356,7 +356,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
                   {satisfactionScore}
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                 </span>
-                <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
                   {totalFeedbackCount > 0 ? `${satisfactionPercentage}% PUAS` : 'BELUM ADA PENILAIAN'}
                 </span>
               </div>
@@ -375,7 +375,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
                   </div>
                   <div className="flex items-center gap-2 font-mono">
                     <span className="text-slate-500 font-medium">{item.value} ulasan</span>
-                    <span className="font-bold text-slate-900 bg-slate-100 px-1.5 py-0.2 rounded text-[11px]">
+                    <span className="font-bold text-slate-900 bg-slate-100 px-1.5 py-0.2 rounded text-xs">
                       {item.percentage}%
                     </span>
                   </div>
@@ -394,7 +394,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
                   : 'Belum ada penilaian dari klien'}
               </span>
             </div>
-            <span className="font-bold text-[10px] uppercase tracking-wider bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
+            <span className="font-bold text-xs uppercase tracking-wider bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
               {totalFeedbackCount > 0 ? `${satisfactionPercentage}% puas` : '–'}
             </span>
           </div>

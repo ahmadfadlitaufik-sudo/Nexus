@@ -1,3 +1,4 @@
+import { UserAvatar } from '../components/UserAvatar';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -276,7 +277,7 @@ export const ClientPortal: React.FC = () => {
 
           <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-blue-200">
             <span>
-              Konsultan Pendamping: <strong className="text-white">{consultant?.displayName}</strong>
+              Konsultan Pendamping: <strong className="text-white">{consultant?.displayName || 'Segera ditentukan'}</strong>
             </span>
             <span>•</span>
             <span>Kota: {client.kota} (WITA)</span>
@@ -290,25 +291,18 @@ export const ClientPortal: React.FC = () => {
             onClick={() => setShowAvatarModal(true)}
             title="Klik untuk ganti foto avatar Anda"
           >
-            <img
-              src={
-                userProfile?.avatarUrl ||
-                client.logoUrl ||
-                'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=200&auto=format&fit=crop&q=80'
-              }
-              alt={client.namaPemilik}
-              className="w-16 h-16 rounded-2xl object-cover ring-2 ring-white/60 group-hover:ring-white transition shadow-sm bg-white/20"
-            />
+            <UserAvatar url={userProfile?.avatarUrl ||
+                client.logoUrl} name={client.namaPemilik} className="w-16 h-16 rounded-2xl ring-2 ring-white/60 group-hover:ring-white transition shadow-sm bg-white/20" />
             <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-white">
               <Camera className="w-5 h-5 drop-shadow-sm" />
             </div>
-            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#0051d5] text-white rounded-full flex items-center justify-center shadow-xs text-[10px] font-bold ring-2 ring-white">
+            <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#0051d5] text-white rounded-full flex items-center justify-center shadow-xs text-xs font-bold ring-2 ring-white">
               ✎
             </span>
           </div>
 
           <div className="space-y-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-blue-200 block">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-200 block">
               Profil Klien UKM
             </span>
             <div className="text-sm font-bold text-white font-['Plus_Jakarta_Sans'] leading-tight">
@@ -336,7 +330,7 @@ export const ClientPortal: React.FC = () => {
                 <Calendar className="w-4 h-4" />
                 Sesi Pendampingan Berikutnya
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-[#00236f] font-bold">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-[#00236f] font-bold">
                 Zona WITA
               </span>
             </div>
@@ -362,7 +356,7 @@ export const ClientPortal: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="py-8 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-500 text-xs">
                 Belum ada jadwal sesi pendampingan berikutnya. Konsultan Anda akan segera menjadwalkan.
               </div>
             )}
@@ -421,7 +415,25 @@ export const ClientPortal: React.FC = () => {
 
           <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-slate-500">Kontak Konsultan:</span>
-            <span className="font-semibold text-slate-800">{consultant?.phone || '-'}</span>
+            {consultant?.phone ? (
+              <a
+                href={`https://wa.me/${consultant.phone.replace(/[^0-9]/g, '').replace(/^0/, '62')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[#0051d5] hover:underline"
+              >
+                {consultant.phone} (WhatsApp)
+              </a>
+            ) : (
+              <a
+                href="https://wa.me/6282355522710?text=Halo%20Nexus,%20saya%20klien%20dan%20ingin%20menghubungi%20konsultan%20saya."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[#0051d5] hover:underline"
+              >
+                Hubungi Nexus via WhatsApp
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -441,7 +453,7 @@ export const ClientPortal: React.FC = () => {
 
         <div className="space-y-4">
           {tasks.length === 0 ? (
-            <div className="p-8 text-center text-slate-400 text-xs">Belum ada tugas yang ditugaskan.</div>
+            <div className="p-8 text-center text-slate-500 text-xs">Belum ada tugas yang ditugaskan.</div>
           ) : (
             tasks.map((task) => {
               const isOverdue = task.status === 'Terlambat' || isTaskOverdue(task.deadline, task.status);
@@ -561,6 +573,11 @@ export const ClientPortal: React.FC = () => {
         </div>
 
         <div className="space-y-4">
+          {roadmap.length === 0 && (
+            <p className="text-xs text-slate-500 text-center py-6 rounded-xl border border-dashed border-slate-200">
+              Roadmap akan muncul di sini setelah konsultan menyusunnya bersama Anda.
+            </p>
+          )}
           {roadmap.map((item, idx) => {
             const tahapanTitle = item.tahapan || item.phase || `Fase ${idx + 1}`;
             const sasaranText = item.sasaran || item.title || 'Sasaran Milestone';
@@ -577,7 +594,7 @@ export const ClientPortal: React.FC = () => {
                     0{item.urutan || item.order || idx + 1}
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold text-[#0051d5] uppercase tracking-wider">
+                    <div className="text-xs font-bold text-[#0051d5] uppercase tracking-wider">
                       {tahapanTitle} • Tenggat: {tenggatText}
                     </div>
                     <h4 className="text-sm font-bold text-slate-900 mt-0.5">{sasaranText}</h4>
@@ -631,6 +648,11 @@ export const ClientPortal: React.FC = () => {
           </div>
         </div>
 
+        {kpis.length === 0 && (
+          <p className="text-xs text-slate-500 text-center py-6 rounded-xl border border-dashed border-slate-200">
+            Indikator KPI akan tampil di sini setelah ditetapkan bersama konsultan Anda.
+          </p>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {kpis.map((kpi) => {
             const kpiNama = kpi.nama || kpi.title || 'Indikator Bisnis';
@@ -657,26 +679,26 @@ export const ClientPortal: React.FC = () => {
                 key={kpi.id}
                 className="p-5 rounded-2xl border border-slate-200 bg-slate-50/40 space-y-3 shadow-xs"
               >
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                   {kpi.kategori || 'Metrik Capaian'}
                 </span>
                 <h4 className="text-sm font-bold text-slate-900">{kpiNama}</h4>
 
                 <div className="grid grid-cols-3 gap-2 text-center pt-2">
                   <div className="p-2 rounded-lg bg-white border border-slate-100">
-                    <div className="text-[10px] text-slate-400">Nilai Awal</div>
+                    <div className="text-xs text-slate-500">Nilai Awal</div>
                     <div className="text-xs font-semibold text-slate-700">
                       {baseline} {unit}
                     </div>
                   </div>
                   <div className="p-2 rounded-lg bg-blue-50 border border-blue-100">
-                    <div className="text-[10px] text-[#0051d5] font-semibold">Saat Ini</div>
+                    <div className="text-xs text-[#0051d5] font-semibold">Saat Ini</div>
                     <div className="text-xs font-bold text-[#00236f]">
                       {current} {unit}
                     </div>
                   </div>
                   <div className="p-2 rounded-lg bg-white border border-slate-100">
-                    <div className="text-[10px] text-slate-400">Target</div>
+                    <div className="text-xs text-slate-500">Target</div>
                     <div className="text-xs font-semibold text-emerald-700">
                       {target} {unit}
                     </div>
@@ -684,7 +706,7 @@ export const ClientPortal: React.FC = () => {
                 </div>
 
                 <div className="pt-2">
-                  <div className="flex justify-between text-[11px] text-slate-500 mb-1 font-medium">
+                  <div className="flex justify-between text-xs text-slate-500 mb-1 font-medium">
                     <span>Progres</span>
                     <span className="font-bold text-[#00236f]">{displayProgress}%</span>
                   </div>
@@ -700,7 +722,7 @@ export const ClientPortal: React.FC = () => {
                       style={{ width: `${displayProgress}%` }}
                     />
                   </div>
-                  <div className="text-[10px] text-slate-400 mt-1">
+                  <div className="text-xs text-slate-500 mt-1">
                     Diperbarui: {dateStr}
                   </div>
                 </div>
@@ -715,7 +737,7 @@ export const ClientPortal: React.FC = () => {
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#00236f] text-[11px] font-bold uppercase tracking-wider mb-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#00236f] text-xs font-bold uppercase tracking-wider mb-1">
                 <FileText className="w-3.5 h-3.5 text-[#0051d5]" />
                 Catatan Sesi Terakhir
               </div>
@@ -745,7 +767,7 @@ export const ClientPortal: React.FC = () => {
       <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 text-[11px] font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-900 text-xs font-bold uppercase tracking-wider mb-1">
               <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
               Evaluasi Layanan
             </div>
@@ -862,11 +884,11 @@ export const ClientPortal: React.FC = () => {
                           }`}
                         />
                       ))}
-                      <span className="text-[11px] font-bold text-slate-700 ml-1">
+                      <span className="text-xs font-bold text-slate-700 ml-1">
                         {fb.rating}/5
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-xs text-slate-500">
                       {formatWITA(fb.createdAt)}
                     </span>
                   </div>
@@ -884,7 +906,7 @@ export const ClientPortal: React.FC = () => {
       <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-200">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-900 text-[11px] font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-900 text-xs font-bold uppercase tracking-wider mb-1">
               <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
               Kontrol Privasi Data Anda
             </div>
@@ -899,9 +921,9 @@ export const ClientPortal: React.FC = () => {
 
         {consents.length === 0 ? (
           <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1.5">
-            <Lock className="w-7 h-7 text-slate-400 mx-auto" />
+            <Lock className="w-7 h-7 text-slate-500 mx-auto" />
             <p className="text-xs font-bold text-slate-700">Belum ada pengajuan studi kasus untuk bisnis Anda</p>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Seluruh data audit, KPI, dan rekam diagnosis bisnis Anda tersimpan aman dan terproteksi.
             </p>
           </div>
@@ -949,7 +971,7 @@ export const ClientPortal: React.FC = () => {
                   <div className="space-y-2 text-xs">
                     {item.keyMetricsAchievement && (
                       <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                           Pencapaian yang Akan Diulas:
                         </span>
                         <p className="font-bold text-emerald-950 mt-0.5">{item.keyMetricsAchievement}</p>
@@ -978,7 +1000,7 @@ export const ClientPortal: React.FC = () => {
                           <div className="font-bold text-slate-900">
                             Gunakan Nama Samaran / Anonim (Disarankan)
                           </div>
-                          <div className="text-[11px] text-slate-500">
+                          <div className="text-xs text-slate-500">
                             Nama bisnis diubah menjadi: "{item.anonymizedName}", nama founder menjadi: "{item.anonymizedOwnerName}".
                           </div>
                         </div>
@@ -996,7 +1018,7 @@ export const ClientPortal: React.FC = () => {
                           <div className="font-bold text-slate-900">
                             Izinkan Penyebutan Nama Terbuka
                           </div>
-                          <div className="text-[11px] text-slate-500">
+                          <div className="text-xs text-slate-500">
                             Menampilkan brand "{client.namaBisnis}" dan founder "{client.namaPemilik}" secara terbuka.
                           </div>
                         </div>

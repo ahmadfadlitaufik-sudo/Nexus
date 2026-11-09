@@ -352,7 +352,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                 {group.name}
               </h1>
               <span
-                className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
                   group.status === 'Aktif'
                     ? 'bg-emerald-100 text-emerald-800'
                     : 'bg-blue-100 text-[#00236f]'
@@ -384,7 +384,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
             <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
             <div>
               <span className="font-bold block">{passiveMembersCount} Anggota Pasif Terdeteksi</span>
-              <span className="text-[11px] text-rose-700">Absen 2x berturut-turut atau tugas macet</span>
+              <span className="text-xs text-rose-700">Absen 2x berturut-turut atau tugas macet</span>
             </div>
           </div>
         )}
@@ -429,16 +429,16 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
               <div className="text-3xl font-extrabold text-[#00236f] font-['Plus_Jakarta_Sans'] mt-1">
                 {members.length}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Pemilik bisnis terdaftar</div>
+              <div className="text-xs text-slate-500 mt-0.5">Pemilik bisnis terdaftar</div>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sesi Terlaksana</span>
               <div className="text-3xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans'] mt-1">
                 {groupSessions.filter((s) => s.status === 'Selesai').length}
-                <span className="text-lg text-slate-400 font-normal">/{group.totalSessions || 8}</span>
+                <span className="text-lg text-slate-500 font-normal">/{group.totalSessions || 8}</span>
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Sesi grup mastermind</div>
+              <div className="text-xs text-slate-500 mt-0.5">Sesi grup mastermind</div>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -452,7 +452,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                   : 100}
                 %
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Kehadiran seluruh batch</div>
+              <div className="text-xs text-slate-500 mt-0.5">Kehadiran seluruh batch</div>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -460,7 +460,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
               <div className="text-3xl font-extrabold text-rose-600 font-['Plus_Jakarta_Sans'] mt-1">
                 {passiveMembersCount}
               </div>
-              <div className="text-[11px] text-slate-500 mt-0.5">Memerlukan intervensi</div>
+              <div className="text-xs text-slate-500 mt-0.5">Memerlukan intervensi</div>
             </div>
           </div>
 
@@ -475,7 +475,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
               </div>
 
               {groupSessions.filter((s) => s.status === 'Terjadwal').length === 0 ? (
-                <div className="py-6 text-center text-slate-400 text-xs">
+                <div className="py-6 text-center text-slate-500 text-xs">
                   Belum ada sesi baru yang dijadwalkan.
                 </div>
               ) : (
@@ -518,14 +518,14 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
               </div>
 
               {announcements.length === 0 ? (
-                <div className="py-6 text-center text-slate-400 text-xs">
+                <div className="py-6 text-center text-slate-500 text-xs">
                   Belum ada pengumuman yang dibagikan ke grup ini.
                 </div>
               ) : (
                 <div className="space-y-3">
                   {announcements.slice(0, 2).map((ann) => (
                     <div key={ann.id} className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                      <div className="flex items-center justify-between text-xs text-slate-500">
                         <span className="font-semibold text-slate-700">{ann.authorName}</span>
                         <span>{formatWITA(ann.createdAt)}</span>
                       </div>
@@ -566,7 +566,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-600">
-              <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-[10px] tracking-wider border-b border-slate-200">
+              <thead className="bg-slate-50 text-slate-700 uppercase font-semibold text-xs tracking-wider border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-3">Bisnis &amp; Pemilik</th>
                   <th className="px-4 py-3">Industri / Kota</th>
@@ -579,7 +579,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
               <tbody className="divide-y divide-slate-100">
                 {evaluatedMembers.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    <td colSpan={6} className="py-8 text-center text-slate-500 text-xs">
                       Belum ada klien yang ditambahkan ke grup mastermind ini.
                     </td>
                   </tr>
@@ -588,13 +588,13 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                     <tr key={member.id} className="hover:bg-slate-50/80 transition">
                       <td className="px-4 py-3 font-semibold text-slate-900">
                         {member.client?.namaBisnis || 'Klien'}
-                        <div className="text-[11px] font-normal text-slate-400">
+                        <div className="text-xs font-normal text-slate-500">
                           {member.client?.namaPemilik}
                         </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="font-medium text-slate-800">{member.client?.industri || '-'}</span>
-                        <div className="text-[11px] text-slate-400">{member.client?.kota}</div>
+                        <div className="text-xs text-slate-500">{member.client?.kota}</div>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
@@ -616,15 +616,15 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                       <td className="px-4 py-3">
                         {member.isPassive ? (
                           <div className="space-y-0.5">
-                            <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase bg-rose-100 text-rose-800">
+                            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-bold uppercase bg-rose-100 text-rose-800">
                               <AlertTriangle className="w-3 h-3" /> Pasif
                             </span>
-                            <div className="text-[10px] text-rose-600 font-medium">
+                            <div className="text-xs text-rose-600 font-medium">
                               {member.passiveReason}
                             </div>
                           </div>
                         ) : (
-                          <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase bg-emerald-100 text-emerald-800">
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-bold uppercase bg-emerald-100 text-emerald-800">
                             Aktif
                           </span>
                         )}
@@ -645,7 +645,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                             )}
                             <button
                               onClick={() => handleRemoveMember(member.id)}
-                              className="p-1 text-slate-400 hover:text-rose-600 transition"
+                              className="p-1 text-slate-500 hover:text-rose-600 transition"
                               title="Keluarkan dari grup"
                             >
                               <UserMinus className="w-4 h-4" />
@@ -749,7 +749,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                           <span className="font-bold text-xs sm:text-sm text-slate-900 block">
                             {clientData?.namaBisnis || 'Klien'} ({clientData?.namaPemilik})
                           </span>
-                          <span className="text-[11px] text-slate-400">
+                          <span className="text-xs text-slate-500">
                             Kota: {clientData?.kota} • PIC
                           </span>
                         </div>
@@ -785,7 +785,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="py-8 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-500 text-xs">
                 Pilih atau jadwalkan sesi untuk mengisi presensi anggota.
               </div>
             )}
@@ -809,7 +809,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
 
           <div className="space-y-3">
             {tasks.filter((t) => memberClientIds.has(t.clientId)).length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-500 text-xs">
                 Belum ada tugas yang ditugaskan ke anggota grup ini.
               </div>
             ) : (
@@ -827,7 +827,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-slate-900">{task.title}</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-[#00236f] font-semibold">
+                          <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-[#00236f] font-semibold">
                             {clientData?.namaBisnis}
                           </span>
                         </div>
@@ -883,7 +883,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
 
           <div className="space-y-4">
             {announcements.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-500 text-xs">
                 Belum ada pengumuman yang diposting di grup ini.
               </div>
             ) : (

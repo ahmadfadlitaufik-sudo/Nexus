@@ -400,7 +400,7 @@ export const TeamSettings: React.FC = () => {
       );
       setSelectedProgram(editingProgramForm);
       setProgramSuccessMessage(
-        `Perubahan program & template tahapan "${editingProgramForm.name}" berhasil disimpan ke Firestore!`
+        `Perubahan program & template tahapan "${editingProgramForm.name}" berhasil disimpan ke database!`
       );
     } catch (err: any) {
       console.error('Error saving program template:', err);
@@ -1105,7 +1105,7 @@ export const TeamSettings: React.FC = () => {
                     Konfigurasi: {editingProgramForm.name}
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Seluruh tahapan template disimpan langsung di koleksi <code>programs</code> Firestore dan digunakan otomatis saat onboarding klien baru.
+                    Seluruh tahapan template disimpan langsung di koleksi <code>programs</code> database dan digunakan otomatis saat onboarding klien baru.
                   </p>
                 </div>
 
@@ -1126,7 +1126,7 @@ export const TeamSettings: React.FC = () => {
                     className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold transition shadow-sm cursor-pointer disabled:opacity-50"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{isSavingProgram ? 'Menyimpan ke Firestore...' : 'Simpan Perubahan Program'}</span>
+                    <span>{isSavingProgram ? 'Menyimpan ke database...' : 'Simpan Perubahan Program'}</span>
                   </button>
                 </div>
               </div>

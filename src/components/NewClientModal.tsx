@@ -1,3 +1,4 @@
+import { todayWITA } from '../utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { X, Building2, User, Phone, MapPin, Briefcase, Plus, AlertCircle, Calendar, CheckSquare, Layers } from 'lucide-react';
@@ -28,7 +29,7 @@ export const NewClientModal: React.FC<NewClientModalProps> = ({
   const [selectedConsultantIds, setSelectedConsultantIds] = useState<string[]>([]);
 
   // Enrollment fields
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(todayWITA());
   const [durationWeeks, setDurationWeeks] = useState(12);
   const [totalSessions, setTotalSessions] = useState(12);
 

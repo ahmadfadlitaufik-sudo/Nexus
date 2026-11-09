@@ -31,7 +31,7 @@ import {
 } from 'lucide-react';
 import { ActivityLog as ActivityLogType, Client } from '../types';
 import { getActivityLogs, getClients } from '../services/db';
-import { formatWITA } from '../utils/formatters';
+import { formatWITA, todayWITA } from '../utils/formatters';
 
 interface ActivityLogProps {
   className?: string;
@@ -195,11 +195,11 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
         `"${l.id}"`,
         `"${formatWITA(l.createdAt)}"`,
         `"${meta.categoryLabel}"`,
-        `"${l.action.replace(/"/g, '""')}"`,
-        `"${l.actorName.replace(/"/g, '""')}"`,
-        `"${l.actorRole.replace(/"/g, '""')}"`,
+        `"${(l.action || '').replace(/"/g, '""')}"`,
+        `"${(l.actorName || '').replace(/"/g, '""')}"`,
+        `"${(l.actorRole || '').replace(/"/g, '""')}"`,
         `"${clientName.replace(/"/g, '""')}"`,
-        `"${l.details.replace(/"/g, '""')}"`,
+        `"${(l.details || '').replace(/"/g, '""')}"`,
       ];
     });
 
@@ -207,7 +207,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `activity_log_audit_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `activity_log_audit_${todayWITA()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -234,10 +234,10 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
   const filteredLogs = logs.filter((l) => {
     const q = searchQuery.toLowerCase();
     const matchSearch =
-      l.action.toLowerCase().includes(q) ||
-      l.actorName.toLowerCase().includes(q) ||
-      l.actorRole.toLowerCase().includes(q) ||
-      l.details.toLowerCase().includes(q) ||
+      (l.action || '').toLowerCase().includes(q) ||
+      (l.actorName || '').toLowerCase().includes(q) ||
+      (l.actorRole || '').toLowerCase().includes(q) ||
+      (l.details || '').toLowerCase().includes(q) ||
       (l.clientId && l.clientId.toLowerCase().includes(q));
 
     if (!matchSearch) return false;
@@ -649,7 +649,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
               <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Validasi Akuntabilitas:</strong> Rekaman ini tersimpan secara permanen di database Firestore dan tidak dapat diedit atau dihapus oleh staf untuk memastikan integritas audit kepatuhan.
+                  <strong>Validasi Akuntabilitas:</strong> Rekaman ini tersimpan secara permanen di database Cloudflare D1 dan tidak dapat diedit atau dihapus oleh staf untuk memastikan integritas audit kepatuhan.
                 </span>
               </div>
             </div>

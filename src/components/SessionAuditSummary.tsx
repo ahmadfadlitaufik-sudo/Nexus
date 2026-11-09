@@ -145,7 +145,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-white font-['Plus_Jakarta_Sans']">
-                  Audit Integritas Data Sesi &amp; Firestore Security Rules
+                  Audit Integritas Data Sesi &amp; Aturan Akses Server
                 </span>
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30">
                   RULES AKTIF
@@ -198,7 +198,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{authorizedCount} Peristiwa Sah</span>
             </div>
-            <span className="text-[10px] text-slate-300">Sesuai RBAC Firestore</span>
+            <span className="text-[10px] text-slate-300">Sesuai RBAC Server</span>
           </div>
 
           <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
@@ -275,7 +275,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
 
             <div className="p-3 rounded-xl bg-white border border-slate-200/90 text-right shrink-0 md:max-w-xs">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Security Rule Firestore
+                Aturan Akses Server
               </span>
               <p className="font-mono text-[11px] font-bold text-[#00236f] truncate mt-0.5" title={lastLog.securityRuleMatched}>
                 {lastLog.securityRuleMatched}
@@ -293,7 +293,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
         <div>
           <h4 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans'] flex items-center gap-2">
             <Layers className="w-4 h-4 text-[#00236f]" />
-            <span>Matriks Otorisasi Akses Data Sesi Berdasarkan Security Rules Firestore</span>
+            <span>Matriks Otorisasi Akses Data Sesi Berdasarkan Aturan Akses Server</span>
           </h4>
           <p className="text-xs text-slate-500 mt-0.5">
             Sistem memisahkan kolom data catatan internal ke dokumen terpisah agar Security Rules dapat mengisolasi hak baca secara absolut.
@@ -307,7 +307,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                 <th className="p-3">Peran (User Role)</th>
                 <th className="p-3">Dokumen Publik (sessions)</th>
                 <th className="p-3">Dokumen Internal (session_internals)</th>
-                <th className="p-3">Status Otorisasi Firestore</th>
+                <th className="p-3">Status Otorisasi Server</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -316,7 +316,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                   <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px] mr-1.5 uppercase">
                     Owner
                   </span>
-                  Ahmad Fadli Taufik
+                  Semua Owner
                 </td>
                 <td className="p-3 text-emerald-700 font-semibold flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Baca &amp; Tulis Penuh
@@ -404,7 +404,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900">
-                Simulator Verifikasi Aturan Firestore Real-Time
+                Simulator Verifikasi Aturan Akses Server Real-Time
               </h4>
               <p className="text-[11px] text-slate-500">
                 Uji coba secara langsung apakah kombinasi peran dan target dokumen sesi lolos otorisasi aturan keamanan.

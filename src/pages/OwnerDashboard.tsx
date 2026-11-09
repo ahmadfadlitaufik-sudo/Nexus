@@ -24,9 +24,10 @@ import {
   Activity,
   ShieldCheck,
 } from 'lucide-react';
-import { Client, Session, Task, UserProfile, ClientStatus, SessionStatus, Feedback } from '../types';
+import { Client, Session, Task, UserProfile, ClientStatus, SessionStatus, Feedback, TeamCheckin } from '../types';
+import { getCheckinsByDate } from '../services/teamDaily';
 import { getClients, getSessions, getTasks, getAllUsers, getAllFeedback } from '../services/db';
-import { formatWITA, evaluateClientRisk, isTaskOverdue, getDaysDiff } from '../utils/formatters';
+import { formatWITA, evaluateClientRisk, isTaskOverdue, getDaysDiff, todayWITA, dateWITA } from '../utils/formatters';
 import { SessionAuditSummary } from '../components/SessionAuditSummary';
 import { OwnerAnalyticsCharts } from '../components/OwnerAnalyticsCharts';
 import { DailyActivityTracker } from '../components/DailyActivityTracker';
@@ -62,15 +63,19 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
   const [isRecommendationApplied, setIsRecommendationApplied] = useState(false);
 
+  const [todayCheckins, setTodayCheckins] = useState<TeamCheckin[]>([]);
+
   const loadData = async () => {
     try {
-      const [cList, sList, tList, uList, fbList] = await Promise.all([
+      const [cList, sList, tList, uList, fbList, chkList] = await Promise.all([
         getClients(),
         getSessions(),
         getTasks(),
         getAllUsers(),
         getAllFeedback(),
+        getCheckinsByDate(todayWITA()).catch(() => [] as TeamCheckin[]),
       ]);
+      setTodayCheckins(chkList);
       setClients(cList);
       setSessions(sList);
       setTasks(tList);
@@ -90,6 +95,12 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   // Compute Core Metrics
   const activeClientsCount = clients.filter((c) => c.status === 'Aktif').length;
   const onboardingClientsCount = clients.filter((c) => c.status === 'Onboarding').length;
+  const prospectClientsCount = clients.filter((c) => c.status === 'Prospek').length;
+  const pipelineTotal = prospectClientsCount + onboardingClientsCount;
+  const thisMonth = todayWITA().slice(0, 7);
+  const newClientsThisMonth = clients.filter((c) => c.createdAt && dateWITA(c.createdAt).startsWith(thisMonth)).length;
+  const [qy, qm] = todayWITA().split('-').map(Number);
+  const quarterLabel = `Q${Math.ceil(qm / 3)} ${qy}`;
 
   const now = new Date();
   const oneWeekLater = new Date(now.getTime() + 7 * 86400000);
@@ -208,15 +219,29 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
     };
   });
 
+  // Health index portofolio: persentase klien aktif yang tidak berisiko
+  const healthIndex = activeClientsCount
+    ? Math.round(((activeClientsCount - clientsAtRisk.filter((c) => c.status === 'Aktif').length) / activeClientsCount) * 100)
+    : null;
+  const healthLabel = healthIndex === null ? '' : healthIndex >= 80 ? 'Optimal' : healthIndex >= 60 ? 'Perlu Perhatian' : 'Kritis';
+
   // Average client allocation per consultant
   const avgAllocation = consultants.length > 0
     ? (clients.length / consultants.length).toFixed(1)
     : '0.0';
 
   // Active check-in ratio
-  const activeConsultantsCount = Math.max(1, consultantWorkloads.filter((c) => c.clientCount > 0).length);
-  const totalConsultantsCount = consultants.length || 6;
-  const attendancePercentage = Math.round((activeConsultantsCount / totalConsultantsCount) * 100);
+  // Absen hari ini (dari menu Absen & To-Do): anggota tim yang sudah absen hadir (Kantor/WFA)
+  const activeTeam = consultants.filter((u) => u.status !== 'pending' && u.status !== 'rejected');
+  const activeConsultantsCount = activeTeam.filter((u) =>
+    todayCheckins.some(
+      (c) => c.userId === u.id && c.morningCheckinAt && (c.workStatus === 'Kantor' || c.workStatus === 'WFA')
+    )
+  ).length;
+  const totalConsultantsCount = activeTeam.length;
+  const attendancePercentage = totalConsultantsCount
+    ? Math.round((activeConsultantsCount / totalConsultantsCount) * 100)
+    : 0;
 
   // Filtered Sessions for Table
   const filteredSessions = sessionsThisWeek.filter((s) => {
@@ -224,8 +249,8 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
     if (sessionFilter === 'individu') return (s.jenis || 'Individu').toLowerCase() === 'individu';
     if (sessionFilter === 'grup') return (s.jenis || '').toLowerCase() === 'grup';
     if (sessionFilter === 'today') {
-      const sDate = new Date(s.dateTime).toISOString().split('T')[0];
-      const todayStr = new Date().toISOString().split('T')[0];
+      const sDate = dateWITA(s.dateTime);
+      const todayStr = todayWITA();
       return sDate === todayStr;
     }
     return true;
@@ -258,7 +283,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `jadwal_sesi_minggu_ini_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `jadwal_sesi_minggu_ini_${todayWITA()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -279,11 +304,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 Pusat Kendali Eksekutif
               </h1>
               <span className="text-[11px] font-bold bg-[#00236f]/10 text-[#00236f] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Q4 STRATEGIC ACCELERATION
+                {quarterLabel}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
-              Pantau kesehatan portofolio <strong>{clients.length || 48} kemitraan korporat</strong>, stabilitas kapasitas konsultan, dan resiko operasional secara real-time.
+              Pantau kesehatan portofolio <strong>{clients.length} klien</strong>, stabilitas kapasitas konsultan, dan resiko operasional secara real-time.
             </p>
           </div>
         </div>
@@ -310,7 +335,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
               Health Index Portofolio
             </span>
             <span className="text-base sm:text-lg text-[#0051d5] font-extrabold font-['Plus_Jakarta_Sans']">
-              92.4% Optimal
+              {healthIndex === null ? 'Belum ada data' : `${healthIndex}% ${healthLabel}`}
             </span>
           </div>
 
@@ -324,7 +349,8 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 strokeWidth="3.5"
               />
               <path
-                className="text-[#0051d5] anim-gauge"
+                className="text-[#0051d5]"
+                strokeDasharray={`${healthIndex ?? 0}, 100`}
                 d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 fill="none"
                 stroke="currentColor"
@@ -359,7 +385,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 Total Klien Aktif
               </span>
               <span className="text-3xl font-extrabold text-[#00236f] tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {activeClientsCount || 42}
+                {activeClientsCount}
               </span>
             </div>
             <div className="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center text-[#00236f] border border-slate-100">
@@ -368,9 +394,9 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="inline-flex items-center gap-1 text-[11px] text-[#0051d5] font-bold bg-blue-50 px-2 py-0.5 rounded-full">
-              <TrendingUp className="w-3.5 h-3.5" /> +3 klien bulan ini
+              <TrendingUp className="w-3.5 h-3.5" /> +{newClientsThisMonth} klien bulan ini
             </span>
-            <span className="text-[11px] text-slate-500">Target: 45</span>
+            <span className="text-[11px] text-slate-500">Total: {clients.length}</span>
           </div>
         </div>
 
@@ -382,7 +408,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 Klien Onboarding
               </span>
               <span className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {onboardingClientsCount || 6}
+                {onboardingClientsCount}
               </span>
             </div>
             <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-[#0051d5] border border-blue-100">
@@ -391,12 +417,18 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-[11px] text-slate-600">
-              <span>4 Asesmen Awal</span>
-              <span className="font-semibold text-slate-900">2 Roadmap</span>
+              <span>{prospectClientsCount} Prospek</span>
+              <span className="font-semibold text-slate-900">{onboardingClientsCount} Onboarding</span>
             </div>
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex">
-              <div className="bg-[#0051d5] h-full progress-bar-fill" style={{ width: '66%' }}></div>
-              <div className="bg-[#00236f] h-full progress-bar-fill" style={{ width: '34%' }}></div>
+              <div
+                className="bg-[#0051d5] h-full progress-bar-fill"
+                style={{ width: `${pipelineTotal ? (prospectClientsCount / pipelineTotal) * 100 : 0}%` }}
+              ></div>
+              <div
+                className="bg-[#00236f] h-full progress-bar-fill"
+                style={{ width: `${pipelineTotal ? (onboardingClientsCount / pipelineTotal) * 100 : 0}%` }}
+              ></div>
             </div>
           </div>
         </div>
@@ -409,7 +441,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 Sesi Minggu Ini
               </span>
               <span className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {sessionsThisWeek.length || 28}
+                {sessionsThisWeek.length}
               </span>
             </div>
             <div className="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center text-[#00236f] border border-slate-100">
@@ -419,11 +451,11 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <div className="flex items-center gap-1.5 text-[11px]">
               <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
-              <span className="text-slate-600"><strong className="text-slate-900">{completedSessionsThisWeek || 18}</strong> Selesai</span>
+              <span className="text-slate-600"><strong className="text-slate-900">{completedSessionsThisWeek}</strong> Selesai</span>
             </div>
             <div className="flex items-center gap-1.5 text-[11px]">
               <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-              <span className="text-slate-600"><strong className="text-slate-900">{upcomingSessionsThisWeek || 10}</strong> Mendatang</span>
+              <span className="text-slate-600"><strong className="text-slate-900">{upcomingSessionsThisWeek}</strong> Mendatang</span>
             </div>
           </div>
         </div>
@@ -450,7 +482,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-[11px] text-slate-600">
-              <span><strong className="text-[#0051d5] font-bold">{attendancePercentage || 67}%</strong> Hadir</span>
+              <span><strong className="text-[#0051d5] font-bold">{attendancePercentage}%</strong> Hadir</span>
               <span className="text-slate-500 font-medium">{totalConsultantsCount - activeConsultantsCount} Belum</span>
             </div>
             <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex">
@@ -473,7 +505,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                 </span>
               </div>
               <span className="text-3xl font-extrabold text-rose-600 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {overdueTasksCount || 7}
+                {overdueTasksCount}
               </span>
             </div>
             <div className="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
@@ -482,7 +514,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
           </div>
           <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
             <span className="text-[11px] text-slate-600">
-              Berasal dari <strong className="text-rose-700 font-bold">{clientsWithOverdueTasksCount || 5} klien</strong>
+              Berasal dari <strong className="text-rose-700 font-bold">{clientsWithOverdueTasksCount} klien</strong>
             </span>
             <button
               onClick={() => onNavigate('clients')}
@@ -519,7 +551,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
 
               <span className="bg-rose-100 text-rose-800 text-[11px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                {clientsAtRisk.length || 4} Klien Kritis
+                {clientsAtRisk.length} Klien Kritis
               </span>
             </div>
 
@@ -601,7 +633,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
               </div>
 
               <span className="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-bold">
-                {consultants.length || 5} Konsultan Aktif
+                {consultants.length} Konsultan Aktif
               </span>
             </div>
 
@@ -614,7 +646,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
                         {item.consultant.displayName}
                       </span>
                       <span className="text-[10px] text-white bg-[#00236f] px-2 py-0.2 rounded-full font-medium">
-                        {item.clientCount || 8} Klien
+                        {item.clientCount} Klien
                       </span>
                     </div>
                     <div className="flex items-center gap-2">

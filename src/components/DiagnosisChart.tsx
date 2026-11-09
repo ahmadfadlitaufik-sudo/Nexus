@@ -26,11 +26,11 @@ export const DiagnosisChart: React.FC<DiagnosisChartProps> = ({ diagnosis }) => 
   ];
 
   const avgScore = (
-    (diagnosis.keuangan.score +
-      diagnosis.pemasaran.score +
-      diagnosis.operasional.score +
-      diagnosis.sdm.score +
-      diagnosis.produk.score) /
+    ((diagnosis.keuangan?.score || 0) +
+      (diagnosis.pemasaran?.score || 0) +
+      (diagnosis.operasional?.score || 0) +
+      (diagnosis.sdm?.score || 0) +
+      (diagnosis.produk?.score || 0)) /
     5
   ).toFixed(1);
 

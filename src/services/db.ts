@@ -50,7 +50,7 @@ import {
   RegistrationCategory,
   RegistrationStatus,
 } from '../types';
-import { isTaskOverdue, todayWITA } from '../utils/formatters';
+import { isTaskOverdue, todayWITA, dateWITA } from '../utils/formatters';
 import {
   SEED_USERS,
   SEED_CLIENTS,
@@ -511,8 +511,8 @@ export async function createClientWithEnrollmentAndConsultants(
         id: enrId,
         clientId: newId,
         programId: input.enrollment.programId,
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
+        startDate: dateWITA(startDate),
+        endDate: dateWITA(endDate),
         durationWeeks: input.enrollment.durationWeeks || 12,
         totalSessions: input.enrollment.totalSessions || 12,
         completedSessions: 0,
@@ -980,7 +980,7 @@ export async function saveSessionWithInternalAndTasks(
     for (const item of actionItems) {
       if (!item.title.trim()) continue;
       const taskId = `task-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      const deadlineVal = item.deadline || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+      const deadlineVal = item.deadline || dateWITA(Date.now() + 7 * 86400000);
       const isPast = isTaskOverdue(deadlineVal, 'Belum');
       const newTask: Task = {
         id: taskId,

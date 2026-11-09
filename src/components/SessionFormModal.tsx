@@ -1,3 +1,4 @@
+import { dateWITA } from '../utils/formatters';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -81,7 +82,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
       title: '',
       assigneeName: '',
       assigneeRole: 'Klien',
-      deadline: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+      deadline: dateWITA(Date.now() + 7 * 86400000),
     },
   ]);
 
@@ -173,7 +174,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
         title: '',
         assigneeName: '',
         assigneeRole: 'Klien',
-        deadline: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        deadline: dateWITA(Date.now() + 7 * 86400000),
       },
     ]);
   };
@@ -232,7 +233,7 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
           assigneeName: item.assigneeName || activeClient?.namaPemilik || 'Klien',
           assigneeRole: item.assigneeRole || 'Klien',
           deadline:
-            item.deadline || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+            item.deadline || dateWITA(Date.now() + 7 * 86400000),
         })),
       });
     } catch (err: any) {

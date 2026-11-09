@@ -21,6 +21,7 @@ import {
   X,
   Camera,
   CalendarCheck,
+  BarChart3,
 } from 'lucide-react';
 import { AvatarPickerModal } from './AvatarPickerModal';
 import { DEMO_MODE } from '../config/appMode';
@@ -344,6 +345,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     >
                       <Users className="w-4 h-4 shrink-0" />
                       <span>Pengaturan Tim & Akses</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleNav('reports')}
+                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 transition cursor-pointer ${
+                        currentTab === 'reports'
+                          ? 'bg-[#00236f] text-white font-semibold shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      }`}
+                    >
+                      <BarChart3 className="w-4 h-4 shrink-0" />
+                      <span>Laporan &amp; Analitik</span>
                     </button>
 
                     <button

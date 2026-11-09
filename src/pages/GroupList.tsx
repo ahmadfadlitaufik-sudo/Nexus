@@ -299,7 +299,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
                     </div>
                     <div className="flex items-center gap-2 text-slate-500">
                       <UserCheck className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Fasilitator: <strong className="text-slate-700">{facilitator?.displayName || 'Fajar Ramadhan, B.Eng.'}</strong></span>
+                      <span>Fasilitator: <strong className="text-slate-700">{facilitator?.displayName || 'Belum ditentukan'}</strong></span>
                     </div>
                   </div>
 

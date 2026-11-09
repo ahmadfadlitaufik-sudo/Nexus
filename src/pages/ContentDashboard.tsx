@@ -25,7 +25,6 @@ import {
 import { ContentItem, ContentConsent } from '../types';
 import { getContentItems, getContentConsents } from '../services/db';
 import { formatDateIndo } from '../utils/formatters';
-import { DailyActivityTracker } from '../components/DailyActivityTracker';
 
 interface ContentDashboardProps {
   onNavigate: (tab: string) => void;
@@ -120,10 +119,6 @@ export const ContentDashboard: React.FC<ContentDashboardProps> = ({ onNavigate }
       </div>
 
       {/* Daily Activity Tracker for Content Team Standup & Check-in */}
-      <DailyActivityTracker
-        title="Daily Activity Tracker • Tim Konten & Media"
-        defaultCollapsed={false}
-      />
 
       {/* 4 Metric Top Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">

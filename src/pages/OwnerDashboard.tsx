@@ -1,39 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Users,
   AlertTriangle,
-  TrendingUp,
-  Briefcase,
-  Calendar,
-  CheckCircle2,
-  Clock,
   ArrowRight,
-  UserCheck,
+  BarChart3,
+  CalendarClock,
+  CalendarDays,
+  CheckCircle2,
+  ClipboardList,
+  Clock,
   Plus,
-  Building2,
-  Layers,
-  Sparkles,
-  Video,
-  ExternalLink,
-  AlertCircle,
-  Download,
-  Lightbulb,
-  Check,
-  FileText,
-  Rocket,
-  Activity,
   ShieldCheck,
+  TrendingDown,
+  TrendingUp,
+  UserCheck,
+  Users,
+  Video,
 } from 'lucide-react';
-import { Client, Session, Task, UserProfile, ClientStatus, SessionStatus, Feedback, TeamCheckin } from '../types';
-import { getCheckinsByDate } from '../services/teamDaily';
-import { getClients, getSessions, getTasks, getAllUsers, getAllFeedback } from '../services/db';
-import { formatWITA, evaluateClientRisk, isTaskOverdue, getDaysDiff, todayWITA, dateWITA } from '../utils/formatters';
-import { SessionAuditSummary } from '../components/SessionAuditSummary';
-import { OwnerAnalyticsCharts } from '../components/OwnerAnalyticsCharts';
-import { DailyActivityTracker } from '../components/DailyActivityTracker';
-import { TeamActivitySummary } from '../components/TeamActivitySummary';
+import { useAuth } from '../context/AuthContext';
+import { ActivityLog, Client, Session, Task, TeamCheckin, UserProfile } from '../types';
+import { getActivityLogs, getAllUsers, getClients, getSessions, getTasks } from '../services/db';
+import { getCheckinsByDate, getTodosForUser, isOpen, TodoItem } from '../services/teamDaily';
+import { dateWITA, evaluateClientRisk, isTaskOverdue, shiftDate, timeWITA, todayWITA } from '../utils/formatters';
 import { OwnerNotificationCenter } from '../components/OwnerNotificationCenter';
-import { ActivityLog } from '../components/ActivityLog';
 
 interface OwnerDashboardProps {
   onSelectClient: (clientId: string) => void;
@@ -42,47 +30,168 @@ interface OwnerDashboardProps {
   onOpenSessionModal?: (sessionId?: string, clientId?: string) => void;
 }
 
+const TEAM_ROLES = ['owner', 'konsultan', 'consultant', 'tim_grup', 'tim_konten', 'staf_operasional'];
+const ADVISORY_ROLES = ['owner', 'konsultan', 'consultant', 'tim_grup'];
+const ROLE_LABELS: Record<string, string> = {
+  owner: 'Owner',
+  konsultan: 'Konsultan',
+  consultant: 'Konsultan',
+  tim_grup: 'Tim Grup',
+  tim_konten: 'Tim Konten',
+  staf_operasional: 'Staf Operasional',
+};
+
+/** Senin pada minggu berjalan (WITA), format YYYY-MM-DD. */
+function mondayOf(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0 = Minggu
+  return shiftDate(dateStr, dow === 0 ? -6 : 1 - dow);
+}
+
+function relativeTime(iso?: string): string {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = Math.round(diff / 60000);
+  if (min < 1) return 'baru saja';
+  if (min < 60) return `${min} mnt lalu`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `${h} jam lalu`;
+  const d = Math.round(h / 24);
+  return d === 1 ? 'kemarin' : `${d} hari lalu`;
+}
+
+function greeting(): string {
+  const h = Number(timeWITA(new Date().toISOString()).split(/[.:]/)[0]);
+  if (h < 11) return 'Selamat pagi';
+  if (h < 15) return 'Selamat siang';
+  if (h < 18) return 'Selamat sore';
+  return 'Selamat malam';
+}
+
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <section className={`bg-white rounded-2xl border border-slate-200 p-5 ${className}`}>{children}</section>;
+}
+
+function CardHeader({
+  icon: Icon,
+  title,
+  action,
+}: {
+  icon: React.ElementType;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 mb-4">
+      <h2 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <Icon className="w-4 h-4 text-[#0051d5]" /> {title}
+      </h2>
+      {action}
+    </div>
+  );
+}
+
+function LinkButton({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-xs font-semibold text-[#0051d5] hover:underline cursor-pointer inline-flex items-center gap-1"
+    >
+      {children} <ArrowRight className="w-3 h-3" />
+    </button>
+  );
+}
+
+function Kpi({
+  label,
+  value,
+  sub,
+  icon: Icon,
+  tone = 'default',
+  trend,
+  onClick,
+}: {
+  label: string;
+  value: React.ReactNode;
+  sub: React.ReactNode;
+  icon: React.ElementType;
+  tone?: 'default' | 'danger' | 'success';
+  trend?: { value: number; label: string } | null;
+  onClick?: () => void;
+}) {
+  const toneCls =
+    tone === 'danger' ? 'text-rose-600' : tone === 'success' ? 'text-emerald-700' : 'text-slate-900';
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-left bg-white rounded-2xl border border-slate-200 p-5 hover:border-[#0051d5]/40 hover:shadow-sm transition cursor-pointer"
+    >
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-xs font-semibold text-slate-500">{label}</span>
+        <span className="w-9 h-9 rounded-xl bg-[#00236f]/5 text-[#00236f] flex items-center justify-center shrink-0">
+          <Icon className="w-4.5 h-4.5" />
+        </span>
+      </div>
+      <div className={`text-3xl font-black tracking-tight mt-1 tabular-nums font-['Plus_Jakarta_Sans'] ${toneCls}`}>
+        {value}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+        {trend && trend.value !== 0 && (
+          <span
+            className={`inline-flex items-center gap-0.5 font-bold whitespace-nowrap ${
+              trend.value > 0 ? 'text-emerald-700' : 'text-rose-600'
+            }`}
+          >
+            {trend.value > 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+            {trend.label}
+          </span>
+        )}
+        <span>{sub}</span>
+      </div>
+    </button>
+  );
+}
+
 export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
   onSelectClient,
   onOpenNewClientModal,
   onNavigate,
   onOpenSessionModal,
 }) => {
+  const { userProfile } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
+  const [checkins, setCheckins] = useState<TeamCheckin[]>([]);
+  const [myTodos, setMyTodos] = useState<TodoItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedAuditSession, setSelectedAuditSession] = useState<Session | null>(null);
 
-  // Table Filter State
-  const [sessionFilter, setSessionFilter] = useState<'all' | 'individu' | 'grup' | 'today'>('all');
-
-  // Recommendation Banner State
-  const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
-  const [isRecommendationApplied, setIsRecommendationApplied] = useState(false);
-
-  const [todayCheckins, setTodayCheckins] = useState<TeamCheckin[]>([]);
+  const today = todayWITA();
 
   const loadData = async () => {
     try {
-      const [cList, sList, tList, uList, fbList, chkList] = await Promise.all([
+      const [c, s, t, u, l, chk, todos] = await Promise.all([
         getClients(),
         getSessions(),
         getTasks(),
         getAllUsers(),
-        getAllFeedback(),
-        getCheckinsByDate(todayWITA()).catch(() => [] as TeamCheckin[]),
+        getActivityLogs().catch(() => [] as ActivityLog[]),
+        getCheckinsByDate(today).catch(() => [] as TeamCheckin[]),
+        userProfile ? getTodosForUser(userProfile.id).catch(() => [] as TodoItem[]) : Promise.resolve([]),
       ]);
-      setTodayCheckins(chkList);
-      setClients(cList);
-      setSessions(sList);
-      setTasks(tList);
-      setUsers(uList);
-      setFeedbacks(fbList);
+      setClients(c);
+      setSessions(s);
+      setTasks(t);
+      setUsers(u);
+      setLogs(l);
+      setCheckins(chk);
+      setMyTodos(todos);
     } catch (err) {
-      console.error('Error loading owner dashboard data:', err);
+      console.error('Gagal memuat dashboard:', err);
     } finally {
       setLoading(false);
     }
@@ -92,927 +201,466 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
     loadData();
   }, []);
 
-  // Compute Core Metrics
-  const activeClientsCount = clients.filter((c) => c.status === 'Aktif').length;
-  const onboardingClientsCount = clients.filter((c) => c.status === 'Onboarding').length;
-  const prospectClientsCount = clients.filter((c) => c.status === 'Prospek').length;
-  const pipelineTotal = prospectClientsCount + onboardingClientsCount;
-  const thisMonth = todayWITA().slice(0, 7);
-  const newClientsThisMonth = clients.filter((c) => c.createdAt && dateWITA(c.createdAt).startsWith(thisMonth)).length;
-  const [qy, qm] = todayWITA().split('-').map(Number);
-  const quarterLabel = `Q${Math.ceil(qm / 3)} ${qy}`;
+  const m = useMemo(() => {
+    const thisMonth = today.slice(0, 7);
+    const lastMonth = shiftDate(`${thisMonth}-01`, -1).slice(0, 7);
+    const weekStart = mondayOf(today);
+    const weekEnd = shiftDate(weekStart, 6);
+    const lastWeekStart = shiftDate(weekStart, -7);
 
-  const now = new Date();
-  const oneWeekLater = new Date(now.getTime() + 7 * 86400000);
-  const oneWeekAgo = new Date(now.getTime() - 7 * 86400000);
+    const team = users.filter((u) => TEAM_ROLES.includes(u.role) && u.status !== 'pending' && u.status !== 'rejected');
+    const clientName = (id: string) => clients.find((c) => c.id === id)?.namaBisnis || 'Klien';
+    const userName = (id?: string) => users.find((u) => u.id === id)?.displayName;
 
-  const sessionsThisWeek = sessions
-    .filter((s) => {
-      const sDate = new Date(s.dateTime);
-      return sDate >= oneWeekAgo && sDate <= oneWeekLater;
-    })
-    .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+    // KPI 1: klien aktif
+    const activeClients = clients.filter((c) => c.status === 'Aktif');
+    const newThisMonth = clients.filter((c) => c.createdAt && dateWITA(c.createdAt).startsWith(thisMonth)).length;
+    const newLastMonth = clients.filter((c) => c.createdAt && dateWITA(c.createdAt).startsWith(lastMonth)).length;
 
-  const completedSessionsThisWeek = sessionsThisWeek.filter((s) => s.status === 'Selesai').length;
-  const upcomingSessionsThisWeek = sessionsThisWeek.filter(
-    (s) => s.status === 'Terjadwal'
-  ).length;
-
-  const overdueTasks = tasks.filter(
-    (t) => t.status === 'Terlambat' || isTaskOverdue(t.deadline, t.status)
-  );
-  const overdueTasksCount = overdueTasks.length;
-  const clientsWithOverdueTasksCount = new Set(overdueTasks.map((t) => t.clientId)).size;
-
-  // Compute Clients at Risk
-  const clientsAtRisk = clients
-    .map((client) => {
-      const clientSessions = sessions.filter(
-        (s) => s.clientId === client.id && s.status === 'Selesai'
-      );
-      const latestSession = clientSessions.sort(
-        (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
-      )[0];
-      const clientTasks = tasks.filter((t) => t.clientId === client.id);
-
-      const riskAssessment = evaluateClientRisk(
-        latestSession?.dateTime || client.lastSessionDate,
-        clientTasks
-      );
-
-      return {
-        ...client,
-        isAtRisk: riskAssessment.isAtRisk,
-        riskReason: riskAssessment.reason,
-        latestSessionDate: latestSession?.dateTime || client.lastSessionDate,
-        totalTasks: clientTasks.length,
-        overdueTasks: clientTasks.filter(
-          (t) => t.status === 'Terlambat' || isTaskOverdue(t.deadline, t.status)
-        ).length,
-      };
-    })
-    .filter((c) => c.isAtRisk);
-
-  // Compute Workload per Consultant
-  const consultants = users.filter(
-    (u) =>
-      u.role === 'consultant' ||
-      u.role === 'konsultan' ||
-      u.role === 'tim_grup' ||
-      u.role === 'tim_konten' ||
-      u.role === 'staf_operasional' ||
-      u.role === 'owner'
-  );
-
-  const consultantWorkloads = consultants.map((cons) => {
-    const assignedClients = clients.filter(
-      (c) =>
-        c.primaryConsultantId === cons.id ||
-        (c.consultantIds && c.consultantIds.includes(cons.id))
-    );
-    const assignedSessions = sessions.filter(
-      (s) => s.consultantId === cons.id && s.status === 'Terjadwal'
-    );
-    const assignedClientIds = new Set(assignedClients.map((c) => c.id));
-    const activeTasks = tasks.filter(
-      (t) => assignedClientIds.has(t.clientId) && t.status !== 'Selesai'
+    // KPI 2: sesi minggu ini (Senin–Minggu, WITA)
+    const sessionDay = (s: Session) => dateWITA(s.dateTime);
+    const weekSessions = sessions.filter((s) => s.status !== 'Dibatalkan' && sessionDay(s) >= weekStart && sessionDay(s) <= weekEnd);
+    const lastWeekSessions = sessions.filter(
+      (s) => s.status !== 'Dibatalkan' && sessionDay(s) >= lastWeekStart && sessionDay(s) < weekStart
     );
 
-    const clientCount = assignedClients.length;
-    // Capacity calculation (max capacity standard = 13 clients)
-    const capacityPercentage = Math.min(100, Math.round((clientCount / 13) * 100));
+    // KPI 3: tugas terlambat
+    const overdue = tasks.filter((t) => t.status === 'Terlambat' || isTaskOverdue(t.deadline, t.status));
 
-    let statusLabel = 'Optimal';
-    let statusClass = 'text-[#0051d5] font-bold';
-    let barColor = 'bg-[#1e3a8a]';
+    // KPI 4: absen hari ini
+    const present = team.filter((u) =>
+      checkins.some((c) => c.userId === u.id && c.morningCheckinAt && (c.workStatus === 'Kantor' || c.workStatus === 'WFA'))
+    ).length;
+    const away = team.filter((u) =>
+      checkins.some((c) => c.userId === u.id && c.morningCheckinAt && !['Kantor', 'WFA'].includes(c.workStatus))
+    ).length;
 
-    if (capacityPercentage >= 85) {
-      statusLabel = 'Penuh';
-      statusClass = 'text-rose-600 bg-rose-50 px-2 py-0.5 rounded font-bold';
-      barColor = 'bg-rose-600';
-    } else if (capacityPercentage >= 60) {
-      statusLabel = 'Optimal';
-      statusClass = 'text-[#0051d5] font-bold';
-      barColor = 'bg-[#1e3a8a]';
-    } else if (capacityPercentage >= 40) {
-      statusLabel = 'Tersedia';
-      statusClass = 'text-blue-700 font-bold';
-      barColor = 'bg-[#0051d5]';
-    } else {
-      statusLabel = 'Onboarding';
-      statusClass = 'text-slate-500 font-bold';
-      barColor = 'bg-slate-400';
-    }
+    // Agenda hari ini
+    const todaySessions = sessions
+      .filter((s) => s.status === 'Terjadwal' && sessionDay(s) === today)
+      .sort((a, b) => a.dateTime.localeCompare(b.dateTime));
+    const dueTasks = tasks
+      .filter((t) => t.status !== 'Selesai' && t.deadline && t.deadline.slice(0, 10) <= today)
+      .sort((a, b) => a.deadline.localeCompare(b.deadline));
+    const todayTodos = myTodos.filter((t) => t.date === today);
+    const todayTodosOpen = todayTodos.filter(isOpen);
+
+    // Pipeline
+    const stages = [
+      { key: 'Prospek', label: 'Prospek', color: 'bg-sky-400' },
+      { key: 'Onboarding', label: 'Onboarding', color: 'bg-[#0051d5]' },
+      { key: 'Aktif', label: 'Aktif', color: 'bg-[#00236f]' },
+      { key: 'Selesai', label: 'Selesai', color: 'bg-emerald-600' },
+    ].map((st) => ({ ...st, count: clients.filter((c) => c.status === st.key).length }));
+    const stopped = clients.filter((c) => c.status === 'Berhenti').length;
+    const maxStage = Math.max(1, ...stages.map((s) => s.count));
+
+    // Klien perlu perhatian
+    const atRisk = clients
+      .filter((c) => c.status === 'Aktif' || c.status === 'Onboarding')
+      .map((c) => {
+        const done = sessions
+          .filter((s) => s.clientId === c.id && s.status === 'Selesai')
+          .sort((a, b) => b.dateTime.localeCompare(a.dateTime))[0];
+        const ct = tasks.filter((t) => t.clientId === c.id);
+        // Masa tenggang: klien baru (< 14 hari) tanpa sesi belum dianggap berisiko.
+        const lastSession = done?.dateTime || c.lastSessionDate;
+        const ageDays = c.createdAt ? (Date.now() - new Date(c.createdAt).getTime()) / 86400000 : Infinity;
+        const risk =
+          !lastSession && ageDays < 14 && !ct.some((t) => isTaskOverdue(t.deadline, t.status))
+            ? { isAtRisk: false, reason: undefined }
+            : evaluateClientRisk(lastSession, ct);
+        const consultant = userName(c.primaryConsultantId) || userName(c.consultantIds?.[0]);
+        return { client: c, ...risk, consultant };
+      })
+      .filter((r) => r.isAtRisk);
+
+    // Beban kerja
+    const workload = team
+      .filter((u) => ADVISORY_ROLES.includes(u.role))
+      .map((u) => {
+        const mine = clients.filter(
+          (c) =>
+            (c.primaryConsultantId === u.id || c.consultantIds?.includes(u.id)) &&
+            c.status !== 'Selesai' &&
+            c.status !== 'Berhenti'
+        );
+        const ids = new Set(mine.map((c) => c.id));
+        return {
+          user: u,
+          clients: mine.length,
+          sessions: weekSessions.filter((s) => s.consultantId === u.id && s.status === 'Terjadwal').length,
+          openTasks: tasks.filter((t) => ids.has(t.clientId) && t.status !== 'Selesai').length,
+        };
+      })
+      .sort((a, b) => b.clients - a.clients);
+    const maxLoad = Math.max(1, ...workload.map((w) => w.clients));
+
+    const recentLogs = [...logs].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')).slice(0, 6);
 
     return {
-      consultant: cons,
-      clientCount,
-      activeClients: assignedClients.filter(
-        (c) => c.status === 'Aktif' || c.status === 'Onboarding'
-      ).length,
-      upcomingSessionsCount: assignedSessions.length,
-      activeTasksCount: activeTasks.length,
-      capacityPercentage,
-      statusLabel,
-      statusClass,
-      barColor,
+      team,
+      clientName,
+      userName,
+      activeClients,
+      newThisMonth,
+      newLastMonth,
+      weekSessions,
+      lastWeekSessions,
+      overdue,
+      present,
+      away,
+      todaySessions,
+      dueTasks,
+      todayTodos,
+      todayTodosOpen,
+      stages,
+      stopped,
+      maxStage,
+      atRisk,
+      workload,
+      maxLoad,
+      recentLogs,
     };
-  });
+  }, [clients, sessions, tasks, users, logs, checkins, myTodos, today]);
 
-  // Health index portofolio: persentase klien aktif yang tidak berisiko
-  const healthIndex = activeClientsCount
-    ? Math.round(((activeClientsCount - clientsAtRisk.filter((c) => c.status === 'Aktif').length) / activeClientsCount) * 100)
-    : null;
-  const healthLabel = healthIndex === null ? '' : healthIndex >= 80 ? 'Optimal' : healthIndex >= 60 ? 'Perlu Perhatian' : 'Kritis';
+  const [y, mo] = today.split('-').map(Number);
+  const dateLabel = new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'Asia/Makassar',
+  }).format(new Date());
+  const firstName = (userProfile?.displayName || '').split(/[ ,]/)[0];
+  const weekDone = m.weekSessions.filter((s) => s.status === 'Selesai').length;
+  const weekPlanned = m.weekSessions.filter((s) => s.status === 'Terjadwal').length;
+  const overdueClients = new Set(m.overdue.map((t) => t.clientId)).size;
+  const notYet = Math.max(0, m.team.length - m.present - m.away);
+  const agendaEmpty = m.todaySessions.length === 0 && m.dueTasks.length === 0 && m.todayTodos.length === 0;
 
-  // Average client allocation per consultant
-  const avgAllocation = consultants.length > 0
-    ? (clients.length / consultants.length).toFixed(1)
-    : '0.0';
-
-  // Active check-in ratio
-  // Absen hari ini (dari menu Absen & To-Do): anggota tim yang sudah absen hadir (Kantor/WFA)
-  const activeTeam = consultants.filter((u) => u.status !== 'pending' && u.status !== 'rejected');
-  const activeConsultantsCount = activeTeam.filter((u) =>
-    todayCheckins.some(
-      (c) => c.userId === u.id && c.morningCheckinAt && (c.workStatus === 'Kantor' || c.workStatus === 'WFA')
-    )
-  ).length;
-  const totalConsultantsCount = activeTeam.length;
-  const attendancePercentage = totalConsultantsCount
-    ? Math.round((activeConsultantsCount / totalConsultantsCount) * 100)
-    : 0;
-
-  // Filtered Sessions for Table
-  const filteredSessions = sessionsThisWeek.filter((s) => {
-    if (sessionFilter === 'all') return true;
-    if (sessionFilter === 'individu') return (s.jenis || 'Individu').toLowerCase() === 'individu';
-    if (sessionFilter === 'grup') return (s.jenis || '').toLowerCase() === 'grup';
-    if (sessionFilter === 'today') {
-      const sDate = dateWITA(s.dateTime);
-      const todayStr = todayWITA();
-      return sDate === todayStr;
-    }
-    return true;
-  });
-
-  // Helper for Initials
-  const getInitials = (name: string) => {
-    if (!name) return 'KP';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  };
-
-  // Export CSV Handler
-  const handleExportCSV = () => {
-    const headers = ['Tanggal', 'Klien', 'Konsultan', 'Jenis Sesi', 'Status', 'Agenda'];
-    const rows = filteredSessions.map((s) => {
-      const cl = clients.find((c) => c.id === s.clientId);
-      const co = users.find((u) => u.id === s.consultantId);
-      return [
-        `"${formatWITA(s.dateTime)}"`,
-        `"${cl?.namaBisnis || 'Klien'}"`,
-        `"${co?.displayName || 'Konsultan'}"`,
-        `"${s.jenis || 'Individu'}"`,
-        `"${s.status}"`,
-        `"${s.agenda.replace(/"/g, '""')}"`,
-      ];
-    });
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `jadwal_sesi_minggu_ini_${todayWITA()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  if (loading) {
+    return <div className="py-20 text-center text-xs text-slate-500">Memuat dashboard...</div>;
+  }
 
   return (
-    <div className="space-y-6 pb-12 animate-in fade-in">
-      {/* 1. OWNER WELCOME STRATEGIC BANNER */}
-      <div className="relative overflow-hidden bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-5">
-          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-[#00236f]/10 flex items-center justify-center shrink-0">
-            <Activity className="w-8 h-8 text-[#00236f]" />
-            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-[#0051d5] pulse-glow"></div>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
-                Pusat Kendali Eksekutif
-              </h1>
-              <span className="text-[11px] font-bold bg-[#00236f]/10 text-[#00236f] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                {quarterLabel}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
-              Pantau kesehatan portofolio <strong>{clients.length} klien</strong>, stabilitas kapasitas konsultan, dan resiko operasional secara real-time.
-            </p>
-          </div>
+    <div className="space-y-5 pb-12">
+      {/* HEADER */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans']">
+            {greeting()}
+            {firstName ? `, ${firstName}` : ''}
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            {dateLabel} • Q{Math.ceil(mo / 3)} {y} • WITA
+          </p>
         </div>
-
-        <div className="flex items-center gap-3 self-start md:self-auto shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 w-full md:w-auto justify-between md:justify-end">
-          {/* Notification Center Bell Popover */}
-          <OwnerNotificationCenter
-            variant="popover"
-            onNavigate={onNavigate}
-            onActionComplete={loadData}
-          />
-
-          <button
-            onClick={() => onNavigate('security-audit')}
-            className="px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-            title="Buka Log Audit Keamanan & Aktivitas"
-          >
-            <ShieldCheck className="w-4 h-4 text-[#00236f]" />
-            <span>Audit Keamanan</span>
-          </button>
-
-          <div className="flex flex-col items-start md:items-end">
-            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Health Index Portofolio
-            </span>
-            <span className="text-base sm:text-lg text-[#0051d5] font-extrabold font-['Plus_Jakarta_Sans']">
-              {healthIndex === null ? 'Belum ada data' : `${healthIndex}% ${healthLabel}`}
-            </span>
-          </div>
-
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center relative shadow-xs shrink-0">
-            <svg className="w-8 h-8 text-[#0051d5] -rotate-90 transform" viewBox="0 0 36 36">
-              <path
-                className="text-slate-200"
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3.5"
-              />
-              <path
-                className="text-[#0051d5]"
-                strokeDasharray={`${healthIndex ?? 0}, 100`}
-                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeWidth="3.5"
-              />
-            </svg>
-          </div>
+        <div className="flex items-center gap-2">
+          {onOpenSessionModal && (
+            <button
+              type="button"
+              onClick={() => onOpenSessionModal()}
+              className="px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <CalendarClock className="w-4 h-4" /> Jadwalkan Sesi
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Rich Notification Alert Banner for Pending Registrations */}
-      <OwnerNotificationCenter
-        variant="banner"
-        onNavigate={onNavigate}
-        onActionComplete={loadData}
-      />
+      <OwnerNotificationCenter variant="banner" onNavigate={onNavigate} onActionComplete={loadData} />
 
-      {/* Daily Activity Tracker for Owner & Nexus Team Standup */}
-      <DailyActivityTracker
-        title="Daily Activity Tracker • Tim Nexus & Standup Harian"
-        defaultCollapsed={false}
-      />
-
-      {/* 2. ROW 1: TOP 5 KPI CARDS */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {/* Card 1: Total Klien Aktif */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Total Klien Aktif
-              </span>
-              <span className="text-3xl font-extrabold text-[#00236f] tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {activeClientsCount}
-              </span>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center text-[#00236f] border border-slate-100">
-              <Building2 className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="inline-flex items-center gap-1 text-[11px] text-[#0051d5] font-bold bg-blue-50 px-2 py-0.5 rounded-full">
-              <TrendingUp className="w-3.5 h-3.5" /> +{newClientsThisMonth} klien bulan ini
-            </span>
-            <span className="text-[11px] text-slate-500">Total: {clients.length}</span>
-          </div>
-        </div>
-
-        {/* Card 2: Klien Onboarding */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Klien Onboarding
-              </span>
-              <span className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {onboardingClientsCount}
-              </span>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-[#0051d5] border border-blue-100">
-              <Rocket className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-[11px] text-slate-600">
-              <span>{prospectClientsCount} Prospek</span>
-              <span className="font-semibold text-slate-900">{onboardingClientsCount} Onboarding</span>
-            </div>
-            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex">
-              <div
-                className="bg-[#0051d5] h-full progress-bar-fill"
-                style={{ width: `${pipelineTotal ? (prospectClientsCount / pipelineTotal) * 100 : 0}%` }}
-              ></div>
-              <div
-                className="bg-[#00236f] h-full progress-bar-fill"
-                style={{ width: `${pipelineTotal ? (onboardingClientsCount / pipelineTotal) * 100 : 0}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Sesi Minggu Ini */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                Sesi Minggu Ini
-              </span>
-              <span className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {sessionsThisWeek.length}
-              </span>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-slate-50 flex items-center justify-center text-[#00236f] border border-slate-100">
-              <Calendar className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-1.5 text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-[#0051d5]"></span>
-              <span className="text-slate-600"><strong className="text-slate-900">{completedSessionsThisWeek}</strong> Selesai</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-              <span className="text-slate-600"><strong className="text-slate-900">{upcomingSessionsThisWeek}</strong> Mendatang</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Check-in Tim */}
-        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Check-in Tim
-                </span>
-                <span className="text-[9px] font-extrabold bg-blue-100 text-[#00236f] px-1.5 py-0.2 rounded-full">
-                  HARI INI
-                </span>
-              </div>
-              <span className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {activeConsultantsCount}<span className="text-xl text-slate-400 font-normal">/{totalConsultantsCount}</span>
-              </span>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-blue-50/80 flex items-center justify-center text-[#0051d5] border border-blue-100">
-              <UserCheck className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-[11px] text-slate-600">
-              <span><strong className="text-[#0051d5] font-bold">{attendancePercentage}%</strong> Hadir</span>
-              <span className="text-slate-500 font-medium">{totalConsultantsCount - activeConsultantsCount} Belum</span>
-            </div>
-            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden flex">
-              <div className="bg-[#0051d5] h-full progress-bar-fill" style={{ width: `${attendancePercentage}%` }}></div>
-              <div className="bg-slate-200 h-full progress-bar-fill" style={{ width: `${100 - attendancePercentage}%` }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 5: Tugas Terlambat */}
-        <div className="bg-white rounded-2xl p-5 border border-rose-200/80 shadow-xs flex flex-col justify-between hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 relative overflow-hidden">
-          <div className="flex items-start justify-between">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                  Tugas Terlambat
-                </span>
-                <span className="text-[9px] font-extrabold bg-rose-100 text-rose-800 px-1.5 py-0.2 rounded-full">
-                  PERLU PERHATIAN
-                </span>
-              </div>
-              <span className="text-3xl font-extrabold text-rose-600 tracking-tight mt-1 font-['Plus_Jakarta_Sans'] tabular-nums">
-                {overdueTasksCount}
-              </span>
-            </div>
-            <div className="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
-              <AlertCircle className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-[11px] text-slate-600">
-              Berasal dari <strong className="text-rose-700 font-bold">{clientsWithOverdueTasksCount} klien</strong>
-            </span>
-            <button
-              onClick={() => onNavigate('clients')}
-              className="text-[11px] text-rose-600 font-bold hover:underline cursor-pointer"
-            >
-              Tinjau &rarr;
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 2.5 VISUALISASI DATA ANALITIK RECHARTS */}
-      <OwnerAnalyticsCharts clients={clients} sessions={sessions} feedbacks={feedbacks} />
-
-      {/* 3. ROW 2: MID SECTION (2 BALANCED COLUMNS) */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-        {/* Left Column: Klien Memerlukan Intervensi */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-200">
-          <div>
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                    Klien Memerlukan Intervensi
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Daftar klien dengan deviasi aktivitas atau pelambatan roadmap
-                  </p>
-                </div>
-              </div>
-
-              <span className="bg-rose-100 text-rose-800 text-[11px] px-2.5 py-1 rounded-full font-bold flex items-center gap-1.5 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                {clientsAtRisk.length} Klien Kritis
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-3 mt-4">
-              {clientsAtRisk.length === 0 ? (
-                <div className="py-8 text-center text-slate-500 text-xs">
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
-                  Semua klien aktif memiliki ritme sesi berkala dan tugas berjalan lancar.
-                </div>
-              ) : (
-                clientsAtRisk.slice(0, 4).map((client) => {
-                  const assignedConsultant = users.find((u) => u.id === client.primaryConsultantId);
-                  return (
-                    <div
-                      key={client.id}
-                      className="p-4 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:-translate-y-0.5 border border-slate-100"
-                    >
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-bold text-slate-900 truncate">
-                            {client.namaBisnis}
-                          </span>
-                          <span className="text-[10px] bg-slate-200/80 text-slate-700 px-2 py-0.5 rounded font-medium">
-                            {client.industri || 'Retainer Tahunan'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                          <span className="text-[11px] text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1 border border-rose-200/60">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                            {client.riskReason || 'Tidak ada sesi 14 hari'}
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            • Konsultan: <strong className="text-slate-800">{assignedConsultant?.displayName || 'Hendra Kusuma, M.M.'}</strong>
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => onSelectClient(client.id)}
-                        className="px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-[#00236f] text-xs font-semibold shadow-2xs hover:bg-[#00236f] hover:text-white transition-all active:scale-95 self-end sm:self-center shrink-0 cursor-pointer"
-                        type="button"
-                      >
-                        Detail Intervensi
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Prioritas eskalasi otomatis dikirimkan ke konsultan</span>
-            <button
-              onClick={() => onNavigate('clients')}
-              className="text-[#0051d5] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              Semua Riwayat Deviasi &rarr;
-            </button>
-          </div>
-        </div>
-
-        {/* Right Column: Beban Kerja Tim Konsultan */}
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between hover:shadow-md transition-all duration-200">
-          <div>
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-[#00236f] border border-blue-100">
-                  <Briefcase className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                    Beban Kerja Tim Konsultan
-                  </h2>
-                  <p className="text-xs text-slate-500">
-                    Rata-rata alokasi: <strong className="text-slate-900">{avgAllocation} klien</strong> per konsultan
-                  </p>
-                </div>
-              </div>
-
-              <span className="bg-slate-100 text-slate-700 text-[11px] px-2.5 py-1 rounded-full font-bold">
-                {consultants.length} Konsultan Aktif
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-4 mt-4">
-              {consultantWorkloads.slice(0, 5).map((item) => (
-                <div key={item.consultant.id} className="flex flex-col gap-1.5 group cursor-default">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-slate-900 group-hover:text-[#00236f] transition-colors">
-                        {item.consultant.displayName}
-                      </span>
-                      <span className="text-[10px] text-white bg-[#00236f] px-2 py-0.2 rounded-full font-medium">
-                        {item.clientCount} Klien
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[11px] ${item.statusClass}`}>
-                        {item.capacityPercentage}% • {item.statusLabel}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                    <div
-                      className={`${item.barColor} h-full rounded-full progress-bar-fill`}
-                      style={{ width: `${item.capacityPercentage}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500">Batas maksimal per partner: 13 kemitraan</span>
-            <button
-              onClick={() => onNavigate('team')}
-              className="text-[#0051d5] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-              type="button"
-            >
-              Atur Distribusi &rarr;
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 4. RINGKASAN AKTIVITAS HARIAN SELURUH ANGGOTA TIM (TABEL / KARTU) */}
-      <TeamActivitySummary
-        title="Ringkasan Aktivitas Harian Seluruh Tim Nexus"
-        defaultView="table"
-      />
-
-      {/* 5. ROW 4: TABEL JADWAL SESI ADVISORY MINGGU INI */}
-      <section className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col hover:shadow-md transition-all duration-200">
-        {/* Header with Quick Filter */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#00236f]/10 flex items-center justify-center text-[#00236f]">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                Jadwal Sesi Advisory Minggu Ini
-              </h2>
-              <p className="text-xs text-slate-500">
-                Jadwal Pertemuan WFA Terjadwal (WITA) • Konsultasi 1-on-1 &amp; Sesi Mastermind
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Filter Pills & Actions */}
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
-              <button
-                onClick={() => setSessionFilter('all')}
-                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
-                  sessionFilter === 'all'
-                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                type="button"
-              >
-                Semua
-              </button>
-              <button
-                onClick={() => setSessionFilter('individu')}
-                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
-                  sessionFilter === 'individu'
-                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                type="button"
-              >
-                Individu
-              </button>
-              <button
-                onClick={() => setSessionFilter('grup')}
-                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
-                  sessionFilter === 'grup'
-                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                type="button"
-              >
-                Grup
-              </button>
-              <button
-                onClick={() => setSessionFilter('today')}
-                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
-                  sessionFilter === 'today'
-                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-                type="button"
-              >
-                Hari Ini
-              </button>
-            </div>
-
-            <button
-              onClick={handleExportCSV}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-              type="button"
-            >
-              <Download className="w-3.5 h-3.5" />
-              Ekspor CSV
-            </button>
-
-            <button
-              onClick={() => {
-                if (filteredSessions.length > 0) {
-                  setSelectedAuditSession(filteredSessions[0]);
-                } else if (sessions.length > 0) {
-                  setSelectedAuditSession(sessions[0]);
-                }
-              }}
-              className="px-3.5 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-              type="button"
-              title="Verifikasi Integritas Akses Sesi Secara Visual"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              Audit Integritas Sesi
-            </button>
-
-            {onOpenSessionModal && (
-              <button
-                onClick={() => onOpenSessionModal()}
-                className="px-3.5 py-1.5 rounded-xl bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-                type="button"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Jadwalkan Sesi
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Table Container */}
-        <div className="overflow-x-auto -mx-6 sm:-mx-7 px-6 sm:px-7 mt-2">
-          <table className="w-full text-left text-xs whitespace-nowrap">
-            <thead>
-              <tr className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
-                <th className="py-3 px-4 rounded-l-xl">Tanggal &amp; Waktu</th>
-                <th className="py-3 px-4">Klien / Entitas</th>
-                <th className="py-3 px-4">Konsultan Pembimbing</th>
-                <th className="py-3 px-4">Jenis Sesi</th>
-                <th className="py-3 px-4">Status Pelaksanaan</th>
-                <th className="py-3 px-4 rounded-r-xl text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-800">
-              {filteredSessions.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                    Tidak ada sesi yang cocok dengan filter yang dipilih.
-                  </td>
-                </tr>
-              ) : (
-                filteredSessions.map((session) => {
-                  const client = clients.find((c) => c.id === session.clientId);
-                  const consultant = users.find((u) => u.id === session.consultantId);
-
-                  const initials = getInitials(consultant?.displayName || 'Konsultan');
-                  const isIndividu = (session.jenis || 'Individu').toLowerCase() === 'individu';
-
-                  return (
-                    <tr
-                      key={session.id}
-                      className={`hover:bg-slate-50/70 transition-colors ${
-                        session.status === 'Terjadwal' ? 'bg-blue-50/30' : ''
-                      }`}
-                    >
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-slate-900">
-                            {formatWITA(session.dateTime, false)}
-                          </span>
-                          <span className="text-slate-500 text-[11px]">
-                            {new Date(session.dateTime).toLocaleTimeString('id-ID', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              timeZone: 'Asia/Makassar',
-                            })}{' '}
-                            WITA ({session.durationMinutes} mnt)
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-900">
-                            {client?.namaBisnis || 'Klien'}
-                          </span>
-                          <span className="text-slate-500 text-[11px]">
-                            {client?.namaPemilik || 'Founder'}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center text-[10px] font-bold">
-                            {initials}
-                          </div>
-                          <span className="font-medium text-slate-900">
-                            {consultant?.displayName || 'Konsultan Pembimbing'}
-                          </span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${
-                            isIndividu
-                              ? 'bg-slate-100 text-slate-700'
-                              : 'bg-blue-100 text-[#00236f]'
-                          }`}
-                        >
-                          {isIndividu ? 'Individu 1-on-1' : 'Grup Mastermind'}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            session.status === 'Selesai'
-                              ? 'bg-blue-50 text-[#00236f]'
-                              : session.status === 'Terjadwal'
-                              ? 'bg-blue-100 text-[#0051d5]'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          <span
-                            className={`w-2 h-2 rounded-full ${
-                              session.status === 'Selesai'
-                                ? 'bg-[#0051d5]'
-                                : session.status === 'Terjadwal'
-                                ? 'bg-[#0051d5] animate-pulse'
-                                : 'bg-slate-400'
-                            }`}
-                          ></span>
-                          {session.status}
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {session.meetingUrl && (
-                            <a
-                              href={session.meetingUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-2.5 py-1 rounded-lg bg-[#0051d5] hover:bg-[#00236f] text-white text-[11px] font-semibold transition inline-flex items-center gap-1 shadow-2xs"
-                              title="Buka Google Meet"
-                            >
-                              <Video className="w-3.5 h-3.5" />
-                              Gabung Room
-                            </a>
-                          )}
-                          <button
-                            onClick={() => setSelectedAuditSession(session)}
-                            className="p-1 rounded-lg hover:bg-emerald-50 text-slate-400 hover:text-emerald-700 transition cursor-pointer"
-                            title="Audit Integritas Data & Akses Sesi"
-                          >
-                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                          </button>
-                          <button
-                            onClick={() => onSelectClient(session.clientId)}
-                            className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer"
-                            title="Lihat Detail Klien"
-                          >
-                            <FileText className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Table Footer Link */}
-        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-          <span className="text-slate-500">
-            Menampilkan <strong>{filteredSessions.length}</strong> dari <strong>{sessionsThisWeek.length}</strong> sesi yang dijadwalkan minggu berjalan
-          </span>
-          <button
-            onClick={() => onNavigate('sessions')}
-            className="text-[#0051d5] hover:text-[#00236f] font-semibold flex items-center gap-1 group cursor-pointer"
-          >
-            Lihat Semua Jadwal Sesi Lengkap
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
-      </section>
-
-      {/* 5. ADVISORY STRATEGIC QUICK NOTE FOOTER (RECOMMENDATION BANNER) */}
-      {!isRecommendationDismissed && (
-        <div className="bg-slate-50/90 rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all duration-300">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#00236f] shadow-2xs shrink-0 border border-slate-200">
-              <Lightbulb className="w-5 h-5 text-amber-500" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                Rekomendasi Kapasitas Eksekutif Nexus
-              </span>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Konsultan Hendra Kusuma telah mencapai kapasitas tinggi (92%). Disarankan mengalihkan 2 onboarding baru ke Anita Wijaya atau Fajar Ramadhan.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
-            {isRecommendationApplied ? (
-              <span className="px-4 py-2 rounded-xl bg-[#0051d5] text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs">
-                <Check className="w-4 h-4" /> Diterapkan
-              </span>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setIsRecommendationApplied(true);
-                    setTimeout(() => setIsRecommendationDismissed(true), 1200);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-[#1e3a8a] text-white text-xs font-semibold hover:bg-[#00236f] transition-all active:scale-95 shadow-2xs cursor-pointer"
-                  type="button"
-                >
-                  Terapkan Penyesuaian
-                </button>
-                <button
-                  onClick={() => setIsRecommendationDismissed(true)}
-                  className="px-3 py-2 rounded-xl bg-white text-slate-600 text-xs font-semibold hover:bg-slate-100 transition-all active:scale-95 shadow-2xs cursor-pointer border border-slate-200"
-                  type="button"
-                >
-                  Abaikan
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* 9. SECURE ACTIVITY LOG & AUDIT TRAIL FOR SENSITIVE OPERATIONS */}
-      <section className="pt-2">
-        <ActivityLog />
-      </section>
-
-      {/* Session Audit Summary Modal for Owner */}
-      {selectedAuditSession && (
-        <SessionAuditSummary
-          isModal
-          session={selectedAuditSession}
-          sessionId={selectedAuditSession.id}
-          clientName={clients.find((c) => c.id === selectedAuditSession.clientId)?.namaBisnis || 'Klien Binaan'}
-          onClose={() => setSelectedAuditSession(null)}
+      {/* KPI */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Kpi
+          label="Klien Aktif"
+          value={m.activeClients.length}
+          icon={Users}
+          sub={`${m.newThisMonth} baru bulan ini`}
+          trend={{ value: m.newThisMonth - m.newLastMonth, label: `${m.newThisMonth - m.newLastMonth > 0 ? '+' : ''}${m.newThisMonth - m.newLastMonth} vs bln lalu` }}
+          onClick={() => onNavigate('clients')}
         />
-      )}
+        <Kpi
+          label="Sesi Minggu Ini"
+          value={m.weekSessions.length}
+          icon={CalendarDays}
+          sub={`${weekDone} selesai · ${weekPlanned} terjadwal`}
+          trend={{
+            value: m.weekSessions.length - m.lastWeekSessions.length,
+            label: `${m.weekSessions.length - m.lastWeekSessions.length > 0 ? '+' : ''}${m.weekSessions.length - m.lastWeekSessions.length} vs mgg lalu`,
+          }}
+          onClick={() => onNavigate('reports')}
+        />
+        <Kpi
+          label="Tugas Terlambat"
+          value={m.overdue.length}
+          icon={AlertTriangle}
+          tone={m.overdue.length ? 'danger' : 'success'}
+          sub={m.overdue.length ? `dari ${overdueClients} klien` : 'Semua tugas tepat waktu'}
+          onClick={() => onNavigate('clients')}
+        />
+        <Kpi
+          label="Tim Hadir Hari Ini"
+          value={
+            <>
+              {m.present}
+              <span className="text-lg text-slate-400 font-semibold">/{m.team.length}</span>
+            </>
+          }
+          icon={UserCheck}
+          sub={`${m.away} izin/sakit/cuti · ${notYet} belum absen`}
+          onClick={() => onNavigate('attendance')}
+        />
+      </div>
+
+      {/* AGENDA + PIPELINE */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="lg:col-span-2">
+          <CardHeader
+            icon={CalendarClock}
+            title="Agenda Hari Ini"
+            action={<LinkButton onClick={() => onNavigate('attendance')}>To-do saya</LinkButton>}
+          />
+          {agendaEmpty ? (
+            <p className="text-xs text-slate-400 py-6 text-center">
+              Tidak ada sesi, tugas jatuh tempo, atau to-do untuk hari ini.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {m.todaySessions.length > 0 && (
+                <div>
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                    Sesi hari ini ({m.todaySessions.length})
+                  </div>
+                  <ul className="divide-y divide-slate-100">
+                    {m.todaySessions.slice(0, 5).map((s) => (
+                      <li key={s.id} className="flex items-center gap-3 py-2">
+                        <span className="text-xs font-black text-[#00236f] w-12 shrink-0 tabular-nums">
+                          {timeWITA(s.dateTime)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => onSelectClient(s.clientId)}
+                          className="flex-1 min-w-0 text-left cursor-pointer"
+                        >
+                          <div className="text-xs font-semibold text-slate-900 truncate">{m.clientName(s.clientId)}</div>
+                          <div className="text-[11px] text-slate-500 truncate">
+                            {s.agenda || 'Sesi pendampingan'} · {m.userName(s.consultantId) || 'Konsultan'}
+                          </div>
+                        </button>
+                        {s.meetingUrl && /^https?:\/\//.test(s.meetingUrl) && (
+                          <a
+                            href={s.meetingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] font-semibold text-[#0051d5] inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Video className="w-3.5 h-3.5" /> Gabung
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {m.dueTasks.length > 0 && (
+                <div>
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                    Tugas klien jatuh tempo ({m.dueTasks.length})
+                  </div>
+                  <ul className="divide-y divide-slate-100">
+                    {m.dueTasks.slice(0, 5).map((t) => {
+                      const late = t.deadline.slice(0, 10) < today;
+                      return (
+                        <li key={t.id}>
+                          <button
+                            type="button"
+                            onClick={() => onSelectClient(t.clientId)}
+                            className="w-full flex items-center gap-3 py-2 text-left cursor-pointer"
+                          >
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                                late ? 'bg-rose-50 text-rose-700' : 'bg-amber-50 text-amber-700'
+                              }`}
+                            >
+                              {late ? 'Terlambat' : 'Hari ini'}
+                            </span>
+                            <span className="flex-1 min-w-0">
+                              <span className="block text-xs font-semibold text-slate-900 truncate">{t.title}</span>
+                              <span className="block text-[11px] text-slate-500 truncate">
+                                {m.clientName(t.clientId)} · PIC {t.assigneeName || t.assigneeRole}
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {m.dueTasks.length > 5 && (
+                    <div className="text-[11px] text-slate-400 mt-1">+{m.dueTasks.length - 5} tugas lainnya</div>
+                  )}
+                </div>
+              )}
+
+              {m.todayTodos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onNavigate('attendance')}
+                  className="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 hover:bg-slate-100 cursor-pointer"
+                >
+                  <span className="flex items-center gap-2 text-xs text-slate-700">
+                    <ClipboardList className="w-4 h-4 text-[#0051d5]" />
+                    To-do saya hari ini:{' '}
+                    <strong>
+                      {m.todayTodos.length - m.todayTodosOpen.length}/{m.todayTodos.length} selesai
+                    </strong>
+                  </span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
+                </button>
+              )}
+            </div>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader icon={BarChart3} title="Pipeline Klien" />
+          <div className="space-y-3">
+            {m.stages.map((st) => (
+              <div key={st.key}>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="font-semibold text-slate-700">{st.label}</span>
+                  <span className="font-bold text-slate-900 tabular-nums">{st.count}</span>
+                </div>
+                <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${st.color}`}
+                    style={{ width: `${(st.count / m.maxStage) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>
+              Total {clients.length} klien{m.stopped ? ` · ${m.stopped} berhenti` : ''}
+            </span>
+            <LinkButton onClick={() => onNavigate('clients')}>Daftar klien</LinkButton>
+          </div>
+        </Card>
+      </div>
+
+      {/* RISIKO + BEBAN KERJA */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader
+            icon={AlertTriangle}
+            title={`Klien Perlu Perhatian${m.atRisk.length ? ` (${m.atRisk.length})` : ''}`}
+          />
+          {m.atRisk.length === 0 ? (
+            <p className="text-xs text-slate-400 py-4 text-center flex items-center justify-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Semua klien aktif dalam kondisi baik.
+            </p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {m.atRisk.slice(0, 5).map((r) => (
+                <li key={r.client.id}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectClient(r.client.id)}
+                    className="w-full flex items-center gap-3 py-2.5 text-left cursor-pointer group"
+                  >
+                    <span className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-xs font-black shrink-0">
+                      {(r.client.namaBisnis || '?').charAt(0).toUpperCase()}
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-xs font-semibold text-slate-900 truncate">{r.client.namaBisnis}</span>
+                      <span className="block text-[11px] text-rose-600 truncate">{r.reason || 'Perlu ditinjau'}</span>
+                    </span>
+                    <span className="text-[11px] text-slate-500 text-right shrink-0 max-w-[40%] truncate">
+                      {r.consultant || 'Belum ada konsultan'}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card>
+          <CardHeader
+            icon={Users}
+            title="Beban Kerja Tim"
+            action={<LinkButton onClick={() => onNavigate('team')}>Atur tim</LinkButton>}
+          />
+          {m.workload.length === 0 ? (
+            <p className="text-xs text-slate-400 py-4 text-center">Belum ada konsultan atau tim grup aktif.</p>
+          ) : (
+            <ul className="space-y-3">
+              {m.workload.slice(0, 6).map((w) => (
+                <li key={w.user.id}>
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="min-w-0">
+                      <span className="font-semibold text-slate-900">{w.user.displayName}</span>
+                      <span className="text-slate-400"> · {ROLE_LABELS[w.user.role] || w.user.role}</span>
+                    </span>
+                    <span className="text-slate-500 shrink-0 tabular-nums">
+                      <strong className="text-slate-900">{w.clients}</strong> klien · {w.sessions} sesi · {w.openTasks} tugas
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden mt-1">
+                    <div className="h-full bg-[#0051d5] rounded-full" style={{ width: `${(w.clients / m.maxLoad) * 100}%` }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      {/* AKTIVITAS TERBARU */}
+      <Card>
+        <CardHeader
+          icon={Clock}
+          title="Aktivitas Terbaru"
+          action={<LinkButton onClick={() => onNavigate('security-audit')}>Lihat semua</LinkButton>}
+        />
+        {m.recentLogs.length === 0 ? (
+          <p className="text-xs text-slate-400 py-4 text-center">Belum ada aktivitas.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {m.recentLogs.map((l) => (
+              <li key={l.id} className="flex items-start gap-3 py-2.5">
+                <span className="w-2 h-2 rounded-full bg-[#0051d5] mt-1.5 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs text-slate-800">
+                    <span className="font-semibold">{l.action || 'Aktivitas'}</span>
+                    {l.clientId && <span className="text-slate-500"> · {m.clientName(l.clientId)}</span>}
+                  </div>
+                  <div className="text-[11px] text-slate-500 truncate">
+                    oleh {l.actorName || 'Sistem'}
+                    {l.actorRole ? ` (${l.actorRole})` : ''}
+                  </div>
+                </div>
+                <span className="text-[11px] text-slate-400 shrink-0">{relativeTime(l.createdAt)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
+
+      <div className="flex flex-wrap gap-3 justify-center text-xs">
+        <LinkButton onClick={() => onNavigate('reports')}>Laporan &amp; analitik lengkap</LinkButton>
+        <span className="text-slate-300">•</span>
+        <button
+          type="button"
+          onClick={() => onNavigate('security-audit')}
+          className="text-xs font-semibold text-slate-500 hover:underline cursor-pointer inline-flex items-center gap-1"
+        >
+          <ShieldCheck className="w-3.5 h-3.5" /> Log audit keamanan
+        </button>
+      </div>
     </div>
   );
 };

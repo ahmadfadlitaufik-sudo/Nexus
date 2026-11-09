@@ -9,6 +9,7 @@ import { Sidebar } from './components/Sidebar';
 import { PublicLanding } from './pages/PublicLanding';
 import { LoginPage } from './pages/LoginPage';
 import { OwnerDashboard } from './pages/OwnerDashboard';
+import { OwnerReportsPage } from './pages/OwnerReportsPage';
 import { ConsultantDashboard } from './pages/ConsultantDashboard';
 import { GroupDashboard } from './pages/GroupDashboard';
 import { GroupList } from './pages/GroupList';
@@ -253,6 +254,14 @@ function MainApp() {
               {currentTab === 'team' && <TeamSettings />}
               {currentTab === 'approvals' && <AccountApprovalPage onNavigate={setCurrentTab} />}
               {currentTab === 'security-audit' && <SecurityAuditPage />}
+              {currentTab === 'reports' && (
+                <OwnerReportsPage
+                  onSelectClient={handleSelectClient}
+                  onOpenNewClientModal={() => setShowNewClientModal(true)}
+                  onNavigate={setCurrentTab}
+                  onOpenSessionModal={handleOpenSessionModal}
+                />
+              )}
               {currentTab === 'activity-log' && <ActivityLog className="py-2" />}
             </>
           )}

@@ -371,7 +371,7 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
               </span>
               <span>•</span>
               <span>
-                Fasilitator: <strong className="text-slate-800">{facilitator?.displayName || 'Fajar Ramadhan, B.Eng.'}</strong>
+                Fasilitator: <strong className="text-slate-800">{facilitator?.displayName || 'Belum ditentukan'}</strong>
               </span>
               <span>•</span>
               <span>{members.length} Klien Terdaftar</span>

@@ -17,6 +17,7 @@
     {
       "binding": "DB",
       "database_name": "nexus-db",
+      "database_id": "12c9db80-2be8-4cf3-9cfe-7577d1f4634e",
       "migrations_dir": "migrations"
     }
   ],

@@ -12,36 +12,10 @@ Semua berjalan di Cloudflare, tanpa Firebase:
 
 ---
 
-## Langkah 1 — Buat database D1 (sekali saja)
+## Langkah 1 — Database D1 ✅ sudah dibuat
 
-```bash
-npm install
-```
-```bash
-npx wrangler login
-```
-```bash
-npx wrangler d1 create nexus-db
-```
-
-Perintah terakhir menampilkan `database_id`. Tempelkan ke `wrangler.jsonc`:
-
-```jsonc
-"d1_databases": [
-  {
-    "binding": "DB",
-    "database_name": "nexus-db",
-    "database_id": "TEMPEL-ID-DI-SINI",
-    "migrations_dir": "migrations"
-  }
-]
-```
-
-Lalu buat tabel-tabelnya:
-
-```bash
-npx wrangler d1 migrations apply nexus-db --remote
-```
+Database `nexus-db` (region APAC) sudah dibuat dan tabelnya sudah terpasang.
+ID-nya sudah tercatat di `wrangler.jsonc`, jadi tidak perlu langkah apa pun.
 
 ## Langkah 2 — Atur rahasia (secrets)
 

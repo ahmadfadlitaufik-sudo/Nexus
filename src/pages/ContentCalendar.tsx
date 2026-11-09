@@ -109,7 +109,7 @@ export const ContentCalendar: React.FC = () => {
       channel: 'Instagram',
       publishDate: defaultDate || todayWITA(),
       authorId: userProfile?.id || '',
-      authorName: userProfile?.displayName || 'Dinda Saraswati',
+      authorName: userProfile?.displayName || 'Tim Konten',
       description: '',
       category: 'Marketing Funnel',
       tags: '',

@@ -18,8 +18,6 @@ import {
 import { Client, Session, Task } from '../types';
 import { getClients, getSessions, getTasks } from '../services/db';
 import { formatWITA, isTaskOverdue, getDaysDiff } from '../utils/formatters';
-import { DailyActivityTracker } from '../components/DailyActivityTracker';
-import { TeamActivitySummary } from '../components/TeamActivitySummary';
 
 interface ConsultantDashboardProps {
   onSelectClient: (clientId: string) => void;
@@ -165,11 +163,6 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
       </div>
 
       {/* Daily Activity Tracker for Consultant Standup & Check-in */}
-      <DailyActivityTracker
-        title="Daily Activity Tracker • Konsultan Pendamping"
-        defaultCollapsed={false}
-      />
-
       {/* Grid: 1. Sesi Minggu Ini & 2. Tugas Jatuh Tempo */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Kolom 1: Sesi Minggu Ini (7 cols) */}
@@ -414,10 +407,6 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
       </div>
 
       {/* Ringkasan Aktivitas Seluruh Rekan Tim Nexus (Tabel / Kartu) */}
-      <TeamActivitySummary
-        title="Ringkasan Aktivitas Rekan Tim Nexus"
-        defaultView="cards"
-      />
     </div>
   );
 };

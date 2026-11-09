@@ -27,7 +27,6 @@ import {
 } from '../services/db';
 import { useAuth } from '../context/AuthContext';
 import { formatWITA, isTaskOverdue } from '../utils/formatters';
-import { DailyActivityTracker } from '../components/DailyActivityTracker';
 
 interface GroupDashboardProps {
   onSelectGroup: (groupId: string) => void;
@@ -170,10 +169,6 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
       </div>
 
       {/* Daily Activity Tracker for Group Team Standup & Check-in */}
-      <DailyActivityTracker
-        title="Daily Activity Tracker • Fasilitator Tim Grup"
-        defaultCollapsed={false}
-      />
 
       {/* 4 Core Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

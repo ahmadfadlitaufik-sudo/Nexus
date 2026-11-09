@@ -1,0 +1,592 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Users,
+  AlertTriangle,
+  TrendingUp,
+  Briefcase,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  ArrowRight,
+  UserCheck,
+  Plus,
+  Building2,
+  Layers,
+  Sparkles,
+  Video,
+  ExternalLink,
+  AlertCircle,
+  Download,
+  Lightbulb,
+  Check,
+  FileText,
+  Rocket,
+  Activity,
+  ShieldCheck,
+} from 'lucide-react';
+import { Client, Session, Task, UserProfile, ClientStatus, SessionStatus, Feedback, TeamCheckin } from '../types';
+import { getCheckinsByDate } from '../services/teamDaily';
+import { getClients, getSessions, getTasks, getAllUsers, getAllFeedback } from '../services/db';
+import { formatWITA, evaluateClientRisk, isTaskOverdue, getDaysDiff, todayWITA, dateWITA } from '../utils/formatters';
+import { SessionAuditSummary } from '../components/SessionAuditSummary';
+import { OwnerAnalyticsCharts } from '../components/OwnerAnalyticsCharts';
+import { OwnerNotificationCenter } from '../components/OwnerNotificationCenter';
+import { ActivityLog } from '../components/ActivityLog';
+
+interface OwnerDashboardProps {
+  onSelectClient: (clientId: string) => void;
+  onOpenNewClientModal: () => void;
+  onNavigate: (tab: string) => void;
+  onOpenSessionModal?: (sessionId?: string, clientId?: string) => void;
+}
+
+export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
+  onSelectClient,
+  onOpenNewClientModal,
+  onNavigate,
+  onOpenSessionModal,
+}) => {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAuditSession, setSelectedAuditSession] = useState<Session | null>(null);
+
+  // Table Filter State
+  const [sessionFilter, setSessionFilter] = useState<'all' | 'individu' | 'grup' | 'today'>('all');
+
+  // Recommendation Banner State
+  const [isRecommendationDismissed, setIsRecommendationDismissed] = useState(false);
+  const [isRecommendationApplied, setIsRecommendationApplied] = useState(false);
+
+  const [todayCheckins, setTodayCheckins] = useState<TeamCheckin[]>([]);
+
+  const loadData = async () => {
+    try {
+      const [cList, sList, tList, uList, fbList, chkList] = await Promise.all([
+        getClients(),
+        getSessions(),
+        getTasks(),
+        getAllUsers(),
+        getAllFeedback(),
+        getCheckinsByDate(todayWITA()).catch(() => [] as TeamCheckin[]),
+      ]);
+      setTodayCheckins(chkList);
+      setClients(cList);
+      setSessions(sList);
+      setTasks(tList);
+      setUsers(uList);
+      setFeedbacks(fbList);
+    } catch (err) {
+      console.error('Error loading owner dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Compute Core Metrics
+  const activeClientsCount = clients.filter((c) => c.status === 'Aktif').length;
+  const onboardingClientsCount = clients.filter((c) => c.status === 'Onboarding').length;
+  const prospectClientsCount = clients.filter((c) => c.status === 'Prospek').length;
+  const pipelineTotal = prospectClientsCount + onboardingClientsCount;
+  const thisMonth = todayWITA().slice(0, 7);
+  const newClientsThisMonth = clients.filter((c) => c.createdAt && dateWITA(c.createdAt).startsWith(thisMonth)).length;
+  const [qy, qm] = todayWITA().split('-').map(Number);
+  const quarterLabel = `Q${Math.ceil(qm / 3)} ${qy}`;
+
+  const now = new Date();
+  const oneWeekLater = new Date(now.getTime() + 7 * 86400000);
+  const oneWeekAgo = new Date(now.getTime() - 7 * 86400000);
+
+  const sessionsThisWeek = sessions
+    .filter((s) => {
+      const sDate = new Date(s.dateTime);
+      return sDate >= oneWeekAgo && sDate <= oneWeekLater;
+    })
+    .sort((a, b) => new Date(a.dateTime).getTime() - new Date(b.dateTime).getTime());
+
+  const completedSessionsThisWeek = sessionsThisWeek.filter((s) => s.status === 'Selesai').length;
+  const upcomingSessionsThisWeek = sessionsThisWeek.filter(
+    (s) => s.status === 'Terjadwal'
+  ).length;
+
+  const overdueTasks = tasks.filter(
+    (t) => t.status === 'Terlambat' || isTaskOverdue(t.deadline, t.status)
+  );
+  const overdueTasksCount = overdueTasks.length;
+  const clientsWithOverdueTasksCount = new Set(overdueTasks.map((t) => t.clientId)).size;
+
+  // Compute Clients at Risk
+  const clientsAtRisk = clients
+    .map((client) => {
+      const clientSessions = sessions.filter(
+        (s) => s.clientId === client.id && s.status === 'Selesai'
+      );
+      const latestSession = clientSessions.sort(
+        (a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime()
+      )[0];
+      const clientTasks = tasks.filter((t) => t.clientId === client.id);
+
+      const riskAssessment = evaluateClientRisk(
+        latestSession?.dateTime || client.lastSessionDate,
+        clientTasks
+      );
+
+      return {
+        ...client,
+        isAtRisk: riskAssessment.isAtRisk,
+        riskReason: riskAssessment.reason,
+        latestSessionDate: latestSession?.dateTime || client.lastSessionDate,
+        totalTasks: clientTasks.length,
+        overdueTasks: clientTasks.filter(
+          (t) => t.status === 'Terlambat' || isTaskOverdue(t.deadline, t.status)
+        ).length,
+      };
+    })
+    .filter((c) => c.isAtRisk);
+
+  // Compute Workload per Consultant
+  const consultants = users.filter(
+    (u) =>
+      u.role === 'consultant' ||
+      u.role === 'konsultan' ||
+      u.role === 'tim_grup' ||
+      u.role === 'tim_konten' ||
+      u.role === 'staf_operasional' ||
+      u.role === 'owner'
+  );
+
+  const consultantWorkloads = consultants.map((cons) => {
+    const assignedClients = clients.filter(
+      (c) =>
+        c.primaryConsultantId === cons.id ||
+        (c.consultantIds && c.consultantIds.includes(cons.id))
+    );
+    const assignedSessions = sessions.filter(
+      (s) => s.consultantId === cons.id && s.status === 'Terjadwal'
+    );
+    const assignedClientIds = new Set(assignedClients.map((c) => c.id));
+    const activeTasks = tasks.filter(
+      (t) => assignedClientIds.has(t.clientId) && t.status !== 'Selesai'
+    );
+
+    const clientCount = assignedClients.length;
+    // Capacity calculation (max capacity standard = 13 clients)
+    const capacityPercentage = Math.min(100, Math.round((clientCount / 13) * 100));
+
+    let statusLabel = 'Optimal';
+    let statusClass = 'text-[#0051d5] font-bold';
+    let barColor = 'bg-[#1e3a8a]';
+
+    if (capacityPercentage >= 85) {
+      statusLabel = 'Penuh';
+      statusClass = 'text-rose-600 bg-rose-50 px-2 py-0.5 rounded font-bold';
+      barColor = 'bg-rose-600';
+    } else if (capacityPercentage >= 60) {
+      statusLabel = 'Optimal';
+      statusClass = 'text-[#0051d5] font-bold';
+      barColor = 'bg-[#1e3a8a]';
+    } else if (capacityPercentage >= 40) {
+      statusLabel = 'Tersedia';
+      statusClass = 'text-blue-700 font-bold';
+      barColor = 'bg-[#0051d5]';
+    } else {
+      statusLabel = 'Onboarding';
+      statusClass = 'text-slate-500 font-bold';
+      barColor = 'bg-slate-400';
+    }
+
+    return {
+      consultant: cons,
+      clientCount,
+      activeClients: assignedClients.filter(
+        (c) => c.status === 'Aktif' || c.status === 'Onboarding'
+      ).length,
+      upcomingSessionsCount: assignedSessions.length,
+      activeTasksCount: activeTasks.length,
+      capacityPercentage,
+      statusLabel,
+      statusClass,
+      barColor,
+    };
+  });
+
+  // Health index portofolio: persentase klien aktif yang tidak berisiko
+  const healthIndex = activeClientsCount
+    ? Math.round(((activeClientsCount - clientsAtRisk.filter((c) => c.status === 'Aktif').length) / activeClientsCount) * 100)
+    : null;
+  const healthLabel = healthIndex === null ? '' : healthIndex >= 80 ? 'Optimal' : healthIndex >= 60 ? 'Perlu Perhatian' : 'Kritis';
+
+  // Average client allocation per consultant
+  const avgAllocation = consultants.length > 0
+    ? (clients.length / consultants.length).toFixed(1)
+    : '0.0';
+
+  // Active check-in ratio
+  // Absen hari ini (dari menu Absen & To-Do): anggota tim yang sudah absen hadir (Kantor/WFA)
+  const activeTeam = consultants.filter((u) => u.status !== 'pending' && u.status !== 'rejected');
+  const activeConsultantsCount = activeTeam.filter((u) =>
+    todayCheckins.some(
+      (c) => c.userId === u.id && c.morningCheckinAt && (c.workStatus === 'Kantor' || c.workStatus === 'WFA')
+    )
+  ).length;
+  const totalConsultantsCount = activeTeam.length;
+  const attendancePercentage = totalConsultantsCount
+    ? Math.round((activeConsultantsCount / totalConsultantsCount) * 100)
+    : 0;
+
+  // Filtered Sessions for Table
+  const filteredSessions = sessionsThisWeek.filter((s) => {
+    if (sessionFilter === 'all') return true;
+    if (sessionFilter === 'individu') return (s.jenis || 'Individu').toLowerCase() === 'individu';
+    if (sessionFilter === 'grup') return (s.jenis || '').toLowerCase() === 'grup';
+    if (sessionFilter === 'today') {
+      const sDate = dateWITA(s.dateTime);
+      const todayStr = todayWITA();
+      return sDate === todayStr;
+    }
+    return true;
+  });
+
+  // Helper for Initials
+  const getInitials = (name: string) => {
+    if (!name) return 'KP';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  // Export CSV Handler
+  const handleExportCSV = () => {
+    const headers = ['Tanggal', 'Klien', 'Konsultan', 'Jenis Sesi', 'Status', 'Agenda'];
+    const rows = filteredSessions.map((s) => {
+      const cl = clients.find((c) => c.id === s.clientId);
+      const co = users.find((u) => u.id === s.consultantId);
+      return [
+        `"${formatWITA(s.dateTime)}"`,
+        `"${cl?.namaBisnis || 'Klien'}"`,
+        `"${co?.displayName || 'Konsultan'}"`,
+        `"${s.jenis || 'Individu'}"`,
+        `"${s.status}"`,
+        `"${s.agenda.replace(/"/g, '""')}"`,
+      ];
+    });
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `jadwal_sesi_minggu_ini_${todayWITA()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return (
+    <div className="space-y-6 pb-12 animate-in fade-in">
+      {/* HEADER LAPORAN */}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans']">
+            Laporan &amp; Analitik
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Tren pertumbuhan klien, kepuasan, dan jadwal sesi minggu ini • Waktu WITA
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onNavigate('dashboard')}
+          className="text-xs font-semibold text-[#0051d5] hover:underline cursor-pointer"
+        >
+          ← Kembali ke Dashboard
+        </button>
+      </div>
+
+      {/* 2.5 VISUALISASI DATA ANALITIK RECHARTS */}
+      <OwnerAnalyticsCharts clients={clients} sessions={sessions} feedbacks={feedbacks} />
+
+      {/* 5. ROW 4: TABEL JADWAL SESI ADVISORY MINGGU INI */}
+      <section className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col hover:shadow-md transition-all duration-200">
+        {/* Header with Quick Filter */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#00236f]/10 flex items-center justify-center text-[#00236f]">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
+                Jadwal Sesi Advisory Minggu Ini
+              </h2>
+              <p className="text-xs text-slate-500">
+                Jadwal Pertemuan WFA Terjadwal (WITA) • Konsultasi 1-on-1 &amp; Sesi Mastermind
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Filter Pills & Actions */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+              <button
+                onClick={() => setSessionFilter('all')}
+                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
+                  sessionFilter === 'all'
+                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                type="button"
+              >
+                Semua
+              </button>
+              <button
+                onClick={() => setSessionFilter('individu')}
+                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
+                  sessionFilter === 'individu'
+                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                type="button"
+              >
+                Individu
+              </button>
+              <button
+                onClick={() => setSessionFilter('grup')}
+                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
+                  sessionFilter === 'grup'
+                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                type="button"
+              >
+                Grup
+              </button>
+              <button
+                onClick={() => setSessionFilter('today')}
+                className={`px-3 py-1 text-xs rounded-lg transition-all cursor-pointer ${
+                  sessionFilter === 'today'
+                    ? 'bg-white text-[#00236f] font-bold shadow-2xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                type="button"
+              >
+                Hari Ini
+              </button>
+            </div>
+
+            <button
+              onClick={handleExportCSV}
+              className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+              type="button"
+            >
+              <Download className="w-3.5 h-3.5" />
+              Ekspor CSV
+            </button>
+
+            <button
+              onClick={() => {
+                if (filteredSessions.length > 0) {
+                  setSelectedAuditSession(filteredSessions[0]);
+                } else if (sessions.length > 0) {
+                  setSelectedAuditSession(sessions[0]);
+                }
+              }}
+              className="px-3.5 py-1.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+              type="button"
+              title="Verifikasi Integritas Akses Sesi Secara Visual"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              Audit Integritas Sesi
+            </button>
+
+            {onOpenSessionModal && (
+              <button
+                onClick={() => onOpenSessionModal()}
+                className="px-3.5 py-1.5 rounded-xl bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                type="button"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Jadwalkan Sesi
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Table Container */}
+        <div className="overflow-x-auto -mx-6 sm:-mx-7 px-6 sm:px-7 mt-2">
+          <table className="w-full text-left text-xs whitespace-nowrap">
+            <thead>
+              <tr className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
+                <th className="py-3 px-4 rounded-l-xl">Tanggal &amp; Waktu</th>
+                <th className="py-3 px-4">Klien / Entitas</th>
+                <th className="py-3 px-4">Konsultan Pembimbing</th>
+                <th className="py-3 px-4">Jenis Sesi</th>
+                <th className="py-3 px-4">Status Pelaksanaan</th>
+                <th className="py-3 px-4 rounded-r-xl text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-800">
+              {filteredSessions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    Tidak ada sesi yang cocok dengan filter yang dipilih.
+                  </td>
+                </tr>
+              ) : (
+                filteredSessions.map((session) => {
+                  const client = clients.find((c) => c.id === session.clientId);
+                  const consultant = users.find((u) => u.id === session.consultantId);
+
+                  const initials = getInitials(consultant?.displayName || 'Konsultan');
+                  const isIndividu = (session.jenis || 'Individu').toLowerCase() === 'individu';
+
+                  return (
+                    <tr
+                      key={session.id}
+                      className={`hover:bg-slate-50/70 transition-colors ${
+                        session.status === 'Terjadwal' ? 'bg-blue-50/30' : ''
+                      }`}
+                    >
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-slate-900">
+                            {formatWITA(session.dateTime, false)}
+                          </span>
+                          <span className="text-slate-500 text-[11px]">
+                            {new Date(session.dateTime).toLocaleTimeString('id-ID', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              timeZone: 'Asia/Makassar',
+                            })}{' '}
+                            WITA ({session.durationMinutes} mnt)
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-900">
+                            {client?.namaBisnis || 'Klien'}
+                          </span>
+                          <span className="text-slate-500 text-[11px]">
+                            {client?.namaPemilik || 'Founder'}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center text-[10px] font-bold">
+                            {initials}
+                          </div>
+                          <span className="font-medium text-slate-900">
+                            {consultant?.displayName || 'Konsultan Pembimbing'}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${
+                            isIndividu
+                              ? 'bg-slate-100 text-slate-700'
+                              : 'bg-blue-100 text-[#00236f]'
+                          }`}
+                        >
+                          {isIndividu ? 'Individu 1-on-1' : 'Grup Mastermind'}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            session.status === 'Selesai'
+                              ? 'bg-blue-50 text-[#00236f]'
+                              : session.status === 'Terjadwal'
+                              ? 'bg-blue-100 text-[#0051d5]'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}
+                        >
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              session.status === 'Selesai'
+                                ? 'bg-[#0051d5]'
+                                : session.status === 'Terjadwal'
+                                ? 'bg-[#0051d5] animate-pulse'
+                                : 'bg-slate-400'
+                            }`}
+                          ></span>
+                          {session.status}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {session.meetingUrl && (
+                            <a
+                              href={session.meetingUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-lg bg-[#0051d5] hover:bg-[#00236f] text-white text-[11px] font-semibold transition inline-flex items-center gap-1 shadow-2xs"
+                              title="Buka Google Meet"
+                            >
+                              <Video className="w-3.5 h-3.5" />
+                              Gabung Room
+                            </a>
+                          )}
+                          <button
+                            onClick={() => setSelectedAuditSession(session)}
+                            className="p-1 rounded-lg hover:bg-emerald-50 text-slate-400 hover:text-emerald-700 transition cursor-pointer"
+                            title="Audit Integritas Data & Akses Sesi"
+                          >
+                            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                          </button>
+                          <button
+                            onClick={() => onSelectClient(session.clientId)}
+                            className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer"
+                            title="Lihat Detail Klien"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Table Footer Link */}
+        <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+          <span className="text-slate-500">
+            Menampilkan <strong>{filteredSessions.length}</strong> dari <strong>{sessionsThisWeek.length}</strong> sesi yang dijadwalkan minggu berjalan
+          </span>
+          <button
+            onClick={() => onNavigate('sessions')}
+            className="text-[#0051d5] hover:text-[#00236f] font-semibold flex items-center gap-1 group cursor-pointer"
+          >
+            Lihat Semua Jadwal Sesi Lengkap
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </section>
+
+      {/* Session Audit Summary Modal for Owner */}
+      {selectedAuditSession && (
+        <SessionAuditSummary
+          isModal
+          session={selectedAuditSession}
+          sessionId={selectedAuditSession.id}
+          clientName={clients.find((c) => c.id === selectedAuditSession.clientId)?.namaBisnis || 'Klien Binaan'}
+          onClose={() => setSelectedAuditSession(null)}
+        />
+      )}
+    </div>
+  );
+};

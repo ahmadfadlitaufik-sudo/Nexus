@@ -73,6 +73,11 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
     .filter((months) => months[0] <= nowYm) // hanya kuartal yang sudah berjalan
     .map((months, q) => periodData(`Q${q + 1} ${year}`, months));
 
+  // Pertumbuhan klien bulan ini vs bulan lalu (data asli)
+  const thisM = barChartData6M[5]?.klienAktif ?? 0;
+  const prevM = barChartData6M[4]?.klienAktif ?? 0;
+  const growthLabel = prevM > 0 ? `${thisM >= prevM ? '+' : ''}${Math.round(((thisM - prevM) / prevM) * 100)}% vs bulan lalu` : `${thisM} klien`;
+
   const activeSessionsCount = sessions.filter((s) => s.status === 'Terjadwal').length;
   const completedSessionsCount = sessions.filter((s) => s.status === 'Selesai').length;
 
@@ -236,9 +241,6 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
                   Pertumbuhan Klien &amp; Aktivitas Sesi Pendampingan
                 </h3>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-blue-50 text-[#00236f] border border-blue-100">
-                Grafik Batang (Recharts)
-              </span>
             </div>
 
             {/* Recharts Bar Chart Container */}
@@ -295,7 +297,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
               <span className="text-[10px] text-slate-400 uppercase font-bold block">Pertumbuhan Klien</span>
               <span className="text-sm font-bold text-[#00236f] flex items-center gap-1 mt-0.5">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> +18.4% MoM
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> {growthLabel}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
@@ -325,9 +327,6 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
                   Distribusi Kepuasan Klien
                 </h3>
               </div>
-              <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                Pie Chart (Recharts)
-              </span>
             </div>
 
             {/* Pie Chart with Centered Metric Overlay */}
@@ -389,10 +388,14 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
           <div className="mt-4 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between text-xs text-emerald-950">
             <div className="flex items-center gap-2">
               <Award className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span className="font-bold">Standar Mutu Advisory: Sangat Baik</span>
+              <span className="font-bold">
+                {totalFeedbackCount > 0
+                  ? `Rata-rata ${satisfactionScore}/5 dari ${totalFeedbackCount} penilaian klien`
+                  : 'Belum ada penilaian dari klien'}
+              </span>
             </div>
             <span className="font-bold text-[10px] uppercase tracking-wider bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full">
-              NPS 92+
+              {totalFeedbackCount > 0 ? `${satisfactionPercentage}% puas` : '–'}
             </span>
           </div>
         </div>

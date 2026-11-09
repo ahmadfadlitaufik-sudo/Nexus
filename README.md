@@ -2,14 +2,8 @@
 
 Hub klien dan manajemen konsultasi bisnis WFA (Pendampingan Fundamental & Mentoring Private).
 
-- Frontend: React 19 + Vite + Tailwind
-- Data & login: Firebase (Firestore + Authentication)
-- AI ringkasan sesi: Gemini, lewat `/api/ai/summarize-session`
-- Hosting: Cloudflare Workers — lihat **[DEPLOY.md](DEPLOY.md)**
+- Frontend: React 19 + Vite + Tailwind (`src/`)
+- Backend: Cloudflare Worker (`worker/`) — login, API data, AI Gemini
+- Database: Cloudflare D1 (`migrations/`)
 
-```bash
-npm install
-```
-```bash
-npm run dev
-```
+Panduan deploy & pengembangan lokal: **[DEPLOY.md](DEPLOY.md)**

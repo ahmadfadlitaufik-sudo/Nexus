@@ -1,2 +1,6 @@
-# Salin menjadi .dev.vars untuk `npm run cf:dev` (Cloudflare lokal). Jangan di-commit.
+# Salin menjadi .dev.vars untuk pengembangan lokal (`npm run dev`). Jangan di-commit.
+OWNER_SETUP_CODE="ganti-dengan-kode-rahasia"
 GEMINI_API_KEY="isi_api_key_gemini"
+# Opsional, login Google:
+# GOOGLE_CLIENT_ID="...apps.googleusercontent.com"
+# GOOGLE_CLIENT_SECRET="..."

@@ -10,5 +10,5 @@
     "noEmit": true,
     "isolatedModules": true
   },
-  "include": ["./**/*.ts", "../api/**/*.ts"]
+  "include": ["./**/*.ts"]
 }

@@ -1,54 +1,66 @@
 /**
  * Cloudflare Worker untuk Nexust Client Hub.
- * - /api/*  -> ditangani di sini (fitur AI Gemini).
- * - lainnya -> file statis hasil `vite build` (folder dist) lewat binding ASSETS,
- *              dengan fallback ke index.html (SPA) yang diatur di wrangler.jsonc.
+ * - /api/auth/*  -> login, daftar, sesi (worker/auth.ts, worker/google.ts)
+ * - /api/data    -> baca/tulis database D1 dengan aturan akses (worker/data.ts)
+ * - /api/ai/*    -> ringkasan sesi Gemini (worker/ai.ts)
+ * - lainnya      -> file statis aplikasi React (binding ASSETS, fallback SPA)
  */
-import { summarizeSession, HttpError } from '../api/summarize';
-import { verifyFirebaseIdToken } from '../api/firebaseAuth';
+import { Env, isTeam } from './env';
+import { HttpError, json, readJson } from './http';
+import { getSessionProfile, handleAuth } from './auth';
+import { handleGoogle } from './google';
+import { handleData } from './data';
+import { summarizeSession } from './ai';
 
-export interface Env {
-  ASSETS: Fetcher;
-  GEMINI_API_KEY?: string;
-  GEMINI_MODEL?: string;
-  FIREBASE_PROJECT_ID: string;
-}
+async function handleApi(request: Request, env: Env, path: string): Promise<Response> {
+  if (path === '/api/health') {
+    return json({ status: 'ok', timestamp: new Date().toISOString() });
+  }
 
-function json(data: unknown, status = 200): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-  });
+  if (path.startsWith('/api/auth/google/')) {
+    const res = await handleGoogle(request, env, path);
+    if (res) return res;
+  }
+
+  const me = await getSessionProfile(request, env);
+
+  if (path.startsWith('/api/auth/')) {
+    const res = await handleAuth(request, env, path, me);
+    if (res) return res;
+  }
+
+  if (path === '/api/data') {
+    return handleData(request, env, me);
+  }
+
+  if (path === '/api/ai/summarize-session') {
+    if (request.method !== 'POST') throw new HttpError(405, 'Method not allowed');
+    if (!me) throw new HttpError(401, 'Silakan login terlebih dahulu untuk memakai fitur AI.');
+    if (!isTeam(me)) throw new HttpError(403, 'Fitur AI hanya untuk tim internal.');
+    const body = await readJson(request);
+    const data = await summarizeSession(env.GEMINI_API_KEY, body, env.GEMINI_MODEL);
+    return json({ success: true, data });
+  }
+
+  throw new HttpError(404, 'Not found');
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-
-    if (url.pathname === '/api/health') {
-      return json({ status: 'ok', timestamp: new Date().toISOString() });
+    if (!url.pathname.startsWith('/api/')) {
+      return env.ASSETS.fetch(request);
     }
-
-    if (url.pathname === '/api/ai/summarize-session') {
-      if (request.method !== 'POST') return json({ error: 'Method not allowed' }, 405);
-      try {
-        await verifyFirebaseIdToken(request.headers.get('Authorization'), env.FIREBASE_PROJECT_ID);
-        const body = await request.json().catch(() => {
-          throw new HttpError(400, 'Body permintaan harus JSON.');
-        });
-        const data = await summarizeSession(env.GEMINI_API_KEY, body as any, env.GEMINI_MODEL);
-        return json({ success: true, data });
-      } catch (error: any) {
-        const status = error instanceof HttpError ? error.status : 500;
-        if (status >= 500) console.error('Gemini Summarization error:', error);
-        return json({ error: error?.message || 'Gagal memproses ringkasan dengan AI.' }, status);
-      }
+    try {
+      return await handleApi(request, env, url.pathname);
+    } catch (error: any) {
+      const status = error instanceof HttpError ? error.status : 500;
+      if (status >= 500) console.error('API error:', url.pathname, error);
+      const message =
+        status >= 500 && !(error instanceof HttpError)
+          ? 'Terjadi kesalahan pada server. Silakan coba lagi.'
+          : error?.message || 'Terjadi kesalahan.';
+      return json({ error: message }, status);
     }
-
-    if (url.pathname.startsWith('/api/')) {
-      return json({ error: 'Not found' }, 404);
-    }
-
-    return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;

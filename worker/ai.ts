@@ -1,18 +1,10 @@
 /**
- * Logika AI bersama untuk server lokal (server.ts / Express) dan Cloudflare Worker (worker/index.ts).
+ * Ringkasan sesi dengan Gemini AI (dipanggil dari worker/index.ts).
  */
 import { GoogleGenAI, Type } from '@google/genai';
+import { HttpError } from './http';
 
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
-
-export class HttpError extends Error {
-  constructor(
-    public status: number,
-    message: string
-  ) {
-    super(message);
-  }
-}
 
 export interface SummarizeRequest {
   agenda?: string;

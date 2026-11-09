@@ -6,18 +6,29 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
-    "directory": "./dist",
     "binding": "ASSETS",
     // Semua URL yang bukan file -> index.html (aplikasi satu halaman / SPA).
     "not_found_handling": "single-page-application",
     // Permintaan /api/* selalu diproses Worker terlebih dahulu.
     "run_worker_first": ["/api/*"]
   },
+  // Database Cloudflare D1. Struktur tabel ada di folder migrations/.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nexus-db",
+      "migrations_dir": "migrations"
+    }
+  ],
   "vars": {
-    "FIREBASE_PROJECT_ID": "windy-summer-d83d0",
+    "OWNER_EMAIL": "ahmadfadlitaufik@gmail.com",
     "GEMINI_MODEL": "gemini-3.8-flash"
   },
   "observability": { "enabled": true }
-  // GEMINI_API_KEY adalah rahasia: set dengan `npx wrangler secret put GEMINI_API_KEY`
-  // (atau di dashboard Cloudflare > Worker > Settings > Variables and Secrets).
+  // Rahasia (set di dashboard Cloudflare > Worker > Settings > Variables and Secrets,
+  // atau `npx wrangler secret put NAMA`):
+  //   GEMINI_API_KEY        - fitur ringkasan AI
+  //   OWNER_SETUP_CODE      - kode untuk membuat akun owner pertama dengan email + kata sandi
+  //   GOOGLE_CLIENT_ID      - (opsional) login Google
+  //   GOOGLE_CLIENT_SECRET  - (opsional) login Google
 }

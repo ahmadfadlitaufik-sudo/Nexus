@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { auth } from '../firebase/config';
 import {
   X,
   Calendar,
@@ -206,13 +205,10 @@ export const SessionFormModal: React.FC<SessionFormModalProps> = ({
     setIsSummarizing(true);
     try {
       const activeClient = clients.find((c) => c.id === clientId);
-      const idToken = await auth.currentUser?.getIdToken();
       const res = await fetch('/api/ai/summarize-session', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
-        },
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           agenda: agenda.trim(),
           notes: combinedNotes.trim(),

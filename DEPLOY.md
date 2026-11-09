@@ -1,43 +1,19 @@
 # Deploy Nexust Client Hub ke Cloudflare
 
-Aplikasi berjalan sebagai **satu Cloudflare Worker**:
-- Halaman web (hasil `vite build` di folder `dist/`) dilayani sebagai *static assets*.
-- Endpoint `/api/*` (ringkasan AI Gemini) dijalankan oleh `worker/index.ts`.
-- Database & login tetap memakai **Firebase** (Firestore + Authentication).
+Semua berjalan di Cloudflare, tanpa Firebase:
+
+| Bagian | Teknologi | Lokasi kode |
+|---|---|---|
+| Tampilan web | React (hasil `vite build`) sebagai *static assets* | `src/` |
+| Server / API | Cloudflare Worker | `worker/` |
+| Database | Cloudflare **D1** (SQLite) | `migrations/` |
+| Login | Email + kata sandi (sesi cookie), opsional Google | `worker/auth.ts`, `worker/google.ts` |
+| AI ringkasan sesi | Gemini API | `worker/ai.ts` |
 
 ---
 
-## Langkah 1 — Siapkan Firebase (wajib, sekali saja)
+## Langkah 1 — Buat database D1 (sekali saja)
 
-1. **Aktifkan metode login** di Firebase Console → *Authentication* → *Sign-in method*:
-   - **Email/Password** → Enable.
-   - **Google** → Enable.
-2. **Izinkan domain Cloudflare** di *Authentication* → *Settings* → *Authorized domains* → *Add domain*:
-   - `nexus-client-hub.<nama-akun>.workers.dev` (muncul setelah deploy pertama), dan
-   - domain sendiri jika dipakai (misal `hub.nexusacademy.id`).
-   Tanpa ini, login Google akan gagal dengan pesan *unauthorized-domain*.
-3. **Pasang aturan keamanan Firestore** (`firestore.rules`):
-   ```bash
-   npx firebase-tools login
-   ```
-   ```bash
-   npx firebase-tools deploy --only firestore:rules
-   ```
-   Atau salin isi `firestore.rules` ke Firebase Console → *Firestore Database* → database
-   `ai-studio-nexustgrowthpart-…` → tab *Rules* → *Publish*.
-
-> ⚠️ Aturan lama mengizinkan **siapa pun di internet** membaca & mengubah semua data.
-> Pasang aturan baru **sebelum** aplikasi dibuka untuk umum.
-
-## Langkah 2 — Deploy ke Cloudflare
-
-Cara A — **Hubungkan GitHub (otomatis setiap push)**
-1. Cloudflare Dashboard → *Workers & Pages* → *Create* → *Import a repository*.
-2. Pilih repo `Nexus`, branch produksi (misal `main`).
-3. Build command: `bun run build` (atau `npm run build`) · Deploy command: `npx wrangler deploy`.
-4. Setelah dibuat: *Settings* → *Variables and Secrets* → tambah **Secret** `GEMINI_API_KEY`.
-
-Cara B — **Dari komputer sendiri**
 ```bash
 npm install
 ```
@@ -45,44 +21,111 @@ npm install
 npx wrangler login
 ```
 ```bash
-npx wrangler secret put GEMINI_API_KEY
+npx wrangler d1 create nexus-db
 ```
+
+Perintah terakhir menampilkan `database_id`. Tempelkan ke `wrangler.jsonc`:
+
+```jsonc
+"d1_databases": [
+  {
+    "binding": "DB",
+    "database_name": "nexus-db",
+    "database_id": "TEMPEL-ID-DI-SINI",
+    "migrations_dir": "migrations"
+  }
+]
+```
+
+Lalu buat tabel-tabelnya:
+
+```bash
+npx wrangler d1 migrations apply nexus-db --remote
+```
+
+## Langkah 2 — Atur rahasia (secrets)
+
+Di Cloudflare Dashboard → *Workers & Pages* → `nexus-client-hub` → *Settings* → *Variables and Secrets*
+(atau lewat `npx wrangler secret put NAMA`):
+
+| Nama | Wajib? | Isi |
+|---|---|---|
+| `OWNER_SETUP_CODE` | Ya | Kode rahasia buatan Anda sendiri, dipakai sekali untuk membuat akun Owner |
+| `GEMINI_API_KEY` | Untuk fitur AI | API key Gemini |
+| `GOOGLE_CLIENT_ID` | Opsional | Untuk tombol "Masuk dengan Google" |
+| `GOOGLE_CLIENT_SECRET` | Opsional | Untuk tombol "Masuk dengan Google" |
+
+## Langkah 3 — Deploy
+
+**Cara A: Hubungkan GitHub (otomatis setiap push)**
+1. Cloudflare Dashboard → *Workers & Pages* → *Create* → *Import a repository* → pilih repo `Nexus`.
+2. Build command: `npm run build`
+3. Deploy command: `npx wrangler deploy && npx wrangler d1 migrations apply nexus-db --remote`
+
+**Cara B: Dari komputer sendiri**
 ```bash
 npm run deploy
 ```
 
-Setelah deploy, aplikasi ada di `https://nexus-client-hub.<nama-akun>.workers.dev`.
-Domain sendiri: Worker → *Settings* → *Domains & Routes* → *Add Custom Domain*.
+Aplikasi akan tersedia di `https://nexus-client-hub.<nama-akun>.workers.dev`.
+Untuk domain sendiri: Worker → *Settings* → *Domains & Routes* → *Add Custom Domain*.
 
-## Langkah 3 — Login pertama sebagai Owner
+## Langkah 4 — Buat akun Owner
 
-1. Buka aplikasi → **Akun Google Resmi** dengan `ahmadfadlitaufik@gmail.com`.
-2. Akun owner otomatis aktif (ditautkan ke profil owner yang sudah ada bila ada).
-3. Anggota tim / klien:
-   - **Diundang Owner** (menu Pengaturan Tim): mereka login dengan Google atau daftar
-     email+password memakai **email yang sama**, lalu verifikasi email → otomatis tertaut.
-   - **Daftar sendiri**: status *Menunggu Persetujuan* sampai Owner menyetujui.
+1. Buka aplikasi → **Daftar Akun Baru**.
+2. Isi email `ahmadfadlitaufik@gmail.com`, kata sandi (minimal 8 karakter), dan
+   **Kode Setup Owner** (= isi `OWNER_SETUP_CODE`).
+3. Akun Owner langsung aktif. Setelah itu kode setup tidak diperlukan lagi.
 
-## Data contoh (seed) di Firestore
+## Cara menambah tim & klien
 
-Database lama kemungkinan masih berisi **data contoh** dari AI Studio (Kopi Senja, Budi Santoso, dll.).
-Aplikasi tidak lagi menulis data contoh di mode produksi, tetapi data lama tidak dihapus otomatis.
-Hapus lewat Firebase Console bila tidak diperlukan.
+- **Diundang Owner** (disarankan):
+  1. Owner → *Pengaturan Tim & Akses* → isi nama, email, peran (dan bisnis klien bila perannya Klien) → simpan.
+  2. Klik **Tautan Akun** pada baris pengguna tersebut. Tautan otomatis tersalin.
+  3. Kirim tautan ke orangnya (misalnya via WhatsApp). Mereka membuat kata sandi sendiri, lalu langsung masuk.
+     Tautan berlaku 7 hari dan hanya bisa dipakai sekali.
+- **Daftar sendiri**: lewat menu *Daftar Akun Baru*. Status *Menunggu Persetujuan* sampai Owner menyetujui di menu *Approval Pendaftaran*.
+- **Lupa kata sandi**: Owner membuat **Tautan Akun** baru untuk pengguna tersebut (aplikasi belum mengirim email otomatis).
+
+## Login Google (opsional)
+
+1. Google Cloud Console → *APIs & Services* → *Credentials* → *Create credentials* → *OAuth client ID* → *Web application*.
+2. *Authorized redirect URIs*: `https://<domain-anda>/api/auth/google/callback`
+   (contoh: `https://nexus-client-hub.<nama-akun>.workers.dev/api/auth/google/callback`).
+3. Simpan Client ID & Client Secret sebagai secret `GOOGLE_CLIENT_ID` dan `GOOGLE_CLIENT_SECRET`.
+4. Tombol "Akun Google Resmi" otomatis muncul di halaman login.
+
+Pengguna Google yang emailnya sudah diundang Owner otomatis tertaut ke profil undangannya.
+Email Owner yang masuk dengan Google otomatis menjadi Owner (email sudah diverifikasi Google).
 
 ## Pengembangan lokal
 
+```bash
+cp .dev.vars.example .dev.vars
+```
+```bash
+npm run db:migrate:local
+```
+```bash
+npm run dev
+```
+
+Buka http://localhost:5173. Worker dan database D1 lokal berjalan otomatis lewat Vite.
+
 | Perintah | Fungsi |
 |---|---|
-| `npm run dev` | Server lokal (Express + Vite) di http://localhost:3000 — butuh `.env` |
-| `npm run cf:dev` | Simulasi Cloudflare lokal — butuh `.dev.vars` |
-| `VITE_DEMO_MODE=true npm run dev` | Mode demo: pemilih akun & data contoh, **jangan untuk produksi** |
+| `npm run dev` | Jalankan aplikasi + Worker + D1 lokal |
 | `npm run lint` | Cek tipe TypeScript (aplikasi + worker) |
+| `npm run deploy` | Build, deploy Worker, lalu terapkan migrasi D1 |
+| `VITE_DEMO_MODE=true npm run dev` | Mode demo dengan akun & data contoh. **Jangan untuk produksi** |
 
-## Variabel
+## Keamanan yang sudah diterapkan
 
-| Nama | Di mana | Keterangan |
-|---|---|---|
-| `GEMINI_API_KEY` | Secret Cloudflare / `.env` | Wajib untuk fitur ringkasan AI |
-| `GEMINI_MODEL` | `wrangler.jsonc` → `vars` | Model Gemini (default `gemini-3.8-flash`) |
-| `FIREBASE_PROJECT_ID` | `wrangler.jsonc` → `vars` | Untuk verifikasi token login di endpoint AI |
-| `VITE_DEMO_MODE` | saat build | `true` = mode demo; kosongkan di produksi |
+- Kata sandi di-hash (PBKDF2-SHA256, 100.000 iterasi). Tidak pernah disimpan dalam bentuk asli.
+- Sesi berupa cookie `HttpOnly`, `Secure`, `SameSite=Lax`, berlaku 30 hari. Yang disimpan di database hanya hash token.
+- Login dibatasi 10 percobaan salah per 15 menit per email.
+- Semua akses data diperiksa di Worker (`worker/data.ts`):
+  - Klien hanya melihat data bisnisnya sendiri.
+  - Catatan internal sesi hanya untuk tim.
+  - Hanya Owner yang dapat mengubah peran/status pengguna.
+- Fitur AI hanya untuk tim internal yang sudah login.

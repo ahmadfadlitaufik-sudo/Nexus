@@ -1,4 +1,5 @@
 import {
+  db,
   collection,
   doc,
   getDoc,
@@ -8,13 +9,10 @@ import {
   deleteDoc,
   query,
   where,
-  orderBy,
-  onSnapshot,
   deleteField,
-} from 'firebase/firestore';
-import { DEMO_MODE, isOwnerEmail } from '../config/appMode';
-import { db } from '../firebase/config';
-import { OperationType, handleFirestoreError } from '../firebase/error-handler';
+} from './store';
+import { DEMO_MODE } from '../config/appMode';
+import { OperationType, handleFirestoreError } from './errors';
 import {
   Client,
   UserProfile,
@@ -364,53 +362,6 @@ export async function registerNewAccount(
   });
 
   return newUser;
-}
-
-// ----------------- AUTH LINKS (Firebase uid -> profil users/{id}) -----------------
-// Profil lama (data awal / undangan Owner) punya id sendiri yang sudah dipakai sebagai
-// referensi di koleksi lain. Dokumen auth_links/{uid} menautkan akun Firebase ke profil itu.
-
-export async function getAuthLinkedUserId(uid: string): Promise<string | null> {
-  const snap = await getDoc(doc(db, 'auth_links', uid));
-  return snap.exists() ? (snap.data().userId as string) : null;
-}
-
-export async function setAuthLink(uid: string, userId: string, email: string): Promise<void> {
-  await setDoc(doc(db, 'auth_links', uid), {
-    userId,
-    email: email.trim().toLowerCase(),
-    linkedAt: new Date().toISOString(),
-  });
-}
-
-/** Cari profil yang sudah ada (undangan Owner / data awal) berdasarkan email login. */
-export async function findProfileByAuthEmail(email: string): Promise<UserProfile | null> {
-  const variants = new Set<string>([email, email.trim().toLowerCase()]);
-  if (isOwnerEmail(email)) {
-    // Data awal owner tersimpan dengan huruf kapital di depan.
-    const lower = email.trim().toLowerCase();
-    variants.add(lower.charAt(0).toUpperCase() + lower.slice(1));
-  }
-  const list = [...variants];
-  // Satu nilai -> pakai '==' agar lolos aturan Firestore (hanya boleh membaca profil dengan email sendiri).
-  const snap = await getDocs(
-    query(
-      collection(db, 'users'),
-      list.length === 1 ? where('email', '==', list[0]) : where('email', 'in', list)
-    )
-  );
-  if (snap.empty) return null;
-  // Utamakan profil aktif.
-  const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as UserProfile);
-  return docs.find((u) => u.status !== 'pending' && u.status !== 'rejected') || docs[0];
-}
-
-export async function deleteOwnPendingProfile(uid: string): Promise<void> {
-  try {
-    await deleteDoc(doc(db, 'users', uid));
-  } catch (err) {
-    console.warn('Could not remove duplicate pending profile:', err);
-  }
 }
 
 export async function approveUserRegistration(
@@ -1479,7 +1430,7 @@ export async function getActivityLogs(clientId?: string): Promise<ActivityLog[]>
 }
 
 export async function logActivity(log: Omit<ActivityLog, 'id' | 'createdAt'>): Promise<void> {
-  const logId = `log-${Date.now()}`;
+  const logId = `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const entry: ActivityLog = {
     ...log,
     id: logId,

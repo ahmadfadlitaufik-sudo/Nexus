@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   Compass,
@@ -22,23 +22,22 @@ import {
 } from 'lucide-react';
 import { SEED_USERS } from '../data/seedData';
 import { RegistrationCategory, UserRole, UserProfile } from '../types';
-import { DEMO_MODE } from '../config/appMode';
+import { DEMO_MODE, isOwnerEmail } from '../config/appMode';
 
-/** Terjemahkan kode error Firebase Auth ke pesan yang mudah dipahami. */
+/** Pesan error dari server sudah berbahasa Indonesia; pakai fallback bila kosong. */
 function authErrorMessage(err: any, fallback: string): string {
-  const code: string = err?.code || '';
-  if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found'))
-    return 'Email atau kata sandi salah.';
-  if (code.includes('email-already-in-use'))
-    return 'Email ini sudah terdaftar. Silakan masuk, atau gunakan "Lupa sandi?".';
-  if (code.includes('weak-password')) return 'Kata sandi terlalu lemah (minimal 6 karakter).';
-  if (code.includes('invalid-email')) return 'Format email tidak valid.';
-  if (code.includes('too-many-requests')) return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';
-  if (code.includes('popup-closed-by-user')) return 'Jendela login Google ditutup sebelum selesai.';
-  if (code.includes('unauthorized-domain'))
-    return 'Domain ini belum diizinkan di Firebase Authentication (Authorized domains).';
-  if (err?.message && !code) return err.message;
-  return fallback;
+  return (err && typeof err.message === 'string' && err.message) || fallback;
+}
+
+/** Ambil & hapus parameter dari URL (misal ?akun=... atau ?login_error=...). */
+function takeQueryParam(name: string): string | null {
+  const url = new URL(window.location.href);
+  const value = url.searchParams.get(name);
+  if (value !== null) {
+    url.searchParams.delete(name);
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+  }
+  return value;
 }
 
 interface LoginPageProps {
@@ -53,13 +52,56 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
     registerAccount,
     switchDemoRole,
     availableDemoUsers,
-    needsEmailVerification,
-    resendVerificationEmail,
-    resetPassword,
-    logout,
-    currentUser,
+    googleEnabled,
+    getPasswordLinkInfo,
+    setPasswordWithLink,
+    refreshCurrentUser,
   } = useAuth();
   const [info, setInfo] = useState<string | null>(null);
+
+  // Tautan aktivasi / atur ulang kata sandi dari Owner (?akun=TOKEN).
+  const [linkToken, setLinkToken] = useState<string | null>(null);
+  const [linkInfo, setLinkInfo] = useState<{ email: string; displayName?: string } | null>(null);
+  const [linkPassword, setLinkPassword] = useState('');
+  const [linkConfirm, setLinkConfirm] = useState('');
+  const [setupCode, setSetupCode] = useState('');
+
+  useEffect(() => {
+    const loginError = takeQueryParam('login_error');
+    if (loginError) setError(loginError);
+    const token = takeQueryParam('akun');
+    if (token) {
+      setLinkToken(token);
+      getPasswordLinkInfo(token)
+        .then(setLinkInfo)
+        .catch((err) => {
+          setLinkToken(null);
+          setError(authErrorMessage(err, 'Tautan tidak valid.'));
+        });
+    }
+  }, []);
+
+  const handleSetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (linkPassword.length < 8) {
+      setError('Kata sandi minimal 8 karakter.');
+      return;
+    }
+    if (linkPassword !== linkConfirm) {
+      setError('Konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await setPasswordWithLink(linkToken!, linkPassword);
+      onLoginSuccess();
+    } catch (err) {
+      setError(authErrorMessage(err, 'Gagal menyimpan kata sandi.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Mode: 'login' | 'register'
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -135,19 +177,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
     }
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = () => {
     setError(null);
-    setInfo(null);
-    if (!email) {
-      setError('Isi alamat email terlebih dahulu, lalu klik "Lupa sandi?".');
-      return;
-    }
-    try {
-      await resetPassword(email);
-      setInfo(`Tautan atur ulang kata sandi telah dikirim ke ${email}. Cek kotak masuk / spam.`);
-    } catch (err) {
-      setError(authErrorMessage(err, 'Gagal mengirim email atur ulang kata sandi.'));
-    }
+    setInfo(
+      'Untuk mengatur ulang kata sandi, hubungi Owner (Ahmad Fadli Taufik). Owner akan mengirimkan tautan atur ulang kata sandi kepada Anda.'
+    );
   };
 
   // Handle Quick Demo Account Selection
@@ -178,8 +212,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       setError('Silakan isi alamat email resmi.');
       return;
     }
-    if (!DEMO_MODE && regPassword.length < 6) {
-      setError('Kata sandi minimal 6 karakter.');
+    if (!DEMO_MODE && regPassword.length < 8) {
+      setError('Kata sandi minimal 8 karakter.');
       return;
     }
     if (regPassword !== regConfirmPassword) {
@@ -223,6 +257,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
         programInterest: clientProgramInterest || undefined,
         notes: (regCategory === 'client' ? clientNotes : staffNotes).trim() || undefined,
         rawPassword: regPassword,
+        setupCode: isOwnerEmail(regEmail) ? setupCode.trim() : undefined,
       });
 
       setRegisteredUser(newProfile);
@@ -325,44 +360,63 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
             </div>
           )}
 
-          {needsEmailVerification && !registeredUser && (
-            <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
-              <div className="flex items-start gap-2.5">
-                <Mail className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
-                <span>
-                  Email <span className="font-bold">{currentUser?.email}</span> belum diverifikasi. Buka
-                  tautan verifikasi yang kami kirim ke email Anda, lalu masuk kembali.
-                </span>
+          {/* ===================== AKTIVASI / ATUR ULANG KATA SANDI ===================== */}
+          {linkToken ? (
+            <form className="space-y-4" onSubmit={handleSetPassword}>
+              <div className="text-center space-y-1">
+                <h3 className="text-lg font-black text-slate-900 font-['Plus_Jakarta_Sans']">
+                  Buat Kata Sandi Akun
+                </h3>
+                <p className="text-xs text-slate-600">
+                  {linkInfo ? (
+                    <>
+                      Untuk <span className="font-bold">{linkInfo.displayName || linkInfo.email}</span> ({linkInfo.email})
+                    </>
+                  ) : (
+                    'Memeriksa tautan...'
+                  )}
+                </p>
               </div>
-              <div className="flex gap-2 pl-6">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      await resendVerificationEmail();
-                      setInfo('Email verifikasi telah dikirim ulang.');
-                    } catch (err) {
-                      setError(authErrorMessage(err, 'Gagal mengirim ulang email verifikasi.'));
-                    }
-                  }}
-                  className="font-bold text-amber-800 hover:underline cursor-pointer"
-                >
-                  Kirim ulang email
-                </button>
-                <span>•</span>
-                <button
-                  type="button"
-                  onClick={() => logout()}
-                  className="font-bold text-amber-800 hover:underline cursor-pointer"
-                >
-                  Keluar
-                </button>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Kata Sandi Baru</label>
+                <input
+                  type="password"
+                  required
+                  value={linkPassword}
+                  onChange={(e) => setLinkPassword(e.target.value)}
+                  placeholder="Minimal 8 karakter"
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0051d5]"
+                />
               </div>
-            </div>
-          )}
-
-          {/* ===================== REGISTRATION SUCCESS STATE ===================== */}
-          {registeredUser ? (
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Konfirmasi Kata Sandi</label>
+                <input
+                  type="password"
+                  required
+                  value={linkConfirm}
+                  onChange={(e) => setLinkConfirm(e.target.value)}
+                  placeholder="Ketik ulang kata sandi"
+                  className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0051d5]"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting || !linkInfo}
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#00236f] hover:bg-[#1e3a8a] text-white py-2.5 px-4 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? 'Menyimpan...' : 'Simpan Kata Sandi & Masuk'}
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setLinkToken(null)}
+                className="w-full text-[11px] text-slate-500 hover:underline cursor-pointer"
+              >
+                Batal, kembali ke halaman masuk
+              </button>
+            </form>
+          ) : /* ===================== REGISTRATION SUCCESS STATE ===================== */
+          registeredUser ? (
             <div className="text-center py-4 space-y-4 animate-in fade-in zoom-in-95">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
                 <CheckCircle2 className="w-8 h-8" />
@@ -377,11 +431,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 ) : (
                   <span> Akun Anda saat ini berstatus <span className="font-bold text-amber-700">Menunggu Persetujuan (Pending Approval)</span> dari Owner / BOD Nexust Growth Partner (Ahmad Fadli Taufik).</span>
                 )}
-                {!DEMO_MODE && (
-                  <span className="block mt-2">
-                    Kami telah mengirim <span className="font-bold">tautan verifikasi</span> ke email Anda. Klik tautan tersebut, lalu masuk kembali dengan email &amp; kata sandi Anda.
-                  </span>
-                )}
+
               </p>
 
               <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl text-left text-xs space-y-2 max-w-md mx-auto">
@@ -413,19 +463,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   onClick={async () => {
                     if (DEMO_MODE) {
                       await loginWithEmail(registeredUser.email, '');
-                      onLoginSuccess();
-                      return;
+                    } else {
+                      // Akun sudah otomatis masuk setelah mendaftar.
+                      await refreshCurrentUser();
                     }
-                    try {
-                      await resendVerificationEmail();
-                      setInfo(`Email verifikasi dikirim ulang ke ${registeredUser.email}.`);
-                    } catch (err) {
-                      setError(authErrorMessage(err, 'Gagal mengirim ulang email verifikasi.'));
-                    }
+                    onLoginSuccess();
                   }}
                   className="w-full py-2.5 px-4 bg-[#00236f] hover:bg-[#1e3a8a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
                 >
-                  {DEMO_MODE ? 'Masuk Sekarang & Cek Status' : 'Kirim Ulang Email Verifikasi'}
+                  Masuk Sekarang &amp; Cek Status
                 </button>
                 <button
                   type="button"
@@ -494,6 +540,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 </button>
               </form>
 
+              {googleEnabled && (
               <div className="mt-6">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
@@ -535,6 +582,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   </button>
                 </div>
               </div>
+              )}
 
               {/* Callout to register */}
               <div className="mt-6 pt-4 border-t border-slate-100 text-center">
@@ -684,6 +732,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   />
                 </div>
 
+                {!DEMO_MODE && isOwnerEmail(regEmail) && (
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                      Kode Setup Owner <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      value={setupCode}
+                      onChange={(e) => setSetupCode(e.target.value)}
+                      placeholder="Kode rahasia OWNER_SETUP_CODE dari Cloudflare"
+                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-purple-600"
+                    />
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
@@ -694,7 +758,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                       required
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="Minimal 6 karakter"
+                      placeholder="Minimal 8 karakter"
                       className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#0051d5]"
                     />
                   </div>

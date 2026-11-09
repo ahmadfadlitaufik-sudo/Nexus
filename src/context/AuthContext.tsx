@@ -1,43 +1,29 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
-import {
-  User,
-  onAuthStateChanged,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signOut as firebaseSignOut,
-} from 'firebase/auth';
-import { auth } from '../firebase/config';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserProfile } from '../types';
-import {
-  getUserProfile,
-  seedInitialDatabaseIfEmpty,
-  getAllUsers,
-  getAuthLinkedUserId,
-  setAuthLink,
-  findProfileByAuthEmail,
-  deleteOwnPendingProfile,
-  registerNewAccount,
-} from '../services/db';
+import { registerNewAccount, seedInitialDatabaseIfEmpty, getAllUsers } from '../services/db';
 import { SEED_USERS } from '../data/seedData';
-import { DEMO_MODE, isOwnerEmail } from '../config/appMode';
+import { DEMO_MODE } from '../config/appMode';
 
-type RegistrationData = Omit<UserProfile, 'id' | 'createdAt'> & { rawPassword?: string };
+type RegistrationData = Omit<UserProfile, 'id' | 'createdAt'> & {
+  rawPassword?: string;
+  /** Hanya untuk membuat akun owner pertama (email owner). */
+  setupCode?: string;
+};
 
 interface AuthContextType {
-  currentUser: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
-  /** true jika akun email/password belum diverifikasi lewat email. */
-  needsEmailVerification: boolean;
+  /** Login Google tersedia bila GOOGLE_CLIENT_ID/SECRET diatur di Cloudflare. */
+  googleEnabled: boolean;
   loginWithGoogle: () => Promise<void>;
   loginWithEmail: (email: string, pass: string) => Promise<void>;
   registerAccount: (data: RegistrationData) => Promise<UserProfile>;
-  resendVerificationEmail: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
+  /** Info tautan aktivasi / atur ulang kata sandi (?akun=...). */
+  getPasswordLinkInfo: (token: string) => Promise<{ email: string; displayName?: string }>;
+  setPasswordWithLink: (token: string, password: string) => Promise<void>;
+  /** Owner: buat tautan aktivasi akun / atur ulang kata sandi untuk pengguna. */
+  createPasswordLink: (userId: string) => Promise<{ url: string; expiresInDays: number; email: string }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   refreshCurrentUser: () => Promise<void>;
   updateAvatar: (newAvatarUrl: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -51,160 +37,58 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const DEMO_STORAGE_KEY = 'nexust_active_user_id';
 
-function isPasswordAccount(user: User) {
-  return user.providerData.some((p) => p.providerId === 'password');
-}
-
-/**
- * Cari / buat profil untuk akun Firebase yang sedang login.
- * Urutan: tautan auth_links -> profil undangan dengan email sama -> profil sendiri users/{uid}
- * -> buat profil baru berstatus "pending".
- */
-async function resolveProfileForAuthUser(
-  fbUser: User,
-  registration: RegistrationData | null
-): Promise<UserProfile> {
-  const email = (fbUser.email || '').trim().toLowerCase();
-  const linkedId = await getAuthLinkedUserId(fbUser.uid);
-
-  // 1. Sudah tertaut ke profil undangan / data awal.
-  if (linkedId && linkedId !== fbUser.uid) {
-    const linked = await getUserProfile(linkedId);
-    if (linked) return linked;
-  }
-
-  // 2. Email terverifikasi -> tautkan ke profil yang dibuat Owner (undangan) bila ada.
-  if (fbUser.emailVerified && email) {
-    const existing = await findProfileByAuthEmail(fbUser.email || email);
-    if (existing && existing.id !== fbUser.uid) {
-      await setAuthLink(fbUser.uid, existing.id, email);
-      if (linkedId === fbUser.uid) {
-        // Hapus profil pendaftaran ganda yang sempat dibuat sebelum verifikasi.
-        await deleteOwnPendingProfile(fbUser.uid);
-      }
-      return existing;
-    }
-  }
-
-  // 3. Profil milik sendiri (hasil pendaftaran mandiri).
-  const own = await getUserProfile(fbUser.uid);
-  if (own) {
-    if (!linkedId) await setAuthLink(fbUser.uid, fbUser.uid, email);
-    return own;
-  }
-
-  // 4. Profil baru.
-  let profile: UserProfile;
-  if (isOwnerEmail(email) && fbUser.emailVerified) {
-    profile = {
-      id: fbUser.uid,
-      email,
-      displayName: fbUser.displayName || 'Ahmad Fadli Taufik',
-      role: 'owner',
-      status: 'active',
-      registrationCategory: 'bod',
-      title: 'Founder & Managing Partner',
-      avatarUrl: fbUser.photoURL || undefined,
-      createdAt: new Date().toISOString(),
-    };
-    const { saveUserProfile } = await import('../services/db');
-    await saveUserProfile(profile);
-  } else {
-    // Pendaftar baru (form daftar atau Google pertama kali) selalu menunggu persetujuan Owner.
-    profile = await registerNewAccount({
-      ...(registration || {
-        displayName: fbUser.displayName || email.split('@')[0] || 'Pengguna Nexust',
-        role: 'konsultan',
-        title: 'Calon Anggota Tim',
-        registrationCategory: 'staff',
-      }),
-      id: fbUser.uid,
-      email,
-      avatarUrl: registration?.avatarUrl || fbUser.photoURL || undefined,
-      status: 'pending',
-    } as RegistrationData & { id: string });
-  }
-  await setAuthLink(fbUser.uid, fbUser.uid, email);
-  return profile;
+async function api<T = any>(path: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method: body === undefined ? 'GET' : 'POST',
+    credentials: 'same-origin',
+    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json.error || `Permintaan gagal (${res.status}).`);
+  return json as T;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
   const [availableDemoUsers, setAvailableDemoUsers] = useState<UserProfile[]>(
     DEMO_MODE ? SEED_USERS : []
   );
 
-  // Data form pendaftaran yang menunggu akun Firebase selesai dibuat.
-  const pendingRegistration = useRef<RegistrationData | null>(null);
-  // Mencegah profil dibuat dua kali (listener + registerAccount berjalan bersamaan).
-  const resolving = useRef<Map<string, Promise<UserProfile>>>(new Map());
-
-  const loadProfile = (fbUser: User) => {
-    let p = resolving.current.get(fbUser.uid);
-    if (!p) {
-      p = resolveProfileForAuthUser(fbUser, pendingRegistration.current).finally(() => {
-        resolving.current.delete(fbUser.uid);
-      });
-      resolving.current.set(fbUser.uid, p);
-    }
-    return p;
-  };
-
   useEffect(() => {
     let isMounted = true;
-    let unsubscribe: (() => void) | undefined;
-
-    async function initAuth() {
+    (async () => {
       if (DEMO_MODE) {
         try {
           await seedInitialDatabaseIfEmpty();
-          const users = await getAllUsers();
-          if (isMounted && users && users.length > 0) setAvailableDemoUsers(users);
         } catch (err) {
           console.warn('DB initialization check:', err);
         }
       }
-
-      unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        const me = await api<{ user: UserProfile | null; googleEnabled: boolean }>('/api/auth/me');
         if (!isMounted) return;
-        setCurrentUser(firebaseUser);
-
-        if (firebaseUser) {
-          if (isPasswordAccount(firebaseUser) && !firebaseUser.emailVerified) {
-            // Akun email/password wajib verifikasi email sebelum bisa dipakai.
-            setNeedsEmailVerification(true);
-            setUserProfile(null);
-          } else {
-            setNeedsEmailVerification(false);
-            try {
-              const profile = await loadProfile(firebaseUser);
-              if (isMounted) setUserProfile(profile);
-            } catch (err) {
-              console.warn('Error loading user profile:', err);
-              if (isMounted) setUserProfile(null);
-            }
-          }
-        } else {
-          setNeedsEmailVerification(false);
-          const activeId = DEMO_MODE ? localStorage.getItem(DEMO_STORAGE_KEY) : null;
-          const found = activeId ? SEED_USERS.find((u) => u.id === activeId) : undefined;
-          setUserProfile(found || null);
+        setGoogleEnabled(!!me.googleEnabled);
+        if (me.user) {
+          setUserProfile(me.user);
+        } else if (DEMO_MODE) {
+          const activeId = localStorage.getItem(DEMO_STORAGE_KEY);
+          setUserProfile(SEED_USERS.find((u) => u.id === activeId) || null);
         }
+      } catch (err) {
+        console.warn('Gagal memeriksa sesi login:', err);
+      } finally {
         if (isMounted) setLoading(false);
-      });
-    }
-
-    initAuth();
+      }
+    })();
     return () => {
       isMounted = false;
-      unsubscribe?.();
     };
   }, []);
 
-  // Di produksi, daftar pengguna (untuk notifikasi pendaftar baru, dll.) dimuat setelah login.
+  // Daftar pengguna (untuk notifikasi pendaftar baru, dll.) dimuat setelah login.
   useEffect(() => {
     if (DEMO_MODE) return;
     if (userProfile && userProfile.status !== 'pending' && userProfile.status !== 'rejected') {
@@ -217,8 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [userProfile?.id, userProfile?.status]);
 
   const loginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    window.location.href = '/api/auth/google/start';
   };
 
   const refreshDemoUsers = async () => {
@@ -231,10 +114,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refreshCurrentUser = async () => {
-    if (!userProfile) return;
+    if (DEMO_MODE) return;
     try {
-      const refreshed = await getUserProfile(userProfile.id);
-      if (refreshed) setUserProfile(refreshed);
+      const me = await api<{ user: UserProfile | null }>('/api/auth/me');
+      if (me.user) setUserProfile(me.user);
     } catch (err) {
       console.warn('Failed to refresh current user:', err);
     }
@@ -246,32 +129,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await refreshDemoUsers();
       return newUser;
     }
-    const password = data.rawPassword || '';
-    if (password.length < 6) {
-      throw new Error('Kata sandi minimal 6 karakter.');
-    }
-    const { rawPassword: _pw, ...profileData } = data;
-    pendingRegistration.current = profileData;
-    try {
-      const cred = await createUserWithEmailAndPassword(auth, data.email.trim(), password);
-      await sendEmailVerification(cred.user);
-      // Simpan data pendaftaran sekarang (status pending). Setelah email diverifikasi,
-      // akun akan otomatis tertaut ke profil undangan Owner bila emailnya sama.
-      const profile = await loadProfile(cred.user);
-      return profile;
-    } finally {
-      pendingRegistration.current = null;
-    }
+    const { rawPassword, setupCode, ...profile } = data;
+    const res = await api<{ user: UserProfile }>('/api/auth/register', {
+      ...profile,
+      password: rawPassword || '',
+      setupCode,
+    });
+    return res.user;
   };
 
-  const resendVerificationEmail = async () => {
-    if (auth.currentUser) await sendEmailVerification(auth.currentUser);
-  };
-
-  const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email.trim());
-  };
-
+  /** Dipanggil setelah layar "pendaftaran berhasil" agar aplikasi masuk ke sesi baru. */
   const loginWithEmail = async (email: string, pass: string) => {
     if (DEMO_MODE) {
       const normalized = email.trim().toLowerCase();
@@ -282,18 +149,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
     }
-    // Login asli: password diperiksa oleh Firebase Auth.
-    const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
-    if (!cred.user.emailVerified) {
-      // Token lama mungkin belum tahu bahwa email sudah diverifikasi.
-      await cred.user.reload();
-      if (auth.currentUser?.emailVerified) {
-        await auth.currentUser.getIdToken(true);
-        setNeedsEmailVerification(false);
-        const profile = await loadProfile(auth.currentUser);
-        setUserProfile(profile);
-      }
-    }
+    const res = await api<{ user: UserProfile }>('/api/auth/login', { email: email.trim(), password: pass });
+    setUserProfile(res.user);
+  };
+
+  const getPasswordLinkInfo = (token: string) =>
+    api<{ email: string; displayName?: string }>('/api/auth/password-link/info', { token });
+
+  const setPasswordWithLink = async (token: string, password: string) => {
+    const res = await api<{ user: UserProfile }>('/api/auth/set-password', { token, password });
+    setUserProfile(res.user);
+  };
+
+  const createPasswordLink = (userId: string) =>
+    api<{ url: string; expiresInDays: number; email: string }>('/api/auth/password-link', { userId });
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    await api('/api/auth/change-password', { currentPassword, newPassword });
   };
 
   const switchDemoRole = async (roleOrUserId: string) => {
@@ -318,8 +190,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userProfile.role
       );
 
-      const updatedProfile = { ...userProfile, avatarUrl: newAvatarUrl };
-      setUserProfile(updatedProfile);
+      setUserProfile({ ...userProfile, avatarUrl: newAvatarUrl });
       setAvailableDemoUsers((prev) =>
         prev.map((u) => (u.id === userProfile.id ? { ...u, avatarUrl: newAvatarUrl } : u))
       );
@@ -342,11 +213,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    localStorage.removeItem(DEMO_STORAGE_KEY);
+    setUserProfile(null);
     try {
-      localStorage.removeItem(DEMO_STORAGE_KEY);
-      setUserProfile(null);
-      setNeedsEmailVerification(false);
-      if (auth.currentUser) await firebaseSignOut(auth);
+      await api('/api/auth/logout', {});
     } catch (err) {
       console.error('Logout error:', err);
     }
@@ -355,15 +225,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        currentUser,
         userProfile,
         loading,
-        needsEmailVerification,
+        googleEnabled,
         loginWithGoogle,
         loginWithEmail,
         registerAccount,
-        resendVerificationEmail,
-        resetPassword,
+        getPasswordLinkInfo,
+        setPasswordWithLink,
+        createPasswordLink,
+        changePassword,
         refreshCurrentUser,
         updateAvatar,
         logout,

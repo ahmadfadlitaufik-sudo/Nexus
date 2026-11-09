@@ -42,7 +42,7 @@ import {
   deleteProgram,
 } from '../services/db';
 import { formatRupiah } from '../utils/formatters';
-import { DEMO_MODE } from '../config/appMode';
+import { DEMO_MODE, isOwnerEmail } from '../config/appMode';
 
 const ROLE_PERMISSIONS_INFO: Record<
   string,
@@ -482,7 +482,7 @@ export const TeamSettings: React.FC = () => {
 
   const handleConfirmDeleteUser = async () => {
     if (!userToDelete) return;
-    if (userToDelete.id === userProfile?.id || userToDelete.id === 'owner-1') {
+    if (userToDelete.id === userProfile?.id || isOwnerEmail(userToDelete.email)) {
       setDeleteUserError('Akun Owner utama atau akun yang sedang aktif saat ini dilindungi dari penghapusan.');
       return;
     }
@@ -766,7 +766,7 @@ export const TeamSettings: React.FC = () => {
                       (c.consultantIds && c.consultantIds.includes(u.id))
                   ).length;
                   const isCurrent = u.id === userProfile?.id;
-                  const isRoot = u.id === 'owner-1';
+                  const isRoot = isOwnerEmail(u.email);
                   return (
                     <div
                       key={u.id}
@@ -969,7 +969,7 @@ export const TeamSettings: React.FC = () => {
               <div className="divide-y divide-slate-100">
                 {otherStaff.map((u) => {
                   const isCurrent = u.id === userProfile?.id;
-                  const isRoot = u.id === 'owner-1';
+                  const isRoot = isOwnerEmail(u.email);
                   const roleBadge = ROLE_PERMISSIONS_INFO[u.role]?.badgeStyle || 'bg-slate-100 text-slate-800';
                   return (
                     <div

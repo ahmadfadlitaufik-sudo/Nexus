@@ -271,6 +271,14 @@ async function createPasswordLink(request: Request, env: Env, me: Profile | null
   const { userId } = await readJson<{ userId?: string }>(request);
   const target = userId ? ((await getDoc(env.DB, 'users', userId)) as Profile | null) : null;
   if (!target) throw new HttpError(404, 'Pengguna tidak ditemukan.');
+  // Tautan kata sandi untuk akun owner lain hanya boleh dibuat oleh Owner utama
+  // (mencegah owner lain mengambil alih akun owner).
+  if (target.role === 'owner' && target.id !== me!.id && normEmail(me!.email) !== ownerEmail(env)) {
+    throw new HttpError(403, 'Tautan akun untuk sesama Owner hanya dapat dibuat oleh Owner utama.');
+  }
+  if (normEmail(target.email) === ownerEmail(env) && target.id !== me!.id) {
+    throw new HttpError(403, 'Tautan akun Owner utama hanya dapat dibuat oleh Owner utama sendiri.');
+  }
   if (!EMAIL_RE.test(normEmail(target.email))) {
     throw new HttpError(400, 'Pengguna ini belum memiliki email yang valid.');
   }

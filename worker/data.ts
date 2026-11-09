@@ -10,7 +10,7 @@
  * - Hanya Owner yang dapat membuat, mengubah peran/status, atau menghapus pengguna.
  */
 import { HttpError, json, readJson } from './http';
-import { Doc, Env, Profile, isActive, isClient, isOwner, isTeam } from './env';
+import { Doc, Env, Profile, isActive, isClient, isOwner, isTeam, ownerEmail } from './env';
 import { COLLECTION_RE, Filter, deleteDoc, getDoc, putDoc, queryDocs } from './docs';
 
 const TEAM_ONLY = new Set([
@@ -107,6 +107,24 @@ export function canWrite(
   return false;
 }
 
+/**
+ * Owner utama (email OWNER_EMAIL) dilindungi: owner lain tidak boleh menghapus,
+ * menonaktifkan, menurunkan peran, atau mengganti email akun tersebut.
+ * Owner utama juga tidak bisa menurunkan / menghapus dirinya sendiri secara tidak sengaja.
+ */
+export function protectPrimaryOwner(env: Env, me: Profile, id: string, before: Doc | null, after: Doc | null) {
+  if (!before || String(before.email || '').toLowerCase() !== ownerEmail(env)) return;
+  if (!after) throw new HttpError(403, 'Akun Owner utama tidak dapat dihapus.');
+  const locked = ['role', 'status', 'email'];
+  const changed = changedKeys(before, after).filter((k) => locked.includes(k));
+  if (changed.length) {
+    throw new HttpError(403, 'Peran, status, dan email Owner utama tidak dapat diubah.');
+  }
+  if (me.id !== id && changedKeys(before, after).length > 0) {
+    throw new HttpError(403, 'Profil Owner utama hanya dapat diubah oleh pemiliknya sendiri.');
+  }
+}
+
 /** Nilai khusus dari klien: { "__delete": true } = hapus field (seperti deleteField()). */
 function applyPatch(base: Doc, patch: Doc): Doc {
   const out: Doc = { ...base };
@@ -185,6 +203,7 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
       if (typeof after.email === 'string') after.email = after.email.trim().toLowerCase();
     }
     if (!canWrite(me, collection, id!, before, after)) throw new HttpError(403, 'Akses ditolak.');
+    if (collection === 'users') protectPrimaryOwner(env, me, id!, before, after);
 
     if (collection === 'users' && after.email && after.email !== before?.email) {
       // Satu email hanya untuk satu pengguna.
@@ -213,6 +232,7 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
     const before = await getDoc(db, collection, id!);
     if (!before) return json({ ok: true });
     if (!canWrite(me, collection, id!, before, null)) throw new HttpError(403, 'Akses ditolak.');
+    if (collection === 'users') protectPrimaryOwner(env, me, id!, before, null);
     await deleteDoc(db, collection, id!);
     if (collection === 'users') {
       // Hapus juga akun login & sesi milik pengguna tersebut.

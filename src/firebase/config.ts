@@ -12,6 +12,8 @@ export const db = initializeFirestore(
   app,
   {
     experimentalForceLongPolling: true,
+    // Field bernilai undefined diabaikan (tanpa ini setDoc/updateDoc gagal diam-diam).
+    ignoreUndefinedProperties: true,
   },
   firebaseConfig.firestoreDatabaseId
 );

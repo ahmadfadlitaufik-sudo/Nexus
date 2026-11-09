@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // Nama Worker = subdomain default: https://nexus-client-hub.<akun>.workers.dev
+  "name": "nexus-client-hub",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // Semua URL yang bukan file -> index.html (aplikasi satu halaman / SPA).
+    "not_found_handling": "single-page-application",
+    // Permintaan /api/* selalu diproses Worker terlebih dahulu.
+    "run_worker_first": ["/api/*"]
+  },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "windy-summer-d83d0",
+    "GEMINI_MODEL": "gemini-3.8-flash"
+  },
+  "observability": { "enabled": true }
+  // GEMINI_API_KEY adalah rahasia: set dengan `npx wrangler secret put GEMINI_API_KEY`
+  // (atau di dashboard Cloudflare > Worker > Settings > Variables and Secrets).
+}

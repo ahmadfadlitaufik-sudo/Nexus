@@ -1,0 +1,2 @@
+# Salin menjadi .dev.vars untuk `npm run cf:dev` (Cloudflare lokal). Jangan di-commit.
+GEMINI_API_KEY="isi_api_key_gemini"

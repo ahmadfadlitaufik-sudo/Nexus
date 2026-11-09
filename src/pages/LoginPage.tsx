@@ -22,6 +22,24 @@ import {
 } from 'lucide-react';
 import { SEED_USERS } from '../data/seedData';
 import { RegistrationCategory, UserRole, UserProfile } from '../types';
+import { DEMO_MODE } from '../config/appMode';
+
+/** Terjemahkan kode error Firebase Auth ke pesan yang mudah dipahami. */
+function authErrorMessage(err: any, fallback: string): string {
+  const code: string = err?.code || '';
+  if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found'))
+    return 'Email atau kata sandi salah.';
+  if (code.includes('email-already-in-use'))
+    return 'Email ini sudah terdaftar. Silakan masuk, atau gunakan "Lupa sandi?".';
+  if (code.includes('weak-password')) return 'Kata sandi terlalu lemah (minimal 6 karakter).';
+  if (code.includes('invalid-email')) return 'Format email tidak valid.';
+  if (code.includes('too-many-requests')) return 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.';
+  if (code.includes('popup-closed-by-user')) return 'Jendela login Google ditutup sebelum selesai.';
+  if (code.includes('unauthorized-domain'))
+    return 'Domain ini belum diizinkan di Firebase Authentication (Authorized domains).';
+  if (err?.message && !code) return err.message;
+  return fallback;
+}
 
 interface LoginPageProps {
   onBackToLanding: () => void;
@@ -29,8 +47,19 @@ interface LoginPageProps {
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSuccess }) => {
-  const { loginWithGoogle, loginWithEmail, registerAccount, switchDemoRole, availableDemoUsers } =
-    useAuth();
+  const {
+    loginWithGoogle,
+    loginWithEmail,
+    registerAccount,
+    switchDemoRole,
+    availableDemoUsers,
+    needsEmailVerification,
+    resendVerificationEmail,
+    resetPassword,
+    logout,
+    currentUser,
+  } = useAuth();
+  const [info, setInfo] = useState<string | null>(null);
 
   // Mode: 'login' | 'register'
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -51,7 +80,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
 
   // BOD specific
   const [bodTitle, setBodTitle] = useState('Managing Partner / Direksi');
-  const [bodAccessCode, setBodAccessCode] = useState('');
 
   // Staff specific
   const [staffRole, setStaffRole] = useState<UserRole>('konsultan');
@@ -79,10 +107,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
     }
     setIsSubmitting(true);
     try {
-      await loginWithEmail(email, password || 'password123');
+      if (!DEMO_MODE && !password) {
+        setError('Silakan masukkan kata sandi Anda.');
+        setIsSubmitting(false);
+        return;
+      }
+      await loginWithEmail(email, password);
       onLoginSuccess();
     } catch (err: any) {
-      setError('Email atau kata sandi tidak sesuai. Jika Anda baru mendaftar, pastikan email telah disetujui oleh Owner.');
+      setError(authErrorMessage(err, 'Email atau kata sandi tidak sesuai.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -96,9 +129,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       await loginWithGoogle();
       onLoginSuccess();
     } catch (err) {
-      setError('Gagal masuk dengan Google. Silakan coba kembali.');
+      setError(authErrorMessage(err, 'Gagal masuk dengan Google. Silakan coba kembali.'));
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    setError(null);
+    setInfo(null);
+    if (!email) {
+      setError('Isi alamat email terlebih dahulu, lalu klik "Lupa sandi?".');
+      return;
+    }
+    try {
+      await resetPassword(email);
+      setInfo(`Tautan atur ulang kata sandi telah dikirim ke ${email}. Cek kotak masuk / spam.`);
+    } catch (err) {
+      setError(authErrorMessage(err, 'Gagal mengirim email atur ulang kata sandi.'));
     }
   };
 
@@ -130,7 +178,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       setError('Silakan isi alamat email resmi.');
       return;
     }
-    if (regPassword && regPassword !== regConfirmPassword) {
+    if (!DEMO_MODE && regPassword.length < 6) {
+      setError('Kata sandi minimal 6 karakter.');
+      return;
+    }
+    if (regPassword !== regConfirmPassword) {
       setError('Konfirmasi kata sandi tidak cocok.');
       return;
     }
@@ -144,12 +196,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
       if (regCategory === 'bod') {
         finalRole = 'owner';
         finalTitle = bodTitle || 'Managing Partner / Direksi';
-        // If master code matches, activate immediately; otherwise pending approval
-        if (bodAccessCode.trim().toUpperCase() === 'BOD-NEXUST' || bodAccessCode.trim() === '2026') {
-          initialStatus = 'active';
-        } else {
-          initialStatus = 'pending';
-        }
+        // Akun BOD selalu menunggu persetujuan Owner (tidak ada kode akses di sisi browser).
+        initialStatus = 'pending';
       } else if (regCategory === 'staff') {
         finalRole = staffRole;
         finalTitle = staffTitle;
@@ -174,20 +222,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
         teamSize: clientTeamSize || undefined,
         programInterest: clientProgramInterest || undefined,
         notes: (regCategory === 'client' ? clientNotes : staffNotes).trim() || undefined,
-        rawPassword: regPassword || 'password123',
+        rawPassword: regPassword,
       });
 
       setRegisteredUser(newProfile);
     } catch (err: any) {
       console.error('Registration error:', err);
-      setError('Terjadi kesalahan saat menyimpan data pendaftaran. Silakan coba lagi.');
+      setError(authErrorMessage(err, 'Terjadi kesalahan saat menyimpan data pendaftaran. Silakan coba lagi.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Use dynamic demo users pool
-  const demoUsersList = availableDemoUsers.length > 0 ? availableDemoUsers : SEED_USERS;
+  const demoUsersList = DEMO_MODE
+    ? availableDemoUsers.length > 0
+      ? availableDemoUsers
+      : SEED_USERS
+    : [];
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-['Inter']">
@@ -266,6 +318,49 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
             </div>
           )}
 
+          {info && (
+            <div className="mb-6 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
+              <span>{info}</span>
+            </div>
+          )}
+
+          {needsEmailVerification && !registeredUser && (
+            <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2">
+              <div className="flex items-start gap-2.5">
+                <Mail className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+                <span>
+                  Email <span className="font-bold">{currentUser?.email}</span> belum diverifikasi. Buka
+                  tautan verifikasi yang kami kirim ke email Anda, lalu masuk kembali.
+                </span>
+              </div>
+              <div className="flex gap-2 pl-6">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await resendVerificationEmail();
+                      setInfo('Email verifikasi telah dikirim ulang.');
+                    } catch (err) {
+                      setError(authErrorMessage(err, 'Gagal mengirim ulang email verifikasi.'));
+                    }
+                  }}
+                  className="font-bold text-amber-800 hover:underline cursor-pointer"
+                >
+                  Kirim ulang email
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="font-bold text-amber-800 hover:underline cursor-pointer"
+                >
+                  Keluar
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ===================== REGISTRATION SUCCESS STATE ===================== */}
           {registeredUser ? (
             <div className="text-center py-4 space-y-4 animate-in fade-in zoom-in-95">
@@ -281,6 +376,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   <span> Akun Anda telah langsung aktif! Silakan masuk untuk mulai menggunakan sistem.</span>
                 ) : (
                   <span> Akun Anda saat ini berstatus <span className="font-bold text-amber-700">Menunggu Persetujuan (Pending Approval)</span> dari Owner / BOD Nexust Growth Partner (Ahmad Fadli Taufik).</span>
+                )}
+                {!DEMO_MODE && (
+                  <span className="block mt-2">
+                    Kami telah mengirim <span className="font-bold">tautan verifikasi</span> ke email Anda. Klik tautan tersebut, lalu masuk kembali dengan email &amp; kata sandi Anda.
+                  </span>
                 )}
               </p>
 
@@ -311,12 +411,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 <button
                   type="button"
                   onClick={async () => {
-                    await loginWithEmail(registeredUser.email, 'password123');
-                    onLoginSuccess();
+                    if (DEMO_MODE) {
+                      await loginWithEmail(registeredUser.email, '');
+                      onLoginSuccess();
+                      return;
+                    }
+                    try {
+                      await resendVerificationEmail();
+                      setInfo(`Email verifikasi dikirim ulang ke ${registeredUser.email}.`);
+                    } catch (err) {
+                      setError(authErrorMessage(err, 'Gagal mengirim ulang email verifikasi.'));
+                    }
                   }}
                   className="w-full py-2.5 px-4 bg-[#00236f] hover:bg-[#1e3a8a] text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
                 >
-                  Masuk Sekarang &amp; Cek Status
+                  {DEMO_MODE ? 'Masuk Sekarang & Cek Status' : 'Kirim Ulang Email Verifikasi'}
                 </button>
                 <button
                   type="button"
@@ -355,9 +464,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                     <label className="block text-xs font-semibold text-slate-700">
                       Kata Sandi
                     </label>
-                    <span className="text-[11px] text-[#0051d5] hover:underline cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[11px] text-[#0051d5] hover:underline cursor-pointer"
+                    >
                       Lupa sandi?
-                    </span>
+                    </button>
                   </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
@@ -622,18 +735,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                       </select>
                     </div>
 
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Kode Akses Otorisasi BOD <span className="text-slate-400 font-normal">(Opsional jika diverifikasi manual)</span>
-                      </label>
-                      <input
-                        type="password"
-                        value={bodAccessCode}
-                        onChange={(e) => setBodAccessCode(e.target.value)}
-                        placeholder="Masukkan kode khusus jika Anda memiliki undangan resmi"
-                        className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-purple-600"
-                      />
-                    </div>
                   </div>
                 )}
 
@@ -831,7 +932,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
             </div>
           )}
 
-          {/* Quick Demo Simulator for Evaluators */}
+          {/* Quick Demo Simulator for Evaluators — hanya di DEMO_MODE */}
+          {DEMO_MODE && (
           <div className="mt-8 pt-6 border-t border-slate-200">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -895,6 +997,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
               })}
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,196 +1,268 @@
 rules_version = '2';
+
+// Aturan keamanan Nexust Growth Partner Client Hub.
+//
+// Prinsip:
+// - Wajib login (Firebase Auth). Tidak ada akses publik ke data bisnis.
+// - Akun Firebase ditautkan ke profil lewat auth_links/{uid} -> { userId }.
+// - Hanya akun berstatus aktif yang dapat mengakses data.
+// - Tim internal (owner, konsultan, tim grup, tim konten, staf) boleh membaca & menulis data operasional.
+// - Klien hanya dapat melihat data miliknya sendiri (clientId) dan mengubah hal terbatas
+//   (status tugas, persetujuan konten, penilaian sesi).
+// - Catatan internal sesi (session_internals) TIDAK dapat dibaca klien.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ---------- Helper ----------
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function authEmail() {
+      return request.auth.token.email;
+    }
+
+    function emailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    // Email owner utama (harus sama dengan OWNER_EMAIL di src/config/appMode.ts).
+    function isOwnerEmail() {
+      return isSignedIn() && emailVerified() &&
+        authEmail().lower() == 'ahmadfadlitaufik@gmail.com';
+    }
+
+    function linkPath() {
+      return /databases/$(database)/documents/auth_links/$(request.auth.uid);
+    }
+
+    function myUserId() {
+      return get(linkPath()).data.userId;
+    }
+
+    function hasProfile() {
+      return isSignedIn() && exists(linkPath()) &&
+        exists(/databases/$(database)/documents/users/$(myUserId()));
+    }
+
+    function me() {
+      return get(/databases/$(database)/documents/users/$(myUserId())).data;
+    }
+
+    function isActive() {
+      return hasProfile() && !(me().get('status', 'active') in ['pending', 'rejected']);
+    }
+
+    function myRole() {
+      return me().role;
+    }
+
     function isOwner() {
-      return isSignedIn() && (
-        request.auth.token.email == 'Ahmadfadlitaufik@gmail.com' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner')
-      );
+      return isOwnerEmail() || (isActive() && myRole() == 'owner');
     }
 
-    function isConsultant() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'consultant' ||
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'konsultan'
-        )
-      );
+    function isTeam() {
+      return isOwner() || (isActive() && myRole() in
+        ['konsultan', 'consultant', 'tim_grup', 'tim_konten', 'staf_operasional']);
     }
 
-    function isTimGrup() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'tim_grup'
-      );
+    function isClient() {
+      return isActive() && myRole() in ['klien', 'client'];
     }
 
-    function isTimKonten() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'tim_konten'
-      );
+    function myClientId() {
+      return me().get('clientId', '__none__');
     }
 
-    function isStaffOrTeam() {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'tim_grup' ||
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'tim_konten' ||
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'staf_operasional'
-        )
-      );
+    // Dokumen yang dibaca/ditulis milik klien yang sedang login.
+    function ownsExisting() {
+      return isClient() && resource.data.clientId == myClientId();
     }
 
-    function isClientUser(clientId) {
-      return isSignedIn() && (
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'client' ||
-          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'klien'
-        ) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.clientId == clientId
-      );
+    function ownsIncoming() {
+      return isClient() && request.resource.data.clientId == myClientId();
     }
 
-    // Allow read for users to load team profiles & demo selector
+    // Klien tidak boleh memindahkan dokumen ke klien lain.
+    function clientIdUnchanged() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['clientId']);
+    }
+
+    // ---------- Uji koneksi saat aplikasi dibuka ----------
+    match /test/connection {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ---------- Tautan akun Firebase -> profil ----------
+    match /auth_links/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isOwner());
+      allow create, update: if isSignedIn() && request.auth.uid == uid && (
+        // Profil milik sendiri (users/{uid}).
+        request.resource.data.userId == request.auth.uid ||
+        // Profil undangan Owner dengan email yang sama (email wajib terverifikasi).
+        (emailVerified() &&
+          exists(/databases/$(database)/documents/users/$(request.resource.data.userId)) &&
+          get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.email == authEmail()) ||
+        // Owner utama ditautkan ke profil owner yang sudah ada.
+        (isOwnerEmail() &&
+          exists(/databases/$(database)/documents/users/$(request.resource.data.userId)) &&
+          get(/databases/$(database)/documents/users/$(request.resource.data.userId)).data.role == 'owner')
+      );
+      allow delete: if isOwner();
+    }
+
+    // ---------- Profil pengguna ----------
     match /users/{userId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isActive() || isOwnerEmail() || (isSignedIn() && (
+        userId == request.auth.uid ||
+        resource.data.email == authEmail()
+      ));
+
+      // Owner membuat / mengundang pengguna.
+      allow create: if isOwner() ||
+        // Pendaftaran mandiri: hanya untuk diri sendiri, status pending, tanpa clientId.
+        (isSignedIn() &&
+          userId == request.auth.uid &&
+          request.resource.data.id == userId &&
+          request.resource.data.email == authEmail() &&
+          request.resource.data.status == 'pending' &&
+          !('clientId' in request.resource.data));
+
+      allow update: if isOwner() ||
+        // Pengguna boleh mengubah data profil dasar miliknya sendiri,
+        // tapi tidak boleh mengubah peran, status, email, atau clientId.
+        (isSignedIn() &&
+          (userId == request.auth.uid || (exists(linkPath()) && userId == myUserId())) &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['avatarUrl', 'displayName', 'phone', 'updatedAt']));
+
+      allow delete: if isOwner() ||
+        // Hapus profil pendaftaran ganda milik sendiri yang masih pending.
+        (isSignedIn() && userId == request.auth.uid && resource.data.status == 'pending');
     }
 
-    // Clients collection
+    // ---------- Data bisnis klien ----------
     match /clients/{clientId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isTeam() || (isClient() && clientId == myClientId());
+      allow write: if isTeam();
     }
 
-    // Groups collection
-    match /groups/{groupId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Group Members collection
-    match /group_members/{memberId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Group Attendance collection
-    match /group_attendance/{attendanceId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Group Announcements collection
-    match /group_announcements/{announcementId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Client Consultants assignment collection
-    match /client_consultants/{ccId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Enrollments collection
-    match /enrollments/{enrollmentId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Programs: Service packages
-    match /programs/{programId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Sessions (catatanDibagikan is visible)
     match /sessions/{sessionId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
     }
 
-    // Session Internals: STRICTLY RESTRICTED to internal team
+    // Catatan internal sesi: KHUSUS tim internal.
     match /session_internals/{sessionId} {
-      allow read, write: if true;
+      allow read, write: if isTeam();
     }
 
-    // Tasks
     match /tasks/{taskId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isTeam() || ownsExisting();
+      allow create, delete: if isTeam();
+      allow update: if isTeam() || (ownsExisting() && clientIdUnchanged());
     }
 
-    // Roadmap items
-    match /roadmap_items/{itemId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // KPIs
-    match /kpis/{kpiId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Diagnoses
-    match /diagnoses/{diagnosisId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Documents
-    match /documents/{docId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Feedback
     match /feedback/{feedbackId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isTeam() || ownsExisting();
+      allow create: if isTeam() || ownsIncoming();
+      allow update: if isTeam() || (ownsExisting() && clientIdUnchanged());
+      allow delete: if isTeam();
     }
 
-    // Content Items: Content Calendar & Material Library
-    match /content_items/{itemId} {
-      allow read: if true;
-      allow write: if true;
-    }
-
-    // Content Consents: Client case study publication consent
     match /content_consents/{consentId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isTeam() || ownsExisting();
+      allow create, delete: if isTeam();
+      allow update: if isTeam() || (ownsExisting() && clientIdUnchanged());
     }
 
-    // Team Checkins: Daily WFA standup
-    match /team_checkins/{checkinId} {
-      allow read: if true;
-      allow write: if true;
+    match /enrollments/{id} {
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
     }
 
-    // Plan Items: Daily priorities and work plans
-    match /plan_items/{planId} {
-      allow read: if true;
-      allow write: if true;
+    match /diagnoses/{id} {
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
     }
 
-    // Activity log
+    match /roadmap_items/{id} {
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
+    }
+
+    match /kpis/{id} {
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
+    }
+
+    match /documents/{id} {
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
+    }
+
+    match /group_members/{id} {
+      allow read: if isTeam() || ownsExisting();
+      allow write: if isTeam();
+    }
+
+    // ---------- Katalog yang boleh dilihat semua pengguna aktif ----------
+    match /programs/{id} {
+      allow read: if isActive();
+      allow write: if isTeam();
+    }
+
+    match /groups/{id} {
+      allow read: if isActive();
+      allow write: if isTeam();
+    }
+
+    match /group_announcements/{id} {
+      allow read: if isActive();
+      allow write: if isTeam();
+    }
+
+    match /content_items/{id} {
+      allow read: if isActive();
+      allow write: if isTeam();
+    }
+
+    // ---------- Log aktivitas (hanya tambah, tidak bisa diubah) ----------
     match /activity_log/{logId} {
-      allow read: if true;
-      allow write: if true;
+      allow read: if isTeam() || ownsExisting();
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner();
     }
 
-    // Catch-all
+    // ---------- Khusus tim internal ----------
+    match /client_consultants/{id} {
+      allow read, write: if isTeam();
+    }
+
+    match /group_attendance/{id} {
+      allow read, write: if isTeam();
+    }
+
+    match /session_audits/{id} {
+      allow read, write: if isTeam();
+    }
+
+    match /team_checkins/{id} {
+      allow read, write: if isTeam();
+    }
+
+    match /plan_items/{id} {
+      allow read, write: if isTeam();
+    }
+
+    match /pending_registrations/{id} {
+      allow read, write: if isTeam();
+    }
+
+    // Semua koleksi lain: ditolak.
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

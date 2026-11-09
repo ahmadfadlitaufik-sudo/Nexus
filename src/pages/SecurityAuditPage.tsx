@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { ActivityLog, Client } from '../types';
 import { getActivityLogs, getClients } from '../services/db';
-import { formatWITA } from '../utils/formatters';
+import { formatWITA, todayWITA } from '../utils/formatters';
 
 export const SecurityAuditPage: React.FC = () => {
   const { userProfile } = useAuth();
@@ -150,21 +150,21 @@ export const SecurityAuditPage: React.FC = () => {
   const filteredLogs = logs.filter((log) => {
     const query = searchQuery.toLowerCase();
     const matchQuery =
-      log.action.toLowerCase().includes(query) ||
-      log.actorName.toLowerCase().includes(query) ||
-      log.actorRole.toLowerCase().includes(query) ||
-      log.details.toLowerCase().includes(query) ||
+      (log.action || '').toLowerCase().includes(query) ||
+      (log.actorName || '').toLowerCase().includes(query) ||
+      (log.actorRole || '').toLowerCase().includes(query) ||
+      (log.details || '').toLowerCase().includes(query) ||
       (log.clientId && getClientBusinessName(log.clientId).toLowerCase().includes(query));
 
     const matchRole =
       roleFilter === 'all' ||
-      log.actorRole.toLowerCase().replace('_', ' ') === roleFilter.toLowerCase().replace('_', ' ');
+      (log.actorRole || '').toLowerCase().replace('_', ' ') === roleFilter.toLowerCase().replace('_', ' ');
 
     const meta = getLogMeta(log);
     const matchCategory =
       categoryFilter === 'all' ||
       meta.type === categoryFilter ||
-      (categoryFilter === 'security_blocked' && (log.action.includes('Dicegah') || log.details.includes('ditolak')));
+      (categoryFilter === 'security_blocked' && ((log.action || '').includes('Dicegah') || (log.details || '').includes('ditolak')));
 
     return matchQuery && matchRole && matchCategory;
   });
@@ -187,18 +187,18 @@ export const SecurityAuditPage: React.FC = () => {
     const rows = filteredLogs.map((l) => [
       `"${l.id}"`,
       `"${formatWITA(l.createdAt, true)}"`,
-      `"${l.action.replace(/"/g, '""')}"`,
-      `"${l.actorName.replace(/"/g, '""')}"`,
+      `"${(l.action || '').replace(/"/g, '""')}"`,
+      `"${(l.actorName || '').replace(/"/g, '""')}"`,
       `"${l.actorRole}"`,
       `"${getClientBusinessName(l.clientId).replace(/"/g, '""')}"`,
-      `"${l.details.replace(/"/g, '""')}"`,
+      `"${(l.details || '').replace(/"/g, '""')}"`,
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `audit_log_nexus_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `audit_log_nexus_${todayWITA()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -226,10 +226,10 @@ export const SecurityAuditPage: React.FC = () => {
 
   // Summary Metrics
   const blockedEventsCount = logs.filter(
-    (l) => l.action.includes('Dicegah') || l.details.includes('ditolak') || l.details.includes('BLOCKED')
+    (l) => (l.action || '').includes('Dicegah') || (l.details || '').includes('ditolak') || (l.details || '').includes('BLOCKED')
   ).length;
   const internalAccessCount = logs.filter(
-    (l) => l.action.includes('Internal') || l.details.includes('session_internals')
+    (l) => (l.action || '').includes('Internal') || (l.details || '').includes('session_internals')
   ).length;
   const uniqueActorsCount = new Set(logs.map((l) => l.actorName)).size;
 
@@ -246,7 +246,7 @@ export const SecurityAuditPage: React.FC = () => {
             Security &amp; Activity Audit Log
           </h1>
           <p className="text-sm text-blue-100 mt-1.5 max-w-2xl leading-relaxed">
-            Pemantauan langsung seluruh peristiwa autentikasi, akses data sesi sensitif, aktivitas tim konsultan, dan verifikasi kepatuhan aturan keamanan Firestore koleksi <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono text-white text-xs">ActivityLog</code>.
+            Pemantauan langsung seluruh peristiwa autentikasi, akses data sesi sensitif, aktivitas tim konsultan, dan verifikasi kepatuhan aturan keamanan database koleksi <code className="bg-white/10 px-1.5 py-0.5 rounded font-mono text-white text-xs">ActivityLog</code>.
           </p>
         </div>
 
@@ -283,7 +283,7 @@ export const SecurityAuditPage: React.FC = () => {
             </span>
             <span className="text-xs text-slate-500 font-medium">peristiwa tercatat</span>
           </div>
-          <p className="text-[11px] text-slate-500">Koleksi activity_log Firestore</p>
+          <p className="text-[11px] text-slate-500">Koleksi activity_log (Cloudflare D1)</p>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
@@ -426,7 +426,7 @@ export const SecurityAuditPage: React.FC = () => {
                   <td colSpan={8} className="py-12 text-center text-slate-400">
                     <div className="inline-flex items-center gap-2">
                       <RefreshCw className="w-4 h-4 animate-spin text-[#00236f]" />
-                      <span>Memuat log aktivitas dari Firestore...</span>
+                      <span>Memuat log aktivitas dari database...</span>
                     </div>
                   </td>
                 </tr>

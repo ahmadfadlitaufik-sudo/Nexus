@@ -70,7 +70,7 @@ import {
   deleteRoadmapItem,
   saveTask,
 } from '../services/db';
-import { formatWITA, formatRupiah, isTaskOverdue, evaluateClientRisk } from '../utils/formatters';
+import { formatWITA, formatRupiah, isTaskOverdue, evaluateClientRisk, todayWITA, dateWITA } from '../utils/formatters';
 import { DiagnosisChart } from '../components/DiagnosisChart';
 import { SessionAuditSummary } from '../components/SessionAuditSummary';
 
@@ -405,7 +405,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
       nilaiSaatIni: 0,
       satuan: '%',
       kategori: 'Finansial',
-      tanggalPembaruan: new Date().toISOString().split('T')[0],
+      tanggalPembaruan: todayWITA(),
     });
     setEditingKpiModal(true);
   };
@@ -418,7 +418,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
       target: k.target ?? k.targetValue ?? 100,
       nilaiSaatIni: k.nilaiSaatIni ?? k.currentValue ?? 0,
       satuan: k.satuan || k.unit || '%',
-      tanggalPembaruan: k.tanggalPembaruan || (k.updatedAt ? k.updatedAt.split('T')[0] : new Date().toISOString().split('T')[0]),
+      tanggalPembaruan: k.tanggalPembaruan || (k.updatedAt ? dateWITA(k.updatedAt) : todayWITA()),
     });
     setEditingKpiModal(true);
   };
@@ -436,7 +436,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         target: Number(kpiForm.target) || 0,
         nilaiSaatIni: Number(kpiForm.nilaiSaatIni) || 0,
         satuan: (kpiForm.satuan || '%').trim(),
-        tanggalPembaruan: kpiForm.tanggalPembaruan || new Date().toISOString().split('T')[0],
+        tanggalPembaruan: kpiForm.tanggalPembaruan || todayWITA(),
         kategori: kpiForm.kategori || 'Finansial',
         // backwards compat
         title: kpiForm.nama.trim(),
@@ -467,7 +467,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         ...quickUpdateKpi,
         nilaiSaatIni: Number(newKpiValue),
         currentValue: Number(newKpiValue),
-        tanggalPembaruan: new Date().toISOString().split('T')[0],
+        tanggalPembaruan: todayWITA(),
         updatedAt: new Date().toISOString(),
       };
       await saveKpi(updated);
@@ -498,7 +498,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         title: taskTitle.trim(),
         assigneeName: taskAssignee.trim() || client.namaPemilik,
         assigneeRole: taskRole,
-        deadline: taskDeadline || new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        deadline: taskDeadline || dateWITA(Date.now() + 7 * 86400000),
         status: 'Belum',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -1749,7 +1749,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 <label className="block font-semibold text-slate-700 mb-1">Tanggal Pembaruan</label>
                 <input
                   type="date"
-                  value={kpiForm.tanggalPembaruan || new Date().toISOString().split('T')[0]}
+                  value={kpiForm.tanggalPembaruan || todayWITA()}
                   onChange={(e) => setKpiForm({ ...kpiForm, tanggalPembaruan: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white"
                 />

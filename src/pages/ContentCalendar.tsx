@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 import { ContentItem, ContentType, ContentStatus, ContentChannel, MaterialFormat } from '../types';
 import { getContentItems, saveContentItem, updateContentItemStatus, deleteContentItem, getAllUsers } from '../services/db';
-import { formatDateIndo } from '../utils/formatters';
+import { formatDateIndo, todayWITA } from '../utils/formatters';
 
 const STATUS_COLUMNS: { id: ContentStatus; label: string; bg: string; border: string; badge: string }[] = [
   { id: 'Ide', label: 'Ide & Brainstorming', bg: 'bg-slate-50/70', border: 'border-slate-200', badge: 'bg-slate-100 text-slate-700' },
@@ -70,7 +70,7 @@ export const ContentCalendar: React.FC = () => {
     type: 'konten_pemasaran' as ContentType,
     status: 'Ide' as ContentStatus,
     channel: 'Instagram' as ContentChannel,
-    publishDate: new Date().toISOString().split('T')[0],
+    publishDate: todayWITA(),
     authorId: userProfile?.id || '',
     authorName: userProfile?.displayName || '',
     description: '',
@@ -107,7 +107,7 @@ export const ContentCalendar: React.FC = () => {
       type: 'konten_pemasaran',
       status: defaultStatus,
       channel: 'Instagram',
-      publishDate: defaultDate || new Date().toISOString().split('T')[0],
+      publishDate: defaultDate || todayWITA(),
       authorId: userProfile?.id || '',
       authorName: userProfile?.displayName || 'Dinda Saraswati',
       description: '',
@@ -128,7 +128,7 @@ export const ContentCalendar: React.FC = () => {
       type: item.type,
       status: item.status,
       channel: item.channel as ContentChannel,
-      publishDate: item.publishDate || new Date().toISOString().split('T')[0],
+      publishDate: item.publishDate || todayWITA(),
       authorId: item.authorId,
       authorName: item.authorName,
       description: item.description || '',
@@ -500,7 +500,7 @@ export const ContentCalendar: React.FC = () => {
                           <div className="flex items-center gap-1 text-slate-600 font-medium">
                             <Clock className="w-3 h-3 text-slate-400" />
                             <span>{item.publishDate ? formatDateIndo(item.publishDate) : '-'}</span>
-                            {item.publishDate === new Date().toISOString().split('T')[0] && (
+                            {item.publishDate === todayWITA() && (
                               <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 text-[9px] font-bold">
                                 Hari Ini
                               </span>

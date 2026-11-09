@@ -26,6 +26,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Client, Session, Feedback } from '../types';
+import { dateWITA, todayWITA } from '../utils/formatters';
 
 interface OwnerAnalyticsChartsProps {
   clients: Client[];
@@ -40,63 +41,45 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
 }) => {
   const [periodFilter, setPeriodFilter] = useState<'6m' | 'ytd'>('6m');
 
-  // 1. DATA PERTUMBUHAN KLIEN & JUMLAH SESI AKTIF (GRAFIK BATANG)
-  // 6 Bulan Terakhir: Mei - Okt 2026
+  // 1. DATA PERTUMBUHAN KLIEN & SESI (GRAFIK BATANG) — dihitung dari data asli, zona WITA
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const nowYm = todayWITA().slice(0, 7); // YYYY-MM
+  const ymOf = (iso?: string) => (iso ? dateWITA(iso).slice(0, 7) : '');
+  const shiftYm = (ym: string, n: number) => {
+    const [y, m] = ym.split('-').map(Number);
+    const d = new Date(Date.UTC(y, m - 1 + n, 1));
+    return d.toISOString().slice(0, 7);
+  };
+  const periodData = (label: string, months: string[]) => {
+    const last = months[months.length - 1];
+    return {
+      bulan: label,
+      // Klien terdaftar sampai akhir periode (belum selesai / tidak dihapus)
+      klienAktif: clients.filter((c) => ymOf(c.createdAt) && ymOf(c.createdAt) <= last && c.status !== 'Selesai' && c.status !== 'Berhenti').length,
+      sesiSelesai: sessions.filter((s) => months.includes(ymOf(s.dateTime)) && s.status === 'Selesai').length,
+      sesiAktif: sessions.filter((s) => months.includes(ymOf(s.dateTime)) && s.status === 'Terjadwal').length,
+    };
+  };
+
+  const barChartData6M = Array.from({ length: 6 }, (_, i) => {
+    const ym = shiftYm(nowYm, i - 5);
+    const label = MONTHS[Number(ym.slice(5)) - 1] + (ym === nowYm ? ' (Berjalan)' : '');
+    return periodData(label, [ym]);
+  });
+
+  const year = nowYm.slice(0, 4);
+  const barChartDataYTD = [0, 1, 2, 3]
+    .map((q) => [1, 2, 3].map((k) => `${year}-${String(q * 3 + k).padStart(2, '0')}`))
+    .filter((months) => months[0] <= nowYm) // hanya kuartal yang sudah berjalan
+    .map((months, q) => periodData(`Q${q + 1} ${year}`, months));
+
   const activeSessionsCount = sessions.filter((s) => s.status === 'Terjadwal').length;
   const completedSessionsCount = sessions.filter((s) => s.status === 'Selesai').length;
-  const activeClientsCount = clients.filter((c) => c.status === 'Aktif').length;
-  const onboardingClientsCount = clients.filter((c) => c.status === 'Onboarding').length;
-
-  const barChartData6M = [
-    {
-      bulan: 'Mei',
-      klienAktif: Math.max(3, activeClientsCount - 4),
-      sesiSelesai: 14,
-      sesiAktif: 4,
-    },
-    {
-      bulan: 'Jun',
-      klienAktif: Math.max(4, activeClientsCount - 3),
-      sesiSelesai: 18,
-      sesiAktif: 5,
-    },
-    {
-      bulan: 'Jul',
-      klienAktif: Math.max(5, activeClientsCount - 2),
-      sesiSelesai: 22,
-      sesiAktif: 6,
-    },
-    {
-      bulan: 'Agu',
-      klienAktif: Math.max(5, activeClientsCount - 1),
-      sesiSelesai: 26,
-      sesiAktif: 7,
-    },
-    {
-      bulan: 'Sep',
-      klienAktif: Math.max(6, activeClientsCount),
-      sesiSelesai: 31,
-      sesiAktif: Math.max(6, activeSessionsCount),
-    },
-    {
-      bulan: 'Okt (Aktif)',
-      klienAktif: activeClientsCount + onboardingClientsCount,
-      sesiSelesai: Math.max(12, completedSessionsCount),
-      sesiAktif: Math.max(8, activeSessionsCount),
-    },
-  ];
-
-  const barChartDataYTD = [
-    { bulan: 'Q1 (Jan-Mar)', klienAktif: 4, sesiSelesai: 42, sesiAktif: 6 },
-    { bulan: 'Q2 (Apr-Jun)', klienAktif: 6, sesiSelesai: 56, sesiAktif: 9 },
-    { bulan: 'Q3 (Jul-Sep)', klienAktif: 8, sesiSelesai: 79, sesiAktif: 12 },
-    { bulan: 'Q4 (Okt-Des)', klienAktif: activeClientsCount + onboardingClientsCount, sesiSelesai: 32, sesiAktif: 14 },
-  ];
 
   const currentBarData = periodFilter === '6m' ? barChartData6M : barChartDataYTD;
 
   // 2. DATA STATUS KEPUASAN KLIEN (PIE CHART / DONUT CHART)
-  // Hitung distribusi bintang dari data feedback (fallback ke proporsi representatif)
+  // Hitung distribusi bintang dari data feedback asli (kosong bila belum ada penilaian)
   let rating5Count = 0;
   let rating4Count = 0;
   let rating3Count = 0;
@@ -109,11 +92,6 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
       else if (f.rating === 3) rating3Count++;
       else ratingLowCount++;
     });
-  } else {
-    rating5Count = 18;
-    rating4Count = 6;
-    rating3Count = 2;
-    ratingLowCount = 0;
   }
 
   const totalFeedbackCount = rating5Count + rating4Count + rating3Count + ratingLowCount;
@@ -122,11 +100,11 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
         (rating5Count * 5 + rating4Count * 4 + rating3Count * 3 + ratingLowCount * 2) /
         totalFeedbackCount
       ).toFixed(1)
-    : '4.8';
+    : '–';
 
   const satisfactionPercentage = totalFeedbackCount > 0
     ? Math.round(((rating5Count + rating4Count) / totalFeedbackCount) * 100)
-    : 94;
+    : 0;
 
   const pieChartData = [
     {
@@ -380,7 +358,7 @@ export const OwnerAnalyticsCharts: React.FC<OwnerAnalyticsChartsProps> = ({
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
                 </span>
                 <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                  {satisfactionPercentage}% PUAS
+                  {totalFeedbackCount > 0 ? `${satisfactionPercentage}% PUAS` : 'BELUM ADA PENILAIAN'}
                 </span>
               </div>
             </div>

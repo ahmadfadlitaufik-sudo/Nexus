@@ -181,7 +181,7 @@ function TodoRow({
         <button
           type="button"
           onClick={onTomorrow}
-          className="text-[10px] text-slate-400 hover:text-[#0051d5] opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+          className="text-[10px] text-slate-400 hover:text-[#0051d5] [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
           title="Pindahkan ke besok"
         >
           Besok →
@@ -191,7 +191,7 @@ function TodoRow({
         <button
           type="button"
           onClick={onDelete}
-          className="text-slate-300 hover:text-rose-600 opacity-0 group-hover:opacity-100 focus:opacity-100 cursor-pointer"
+          className="text-slate-300 hover:text-rose-600 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 focus:opacity-100 cursor-pointer"
           title="Hapus to-do"
           aria-label="Hapus to-do"
         >

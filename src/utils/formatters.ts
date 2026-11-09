@@ -60,12 +60,12 @@ export function getDaysDiff(targetDateString: string): number {
  * Determines whether a task is overdue
  */
 export function isTaskOverdue(deadline: string, status: string): boolean {
-  if (status === 'Selesai') return false;
-  const deadlineDate = new Date(deadline);
-  const now = new Date();
-  // set to end of deadline day
-  deadlineDate.setHours(23, 59, 59, 999);
-  return now.getTime() > deadlineDate.getTime();
+  if (status === 'Selesai' || !deadline) return false;
+  // Terlambat jika tenggat (tanggal) sudah lewat menurut kalender WITA.
+  const deadlineDay = /^\d{4}-\d{2}-\d{2}$/.test(deadline.slice(0, 10)) && deadline.length <= 10
+    ? deadline
+    : dateWITA(deadline);
+  return deadlineDay < todayWITA();
 }
 
 /**

@@ -61,8 +61,50 @@ function changedKeys(before: Doc, after: Doc): string[] {
   return [...keys].filter((k) => JSON.stringify(before[k]) !== JSON.stringify(after[k]));
 }
 
+// ---- Hak akses per peran di dalam tim (least privilege) ----
+// Data yang tidak boleh dibaca peran tertentu.
+const ROLE_READ_DENY: Record<string, Set<string>> = {
+  // Tim konten cukup melihat nama klien & izin studi kasus, bukan catatan internal / angka keuangan.
+  tim_konten: new Set(['session_internals', 'diagnoses', 'kpis', 'enrollments', 'documents']),
+  staf_operasional: new Set(['session_internals']),
+};
+// Data yang hanya boleh diubah peran tertentu (selain Owner).
+const WRITE_ROLES: Record<string, string[]> = {
+  programs: [], // khusus Owner
+  clients: ['konsultan', 'consultant', 'tim_grup', 'staf_operasional'],
+  sessions: ['konsultan', 'consultant', 'tim_grup'],
+  session_internals: ['konsultan', 'consultant', 'tim_grup'],
+  diagnoses: ['konsultan', 'consultant'],
+  kpis: ['konsultan', 'consultant'],
+  enrollments: ['konsultan', 'consultant', 'staf_operasional'],
+  client_consultants: ['konsultan', 'consultant', 'staf_operasional'],
+  documents: ['konsultan', 'consultant', 'tim_grup', 'staf_operasional'],
+};
+// Hapus data penting: khusus Owner.
+const OWNER_ONLY_DELETE = new Set(['clients', 'programs', 'groups', 'enrollments', 'client_consultants']);
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: 'Owner',
+  konsultan: 'Konsultan',
+  consultant: 'Konsultan',
+  tim_grup: 'Tim Grup',
+  tim_konten: 'Tim Konten',
+  staf_operasional: 'Staf Operasional',
+  klien: 'Klien',
+  client: 'Klien',
+};
+
+const TEAM_ROLE_LIST = ['owner', 'konsultan', 'consultant', 'tim_grup', 'tim_konten', 'staf_operasional'];
+const isTeamProfile = (d: Doc | null) => !!d && TEAM_ROLE_LIST.includes(d.role);
+
 export function canRead(me: Profile, collection: string, id: string, doc: Doc | null): boolean {
-  if (collection === 'users') return isActive(me) || id === me.id;
+  if (collection === 'users') {
+    // Klien hanya boleh melihat profilnya sendiri dan profil tim Nexus (bukan klien lain).
+    if (id === me.id) return true;
+    if (!isActive(me)) return false;
+    return isTeam(me) || isTeamProfile(doc);
+  }
+  if (isTeam(me) && !isOwner(me) && ROLE_READ_DENY[me.role]?.has(collection)) return false;
   if (TEAM_ONLY.has(collection)) return isTeam(me);
   if (ACTIVE_READ.has(collection)) return isActive(me);
   if (CLIENT_SCOPED.has(collection)) {
@@ -96,7 +138,14 @@ export function canWrite(
     return before ? isOwner(me) : !!after;
   }
 
-  if (isTeam(me)) return KNOWN.has(collection);
+  if (isTeam(me)) {
+    if (!KNOWN.has(collection)) return false;
+    if (isOwner(me)) return true;
+    if (ROLE_READ_DENY[me.role]?.has(collection)) return false;
+    if (!after && OWNER_ONLY_DELETE.has(collection)) return false;
+    const allowed = WRITE_ROLES[collection];
+    return !allowed || allowed.includes(me.role);
+  }
 
   if (isClient(me) && me.clientId && CLIENT_UPDATABLE.has(collection) && after) {
     const mine = (d: Doc | null) => !!d && docClientId(collection, id, d) === me.clientId;
@@ -233,10 +282,18 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
   if (op === 'query') {
     const filters = Array.isArray(body.filters) ? body.filters : [];
     let onlyClientId: string | undefined;
+    if (isTeam(me) && !isOwner(me) && ROLE_READ_DENY[me.role]?.has(collection)) {
+      throw new HttpError(403, 'Akses ditolak untuk peran Anda.');
+    }
     if (collection === 'users') {
       if (!isActive(me)) {
         const self = await getDoc(db, 'users', me.id);
         return json({ docs: self ? [{ id: me.id, data: self }] : [] });
+      }
+      if (!isTeam(me)) {
+        // Klien: hanya tim Nexus + dirinya sendiri.
+        const all = await queryDocs(db, 'users', filters);
+        return json({ docs: all.filter((d) => d.id === me.id || isTeamProfile(d.data)) });
       }
     } else if (TEAM_ONLY.has(collection)) {
       if (!isTeam(me)) throw new HttpError(403, 'Akses ditolak.');
@@ -268,6 +325,19 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
     if (collection === 'users') protectPrimaryOwner(env, me, id!, before, after);
     if (collection === 'team_checkins' || collection === 'plan_items') {
       after = applyDailyRules(me, collection, before, after)!;
+    }
+    if (collection === 'activity_log' && !before) {
+      // Pelaku log dicatat server dari akun yang login — tidak bisa dipalsukan.
+      after = {
+        ...after,
+        action: String(after.action || 'Aktivitas').slice(0, 200),
+        details: String(after.details || '').slice(0, 2000),
+        actorId: me.id,
+        actorName: me.displayName || me.email,
+        actorRole: ROLE_LABELS[me.role] || me.role,
+        createdAt: new Date().toISOString(),
+        ...(isClient(me) ? { clientId: me.clientId } : {}),
+      };
     }
 
     if (collection === 'users' && after.email && after.email !== before?.email) {

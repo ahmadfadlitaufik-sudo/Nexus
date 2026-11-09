@@ -271,7 +271,7 @@ export const ClientPortal: React.FC = () => {
           </h1>
           <p className="text-sm text-blue-100 font-normal">
             Bisnis: <strong className="text-white">{client.namaBisnis}</strong> ({client.industri}) • Program:{' '}
-            <strong className="text-white">{program?.name || 'Pendampingan Fundamental'}</strong>
+            <strong className="text-white">{program?.name || 'Belum ditentukan'}</strong>
           </p>
 
           <div className="pt-2 flex flex-wrap items-center gap-4 text-xs text-blue-200">

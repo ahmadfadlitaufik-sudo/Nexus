@@ -31,7 +31,7 @@ import {
   getClients,
   saveContentItem,
 } from '../services/db';
-import { formatDateIndo } from '../utils/formatters';
+import { formatDateIndo, dateWITA } from '../utils/formatters';
 
 export const CaseStudyConsents: React.FC = () => {
   const { userProfile } = useAuth();
@@ -176,7 +176,7 @@ export const CaseStudyConsents: React.FC = () => {
         type: 'konten_pemasaran',
         status: 'Ide',
         channel: consent.allowedChannels?.[0] || 'LinkedIn',
-        publishDate: new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
+        publishDate: dateWITA(Date.now() + 7 * 86400000),
         authorId: userProfile?.id || 'user-1',
         authorName: userProfile?.displayName || 'Dinda Saraswati',
         description: `Studi kasus berbasis persetujuan klien (${consent.status}).\nEntitas: ${displayNameToUse}\nHighlight: ${consent.keyMetricsAchievement || ''}\n\n${consent.caseStudySummary}`,

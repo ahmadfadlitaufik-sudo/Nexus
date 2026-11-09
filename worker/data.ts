@@ -125,6 +125,68 @@ export function protectPrimaryOwner(env: Env, me: Profile, id: string, before: D
   }
 }
 
+/**
+ * Absen & to-do harian:
+ * - Anggota tim hanya boleh mengisi absen miliknya sendiri. Owner boleh mengoreksi absen siapa pun.
+ *   Pengecualian: menambah tawaran bantuan (helpOffers) di absen rekan.
+ * - Jam masuk (morningCheckinAt) & jam pulang (eveningCheckoutAt) dicap jam server dan
+ *   tidak bisa diubah setelah terisi (kecuali oleh Owner).
+ * - To-do: anggota tim hanya mengelola to-do miliknya. Hanya Owner yang dapat menugaskan
+ *   to-do ke orang lain. To-do dari Owner tidak bisa dihapus / dipindah pemiliknya oleh penerima.
+ */
+export function applyDailyRules(me: Profile, collection: string, before: Doc | null, after: Doc | null): Doc | null {
+  if (isOwner(me)) {
+    if (collection === 'team_checkins' && after) return stampCheckin(before, after, after.userId === me.id);
+    return after;
+  }
+  const ownerOf = (d: Doc | null) => (d ? d.userId : undefined);
+
+  if (collection === 'team_checkins') {
+    if (before && ownerOf(before) !== me.id) {
+      // Hanya boleh menambah tawaran bantuan di absen rekan.
+      if (!after) throw new HttpError(403, 'Tidak dapat menghapus absen rekan.');
+      const changed = changedKeys(before, after);
+      if (!changed.every((k) => k === 'helpOffers' || k === 'updatedAt')) {
+        throw new HttpError(403, 'Absen hanya dapat diisi oleh pemiliknya.');
+      }
+      return after;
+    }
+    if (!after) throw new HttpError(403, 'Absen tidak dapat dihapus.');
+    if (ownerOf(after) !== me.id) throw new HttpError(403, 'Absen hanya dapat diisi oleh pemiliknya.');
+    return stampCheckin(before, after, true);
+  }
+
+  // plan_items
+  if (before && ownerOf(before) !== me.id && before.assignedById !== me.id) {
+    throw new HttpError(403, 'To-do ini milik orang lain.');
+  }
+  if (after) {
+    if (ownerOf(after) !== me.id) throw new HttpError(403, 'Hanya Owner yang dapat menugaskan to-do ke orang lain.');
+    const assignedByOther = (d: Doc | null) => !!d?.assignedById && d.assignedById !== me.id;
+    if (!before && assignedByOther(after)) throw new HttpError(403, 'Data penugasan tidak valid.');
+    if (before && assignedByOther(before)) {
+      const allowed = ['status', 'completedAt', 'updatedAt', 'date', 'note'];
+      if (!changedKeys(before, after).every((k) => allowed.includes(k))) {
+        throw new HttpError(403, 'To-do dari Owner hanya dapat diperbarui statusnya.');
+      }
+    }
+  } else if (before && before.assignedById && before.assignedById !== me.id) {
+    throw new HttpError(403, 'To-do dari Owner tidak dapat dihapus.');
+  }
+  return after;
+}
+
+function stampCheckin(before: Doc | null, after: Doc, isSelf: boolean): Doc {
+  if (!isSelf) return after; // koreksi oleh Owner untuk absen orang lain: apa adanya
+  const now = new Date().toISOString();
+  const out = { ...after };
+  for (const field of ['morningCheckinAt', 'eveningCheckoutAt']) {
+    if (before?.[field]) out[field] = before[field]; // sudah terisi: tidak bisa diubah
+    else if (out[field]) out[field] = now; // baru diisi: pakai jam server
+  }
+  return out;
+}
+
 /** Nilai khusus dari klien: { "__delete": true } = hapus field (seperti deleteField()). */
 function applyPatch(base: Doc, patch: Doc): Doc {
   const out: Doc = { ...base };
@@ -204,6 +266,9 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
     }
     if (!canWrite(me, collection, id!, before, after)) throw new HttpError(403, 'Akses ditolak.');
     if (collection === 'users') protectPrimaryOwner(env, me, id!, before, after);
+    if (collection === 'team_checkins' || collection === 'plan_items') {
+      after = applyDailyRules(me, collection, before, after)!;
+    }
 
     if (collection === 'users' && after.email && after.email !== before?.email) {
       // Satu email hanya untuk satu pengguna.
@@ -233,6 +298,9 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
     if (!before) return json({ ok: true });
     if (!canWrite(me, collection, id!, before, null)) throw new HttpError(403, 'Akses ditolak.');
     if (collection === 'users') protectPrimaryOwner(env, me, id!, before, null);
+    if (collection === 'team_checkins' || collection === 'plan_items') {
+      applyDailyRules(me, collection, before, null);
+    }
     await deleteDoc(db, collection, id!);
     if (collection === 'users') {
       // Hapus juga akun login & sesi milik pengguna tersebut.

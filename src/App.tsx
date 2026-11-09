@@ -26,6 +26,7 @@ import { AccountApprovalPage } from './pages/AccountApprovalPage';
 import { PendingApprovalView } from './components/PendingApprovalView';
 import { OwnerNotificationCenter } from './components/OwnerNotificationCenter';
 import { ActivityLog } from './components/ActivityLog';
+import { AttendancePage } from './pages/AttendancePage';
 import { SessionFormModal } from './components/SessionFormModal';
 import { NewClientModal } from './components/NewClientModal';
 import { Menu, Plus, Compass } from 'lucide-react';
@@ -215,6 +216,9 @@ function MainApp() {
           {role === 'tim_konten' && currentTab === 'dashboard' && (
             <ContentDashboard onNavigate={setCurrentTab} />
           )}
+
+          {/* ABSEN & TO-DO HARIAN (tim internal) */}
+          {!isClient && currentTab === 'attendance' && <AttendancePage />}
 
           {/* UNIVERSAL CONTENT & MEDIA TABS */}
           {currentTab === 'content-calendar' && <ContentCalendar />}

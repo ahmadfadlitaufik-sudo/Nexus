@@ -39,12 +39,12 @@ import {
   addHelpOfferToCheckin,
   getWeeklyTeamRecap,
 } from '../services/db';
-import { formatWITA } from '../utils/formatters';
+import { formatWITA, todayWITA } from '../utils/formatters';
 
 export const TeamBoardPage: React.FC = () => {
   const { userProfile } = useAuth();
   const isOwner = userProfile?.role === 'owner';
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayDateStr = todayWITA();
 
   const [activeTab, setActiveTab] = useState<'board' | 'weekly'>('board');
   const [teamUsers, setTeamUsers] = useState<UserProfile[]>([]);

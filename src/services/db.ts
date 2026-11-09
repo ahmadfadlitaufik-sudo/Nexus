@@ -50,7 +50,7 @@ import {
   RegistrationCategory,
   RegistrationStatus,
 } from '../types';
-import { isTaskOverdue } from '../utils/formatters';
+import { isTaskOverdue, todayWITA } from '../utils/formatters';
 import {
   SEED_USERS,
   SEED_CLIENTS,
@@ -1776,9 +1776,9 @@ export interface AutoDailyAgenda {
 }
 
 // In-memory fallback checkins for Team Nexus daily activity tracker
-const getTodayDateStr = () => new Date().toISOString().split('T')[0];
+const getTodayDateStr = () => todayWITA();
 
-const INITIAL_TEAM_CHECKINS: TeamCheckin[] = [
+const DEMO_TEAM_CHECKINS: TeamCheckin[] = [
   {
     id: `chk-cons-1-${getTodayDateStr()}`,
     userId: 'cons-1',
@@ -1891,6 +1891,8 @@ const INITIAL_TEAM_CHECKINS: TeamCheckin[] = [
   },
 ];
 
+// Absen contoh hanya untuk mode demo; di produksi tidak boleh muncul absen palsu.
+const INITIAL_TEAM_CHECKINS: TeamCheckin[] = DEMO_MODE ? DEMO_TEAM_CHECKINS : [];
 let MEMORY_TEAM_CHECKINS: TeamCheckin[] = [...INITIAL_TEAM_CHECKINS];
 
 export async function getTeamCheckinByUserAndDate(

@@ -43,7 +43,7 @@ import {
 import { shiftDate, timeWITA, todayWITA } from '../utils/formatters';
 
 /** Batas jam masuk (WITA). Absen setelah jam ini ditandai "Terlambat". */
-const JAM_MASUK = '09.00';
+const JAM_MASUK = '08.00';
 
 /** Menit sejak tengah malam (WITA) dari sebuah waktu. */
 function minutesWITA(iso?: string | null): number | null {
@@ -53,7 +53,7 @@ function minutesWITA(iso?: string | null): number | null {
   return h * 60 + m;
 }
 
-const BATAS_MENIT = 9 * 60;
+const BATAS_MENIT = 8 * 60;
 
 const WORK_STATUSES: { value: WorkStatus; label: string }[] = [
   { value: 'Kantor', label: 'Hadir di Kantor' },

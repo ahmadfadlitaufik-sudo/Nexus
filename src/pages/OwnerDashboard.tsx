@@ -928,7 +928,7 @@ export const OwnerDashboard: React.FC<OwnerDashboardProps> = ({
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                Rekomendasi Kapasitas Eksekutif Nexust
+                Rekomendasi Kapasitas Eksekutif Nexus
               </span>
               <p className="text-xs text-slate-600 mt-0.5">
                 Konsultan Hendra Kusuma telah mencapai kapasitas tinggi (92%). Disarankan mengalihkan 2 onboarding baru ke Anita Wijaya atau Fajar Ramadhan.

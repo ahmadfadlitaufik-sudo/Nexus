@@ -1544,7 +1544,7 @@ export async function attachMaterialToGroup(
   material: ContentItem,
   groupId: string,
   announcementNote: string,
-  authorName: string = 'Tim Konsultan Nexust'
+  authorName: string = 'Tim Konsultan Nexus'
 ): Promise<string> {
   const annId = `ann-${Date.now()}`;
   const path = `group_announcements/${annId}`;
@@ -1822,7 +1822,7 @@ const DEMO_TEAM_CHECKINS: TeamCheckin[] = [
     userAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
     date: getTodayDateStr(),
     workStatus: 'Kantor',
-    locationNote: 'Kantor Pusat Nexust Hub',
+    locationNote: 'Kantor Pusat Nexus Hub',
     priorities: [
       'Audit Laporan Arus Kas Klien Resto Gurih',
       'Sesi konsultasi restrukturisasi utang & BEP',
@@ -2200,7 +2200,7 @@ const INITIAL_PENDING_REGISTRATIONS: PendingRegistration[] = [
     category: 'bod',
     requestedRole: 'owner',
     displayName: 'Dr. Hendra Wijaya, M.B.A.',
-    email: 'hendra.wijaya@advisory-nexust.com',
+    email: 'hendra.wijaya@advisory-nexus.com',
     phone: '+62 811-3344-5566',
     title: 'Managing Board & Strategic Expansion Advisor',
     departmentOrDivision: 'Executive Board / Corporate Finance',
@@ -2213,7 +2213,7 @@ const INITIAL_PENDING_REGISTRATIONS: PendingRegistration[] = [
     category: 'staff',
     requestedRole: 'konsultan',
     displayName: 'Anindita Putri, S.M.',
-    email: 'anindita.putri@nexustgrowth.id',
+    email: 'anindita.putri@nexusgrowth.id',
     phone: '+62 812-9988-1122',
     title: 'Business Operations & SOP Specialist',
     departmentOrDivision: 'Advisory & Transformation',
@@ -2226,7 +2226,7 @@ const INITIAL_PENDING_REGISTRATIONS: PendingRegistration[] = [
     category: 'staff',
     requestedRole: 'tim_konten',
     displayName: 'Reno Satria, S.Ds.',
-    email: 'reno.satria@nexustgrowth.id',
+    email: 'reno.satria@nexusgrowth.id',
     phone: '+62 813-4455-8899',
     title: 'Visual Designer & Video Storyteller',
     departmentOrDivision: 'Content & Growth',

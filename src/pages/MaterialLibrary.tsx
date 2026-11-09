@@ -159,7 +159,7 @@ export const MaterialLibrary: React.FC = () => {
         selectedMaterial,
         targetGroupId,
         groupNote,
-        userProfile?.displayName || 'Tim Konsultan Nexust'
+        userProfile?.displayName || 'Tim Konsultan Nexus'
       );
       setIsGroupModalOpen(false);
       const selectedGrp = groups.find((g) => g.id === targetGroupId);
@@ -182,7 +182,7 @@ export const MaterialLibrary: React.FC = () => {
         status: 'Terbit',
         channel: 'Portal Internal',
         authorId: userProfile?.id || 'user-1',
-        authorName: userProfile?.displayName || 'Tim Konsultan Nexust',
+        authorName: userProfile?.displayName || 'Tim Konsultan Nexus',
         description: newForm.description.trim(),
         category: newForm.category,
         format: newForm.format,

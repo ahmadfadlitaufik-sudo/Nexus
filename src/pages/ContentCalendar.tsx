@@ -155,7 +155,7 @@ export const ContentCalendar: React.FC = () => {
         channel: formData.channel,
         publishDate: formData.publishDate,
         authorId: formData.authorId || userProfile?.id || 'user-1',
-        authorName: formData.authorName || userProfile?.displayName || 'Tim Nexust',
+        authorName: formData.authorName || userProfile?.displayName || 'Tim Nexus',
         description: formData.description.trim(),
         category: formData.category,
         tags: formData.tags
@@ -750,7 +750,7 @@ export const ContentCalendar: React.FC = () => {
                     <option value="LinkedIn">LinkedIn (Article / Slide Deck)</option>
                     <option value="YouTube">YouTube (Longform / Podcast)</option>
                     <option value="TikTok">TikTok (Short Video)</option>
-                    <option value="Newsletter">Newsletter (Nexust Digest)</option>
+                    <option value="Newsletter">Newsletter (Nexus Digest)</option>
                     <option value="Portal Internal">Portal Internal (Materi Klien/Grup)</option>
                     <option value="Website">Website Case Study</option>
                   </select>

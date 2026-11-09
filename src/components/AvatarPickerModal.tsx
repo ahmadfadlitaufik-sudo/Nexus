@@ -120,7 +120,7 @@ const AVATAR_PRESETS = [
       },
       {
         label: 'Persona Ceria 1',
-        url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FadliNexust&backgroundColor=b6e3f4',
+        url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=FadliNexus&backgroundColor=b6e3f4',
       },
       {
         label: 'Persona Ceria 2',
@@ -140,7 +140,7 @@ const AVATAR_PRESETS = [
 
 // Color palette for stylish initials
 const INITIAL_COLORS = [
-  { name: 'Navy Nexust', bg: '00236f', color: 'ffffff' },
+  { name: 'Navy Nexus', bg: '00236f', color: 'ffffff' },
   { name: 'Electric Blue', bg: '0051d5', color: 'ffffff' },
   { name: 'Deep Emerald', bg: '065f46', color: 'ffffff' },
   { name: 'Royal Purple', bg: '6b21a8', color: 'ffffff' },

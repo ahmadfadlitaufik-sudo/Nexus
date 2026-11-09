@@ -1,4 +1,4 @@
-# Deploy Nexust Client Hub ke Cloudflare
+# Deploy Nexus Client Hub ke Cloudflare
 
 Semua berjalan di Cloudflare, tanpa Firebase:
 

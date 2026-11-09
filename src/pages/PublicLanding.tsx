@@ -13,7 +13,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   onGoToDashboard,
 }) => {
   const whatsappUrl =
-    'https://wa.me/628118902200?text=Halo%20Nexust%20Growth%20Partner,%20saya%20tertarik%20untuk%20konsultasi%20pendampingan%20bisnis%20WFA.';
+    'https://wa.me/628118902200?text=Halo%20Nexus%20Growth%20Partner,%20saya%20tertarik%20untuk%20konsultasi%20pendampingan%20bisnis%20WFA.';
 
   const [activeSection, setActiveSection] = useState<string>('tentang');
 
@@ -45,12 +45,14 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
             }}
             className="flex items-center gap-3 group cursor-pointer"
           >
-            <div className="w-10 h-10 rounded-xl bg-[#00236f] text-white flex items-center justify-center shadow-sm transition-transform duration-300 group-hover:scale-105">
-              <span className="material-symbols-outlined text-[22px]">trending_up</span>
-            </div>
+            <img
+              src="/logo-mark.png"
+              alt=""
+              className="h-10 w-auto transition-transform duration-300 group-hover:scale-105"
+            />
             <div className="flex flex-col">
               <span className="font-['Plus_Jakarta_Sans'] text-xl font-bold tracking-tight text-[#00236f] leading-none">
-                Nexust Growth Partner
+                Nexus Growth Partner
               </span>
               <span className="text-[11px] font-semibold text-slate-500 tracking-wider uppercase mt-1">
                 Client Hub · Advisory WFA
@@ -215,7 +217,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                       <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                       <span className="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
                       <span className="text-[11px] text-slate-400 ml-2 font-mono">
-                        nexust.id/hub/client-360
+                        nexus.id/hub/client-360
                       </span>
                     </div>
                     <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
@@ -308,7 +310,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                       <span className="material-symbols-outlined text-[16px] text-blue-600">
                         verified
                       </span>
-                      Standar Protokol Nexust
+                      Standar Protokol Nexus
                     </span>
                     <span className="text-[11px] text-slate-400">Zona Waktu WITA</span>
                   </div>
@@ -324,7 +326,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
               <div className="lg:col-span-5 space-y-5">
                 <span className="text-xs font-bold text-[#0051d5] uppercase tracking-wider">
-                  Tentang Nexust Growth Partner
+                  Tentang Nexus Growth Partner
                 </span>
                 <h2 className="font-['Plus_Jakarta_Sans'] text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight leading-snug">
                   Mitra Pendampingan Bisnis Jarak Jauh (WFA) yang Berorientasi Hasil
@@ -663,7 +665,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     Siap Membangun Fondasi Bisnis yang Tangguh dan Bertumbuh?
                   </h2>
                   <p className="text-sm sm:text-base text-blue-100/90 leading-relaxed pt-1">
-                    Diskusikan kondisi usaha Anda bersama tim konsultan Nexust Growth Partner. Kami
+                    Diskusikan kondisi usaha Anda bersama tim konsultan Nexus Growth Partner. Kami
                     siap membantu Anda menyusun peta jalan perbaikan yang terarah.
                   </p>
                 </div>
@@ -693,11 +695,9 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-10 border-b border-slate-800">
             <div className="md:col-span-2 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
-                  <span className="material-symbols-outlined text-[20px]">trending_up</span>
-                </div>
+                <img src="/logo-mark-white.png" alt="" className="h-9 w-auto" />
                 <span className="text-lg font-bold text-white font-['Plus_Jakarta_Sans']">
-                  Nexust Growth Partner
+                  Nexus Growth Partner
                 </span>
               </div>
               <p className="text-slate-400 max-w-sm leading-relaxed text-xs">
@@ -732,14 +732,14 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     +62 811 890 2200 (WhatsApp)
                   </a>
                 </li>
-                <li>advisory@nexustgrowth.com</li>
+                <li>advisory@nexusgrowth.com</li>
                 <li>Hub WFA: Denpasar · Balikpapan · Makassar (WITA)</li>
               </ul>
             </div>
           </div>
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
-            <div>&copy; 2026 Nexust Growth Partner. Seluruh Hak Cipta Dilindungi.</div>
+            <div>&copy; 2026 Nexus Growth Partner. Seluruh Hak Cipta Dilindungi.</div>
             <div>Platform Resmi Client Hub · Antarmuka Bahasa Indonesia</div>
           </div>
         </div>

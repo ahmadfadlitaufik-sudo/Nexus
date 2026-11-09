@@ -1,4 +1,4 @@
--- Skema awal database Nexust Client Hub (Cloudflare D1 / SQLite).
+-- Skema awal database Nexus Client Hub (Cloudflare D1 / SQLite).
 
 -- Penyimpanan dokumen umum. Setiap "koleksi" aplikasi (clients, sessions, tasks, users, ...)
 -- disimpan sebagai baris JSON. client_id diekstrak agar data per klien bisa difilter cepat.

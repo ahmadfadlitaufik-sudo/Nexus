@@ -12,7 +12,6 @@ import {
   Phone,
   Building2,
   Briefcase,
-  Compass,
 } from 'lucide-react';
 import { formatDateIndo } from '../utils/formatters';
 
@@ -59,11 +58,9 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
       <div className="max-w-md w-full mx-auto">
         {/* Brand header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[#00236f] to-[#1e3a8a] text-white shadow-lg shadow-blue-900/20 mb-3">
-            <Compass className="w-8 h-8 text-blue-200" />
-          </div>
+          <img src="/logo-nexus.png" alt="Nexus" className="h-14 w-auto mx-auto mb-3" />
           <h2 className="text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
-            Nexust Client &amp; Team Hub
+            Nexus Client &amp; Team Hub
           </h2>
           <p className="text-xs text-slate-500 mt-1">Platform Pendampingan Bisnis UKM Berbasis WFA</p>
         </div>
@@ -166,7 +163,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
             )}
 
             <a
-              href="https://wa.me/6281199887766?text=Halo%20Owner%20Nexust,%20saya%20sudah%20mendaftar%20akun%20di%20Client%20Hub%20dan%20menunggu%20approval."
+              href="https://wa.me/6281199887766?text=Halo%20Owner%20Nexus,%20saya%20sudah%20mendaftar%20akun%20di%20Client%20Hub%20dan%20menunggu%20approval."
               target="_blank"
               rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
@@ -187,7 +184,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
         </div>
 
         <p className="text-center text-[11px] text-slate-400 mt-6">
-          Sistem Pengawasan Keamanan &amp; Hak Akses Berjenjang • Nexust Growth Partner
+          Sistem Pengawasan Keamanan &amp; Hak Akses Berjenjang • Nexus Growth Partner
         </p>
       </div>
     </div>

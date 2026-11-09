@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-  Compass,
   Lock,
   Mail,
   ArrowRight,
@@ -294,16 +293,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
         </div>
 
         <div className="flex justify-center">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#00236f] to-[#1e3a8a] text-white flex items-center justify-center font-bold text-xl shadow-md shadow-blue-900/20">
-            <Compass className="w-7 h-7 text-blue-200" />
-          </div>
+          <img src="/logo-nexus.png" alt="Nexus" className="h-16 w-auto" />
         </div>
 
         <h2 className="mt-4 text-center text-2xl sm:text-3xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
           Client &amp; Team Hub
         </h2>
         <p className="mt-1.5 text-center text-xs sm:text-sm text-slate-600">
-          Nexust Growth Partner • Platform Pendampingan Bisnis UKM WFA
+          Nexus Growth Partner • Platform Pendampingan Bisnis UKM WFA
         </p>
 
         {/* Tab Switcher: Masuk vs Daftar Baru */}
@@ -429,7 +426,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 {registeredUser.status === 'active' ? (
                   <span> Akun Anda telah langsung aktif! Silakan masuk untuk mulai menggunakan sistem.</span>
                 ) : (
-                  <span> Akun Anda saat ini berstatus <span className="font-bold text-amber-700">Menunggu Persetujuan (Pending Approval)</span> dari Owner / BOD Nexust Growth Partner (Ahmad Fadli Taufik).</span>
+                  <span> Akun Anda saat ini berstatus <span className="font-bold text-amber-700">Menunggu Persetujuan (Pending Approval)</span> dari Owner / BOD Nexus Growth Partner (Ahmad Fadli Taufik).</span>
                 )}
 
               </p>
@@ -609,7 +606,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   Formulir Pendaftaran Akun Baru
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Pilih jalur pendaftaran yang sesuai dengan peran Anda di Nexust:
+                  Pilih jalur pendaftaran yang sesuai dengan peran Anda di Nexus:
                 </p>
 
                 {/* 3 Registration Track Selector */}

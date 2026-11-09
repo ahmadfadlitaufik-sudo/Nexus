@@ -670,7 +670,7 @@ export const TeamSettings: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="rian@nexustgrowth.id atau klien@bisnis.com"
+                  placeholder="rian@nexusgrowth.id atau klien@bisnis.com"
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-[#0051d5]"
                   required
                 />
@@ -752,7 +752,7 @@ export const TeamSettings: React.FC = () => {
             {/* Tim Konsultan */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <h3 className="font-bold text-base text-slate-900 font-['Plus_Jakarta_Sans'] flex items-center justify-between">
-                <span>Konsultan Internal Nexust ({consultants.length})</span>
+                <span>Konsultan Internal Nexus ({consultants.length})</span>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-[#00236f]">
                   WFA Advisors
                 </span>
@@ -1572,7 +1572,7 @@ export const TeamSettings: React.FC = () => {
                 Konsekuensi Pencabutan Akses
               </div>
               <p className="leading-relaxed">
-                Pengguna tidak lagi dapat masuk ke Nexust Client Hub atau mengakses data klien/dokumen konsultasi terkait. Tindakan ini dicatat ke log audit.
+                Pengguna tidak lagi dapat masuk ke Nexus Client Hub atau mengakses data klien/dokumen konsultasi terkait. Tindakan ini dicatat ke log audit.
               </p>
             </div>
 

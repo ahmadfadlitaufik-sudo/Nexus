@@ -1,5 +1,5 @@
 /**
- * Sistem login Nexust Client Hub di Cloudflare (tanpa Firebase).
+ * Sistem login Nexus Client Hub di Cloudflare (tanpa Firebase).
  *
  * - Kata sandi di-hash PBKDF2 (worker/crypto.ts); sesi berupa cookie HttpOnly.
  * - Pendaftaran mandiri selalu berstatus "pending" sampai disetujui Owner.

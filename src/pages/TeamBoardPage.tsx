@@ -132,7 +132,7 @@ export const TeamBoardPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-blue-100 text-xs font-semibold backdrop-blur-xs mb-3">
             <Users className="w-3.5 h-3.5 text-amber-300" />
-            <span>Nexust Team Standup &amp; Performance Pulse</span>
+            <span>Nexus Team Standup &amp; Performance Pulse</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold font-['Plus_Jakarta_Sans'] tracking-tight">
             Papan Tim &amp; Standup

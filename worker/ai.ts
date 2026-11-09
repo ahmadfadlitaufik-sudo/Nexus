@@ -41,7 +41,7 @@ export async function summarizeSession(
   });
 
   const promptText = `
-Anda adalah asisten AI eksekutif senior untuk firma konsultan bisnis "Nexust Growth Partner" (WFA Business Advisory).
+Anda adalah asisten AI eksekutif senior untuk firma konsultan bisnis "Nexus Growth Partner" (WFA Business Advisory).
 Tugas Anda: Menganalisis dan meringkas notulensi sesi pendampingan bisnis klien UKM.
 
 Data Sesi:

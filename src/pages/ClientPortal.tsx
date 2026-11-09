@@ -263,7 +263,7 @@ export const ClientPortal: React.FC = () => {
         <div className="relative z-10 max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-200 text-xs font-semibold border border-blue-400/30">
             <ShieldCheck className="w-3.5 h-3.5 text-blue-300" />
-            Portal Resmi Klien • Nexust Growth Partner
+            Portal Resmi Klien • Nexus Growth Partner
           </div>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-['Plus_Jakarta_Sans']">
@@ -539,7 +539,7 @@ export const ClientPortal: React.FC = () => {
                 Hasil Diagnosis 5 Pilar Bisnis Anda
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Audit kesiapan operasional & strategi oleh konsultan pendamping Nexust Growth Partner.
+                Audit kesiapan operasional & strategi oleh konsultan pendamping Nexus Growth Partner.
               </p>
             </div>
           </div>
@@ -892,7 +892,7 @@ export const ClientPortal: React.FC = () => {
               Izin Publikasi Studi Kasus Bisnis
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Nexust menjamin privasi penuh. Data keberhasilan dan transformasi hanya akan dijadikan materi edukasi jika Anda menyetujui, dengan pengaturan bawaan (default) disamarkan secara anonim.
+              Nexus menjamin privasi penuh. Data keberhasilan dan transformasi hanya akan dijadikan materi edukasi jika Anda menyetujui, dengan pengaturan bawaan (default) disamarkan secara anonim.
             </p>
           </div>
         </div>

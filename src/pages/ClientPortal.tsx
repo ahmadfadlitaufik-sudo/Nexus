@@ -1075,8 +1075,8 @@ export const ClientPortal: React.FC = () => {
 
       {/* Modal Kirim Bukti Pengerjaan */}
       {submittingTask && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 my-auto">
             <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
               Unggah / Tautkan Bukti Eksekusi Tugas
             </h3>

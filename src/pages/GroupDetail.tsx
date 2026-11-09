@@ -911,8 +911,8 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
 
       {/* Modal: Tambah Anggota ke Grup */}
       {showAddMemberModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 my-auto">
             <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
               Tambah Klien ke Grup Mastermind
             </h3>
@@ -975,8 +975,8 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
 
       {/* Modal: Jadwal Sesi Grup */}
       {showNewSessionModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto my-auto">
             <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
               Jadwalkan Sesi Mastermind Grup
             </h3>
@@ -1071,8 +1071,8 @@ export const GroupDetail: React.FC<GroupDetailProps> = ({
 
       {/* Modal: Buat Pengumuman */}
       {showNewAnnounceModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 my-auto">
             <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
               Kirim Pengumuman ke Anggota Grup
             </h3>

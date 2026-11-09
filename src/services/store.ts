@@ -28,10 +28,17 @@ interface WhereConstraint {
   value: unknown;
 }
 
+interface LimitConstraint {
+  type: 'limit';
+  count: number;
+}
+
 export interface Query {
   type: 'query';
   collection: string;
   filters: WhereConstraint[];
+  /** Ambil N dokumen terbaru saja. */
+  limit?: number;
 }
 
 export class StoreError extends Error {
@@ -56,8 +63,19 @@ export function where(field: string, op: '==' | 'in', value: unknown): WhereCons
   return { type: 'where', field, op, value };
 }
 
-export function query(ref: CollectionReference, ...constraints: WhereConstraint[]): Query {
-  return { type: 'query', collection: ref.collection, filters: constraints };
+/** Batasi ke N dokumen terbaru (urut waktu dibuat, terbaru dulu). */
+export function limit(count: number): LimitConstraint {
+  return { type: 'limit', count };
+}
+
+export function query(ref: CollectionReference, ...constraints: (WhereConstraint | LimitConstraint)[]): Query {
+  const lim = constraints.find((c): c is LimitConstraint => c.type === 'limit');
+  return {
+    type: 'query',
+    collection: ref.collection,
+    filters: constraints.filter((c): c is WhereConstraint => c.type === 'where'),
+    limit: lim?.count,
+  };
 }
 
 /** Hapus sebuah field saat updateDoc / setDoc(merge). */
@@ -77,7 +95,49 @@ function stripUndefined(value: any): any {
   return value;
 }
 
+// ---- Cache singkat di browser ----
+// Permintaan baca yang sama dalam 30 detik memakai hasil yang sama (dan permintaan yang sedang
+// berjalan dipakai bersama), sehingga data tidak diambil berulang saat pindah menu.
+// Setiap penulisan ke sebuah koleksi menghapus cache koleksi tersebut.
+const CACHE_TTL_MS = 30_000;
+const cache = new Map<string, { at: number; collection: string; promise: Promise<unknown> }>();
+
+/** Kosongkan seluruh cache (dipanggil saat login/logout). */
+export function clearStoreCache(): void {
+  cache.clear();
+}
+
+function invalidate(collection: string): void {
+  for (const [k, v] of cache) if (v.collection === collection) cache.delete(k);
+}
+
+async function cachedRead<T>(body: Data): Promise<T> {
+  const key = JSON.stringify(body);
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) {
+    // Salinan agar pemanggil tidak saling mengubah data yang sama.
+    return structuredClone(await (hit.promise as Promise<T>));
+  }
+  const promise = request<T>(body);
+  cache.set(key, { at: Date.now(), collection: body.collection, promise });
+  try {
+    return structuredClone(await promise);
+  } catch (err) {
+    cache.delete(key);
+    throw err;
+  }
+}
+
 async function call<T>(body: Data): Promise<T> {
+  if (body.op === 'get' || body.op === 'query') return cachedRead<T>(body);
+  try {
+    return await request<T>(body);
+  } finally {
+    invalidate(body.collection);
+  }
+}
+
+async function request<T>(body: Data): Promise<T> {
   const res = await fetch('/api/data', {
     method: 'POST',
     credentials: 'same-origin',
@@ -133,6 +193,7 @@ export async function getDocs(ref: CollectionReference | Query): Promise<QuerySn
     op: 'query',
     collection: ref.collection,
     filters: equality.map((f) => ({ field: f.field, value: f.value })),
+    ...(ref.type === 'query' && ref.limit ? { limit: ref.limit } : {}),
   });
   let rows = res.docs;
   // Filter 'in' diterapkan di browser (jarang dipakai).

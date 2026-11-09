@@ -10,6 +10,7 @@ import {
   query,
   where,
   deleteField,
+  limit,
 } from './store';
 import { DEMO_MODE } from '../config/appMode';
 import { OperationType, handleFirestoreError } from './errors';
@@ -1417,7 +1418,8 @@ export async function getActivityLogs(clientId?: string): Promise<ActivityLog[]>
       const q = query(collection(db, path), where('clientId', '==', clientId));
       snap = await getDocs(q);
     } else {
-      snap = await getDocs(collection(db, path));
+      // Batasi ke 300 log terbaru agar tetap cepat walau data bertambah.
+      snap = await getDocs(query(collection(db, path), limit(300)));
     }
     if (snap.empty) {
       return clientId ? SEED_ACTIVITY_LOGS.filter((a) => a.clientId === clientId) : SEED_ACTIVITY_LOGS;

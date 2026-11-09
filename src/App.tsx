@@ -3,34 +3,42 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Sidebar } from './components/Sidebar';
-import { PublicLanding } from './pages/PublicLanding';
 import { LoginPage } from './pages/LoginPage';
-import { OwnerDashboard } from './pages/OwnerDashboard';
-import { OwnerReportsPage } from './pages/OwnerReportsPage';
-import { ConsultantDashboard } from './pages/ConsultantDashboard';
-import { GroupDashboard } from './pages/GroupDashboard';
-import { GroupList } from './pages/GroupList';
-import { GroupDetail } from './pages/GroupDetail';
-import { ClientPortal } from './pages/ClientPortal';
-import { ClientList } from './pages/ClientList';
-import { ClientDetail } from './pages/ClientDetail';
-import { TeamSettings } from './pages/TeamSettings';
-import { ContentCalendar } from './pages/ContentCalendar';
-import { MaterialLibrary } from './pages/MaterialLibrary';
-import { CaseStudyConsents } from './pages/CaseStudyConsents';
-import { ContentDashboard } from './pages/ContentDashboard';
-import { SecurityAuditPage } from './pages/SecurityAuditPage';
-import { AccountApprovalPage } from './pages/AccountApprovalPage';
 import { PendingApprovalView } from './components/PendingApprovalView';
 import { OwnerNotificationCenter } from './components/OwnerNotificationCenter';
-import { ActivityLog } from './components/ActivityLog';
-import { AttendancePage } from './pages/AttendancePage';
-import { SessionFormModal } from './components/SessionFormModal';
-import { NewClientModal } from './components/NewClientModal';
 import { Menu, Plus, Compass } from 'lucide-react';
+
+// Halaman dimuat sesuai kebutuhan (code splitting) agar pembukaan pertama lebih cepat.
+const PublicLanding = lazy(() => import('./pages/PublicLanding').then((m) => ({ default: m.PublicLanding })));
+const OwnerDashboard = lazy(() => import('./pages/OwnerDashboard').then((m) => ({ default: m.OwnerDashboard })));
+const OwnerReportsPage = lazy(() => import('./pages/OwnerReportsPage').then((m) => ({ default: m.OwnerReportsPage })));
+const ConsultantDashboard = lazy(() => import('./pages/ConsultantDashboard').then((m) => ({ default: m.ConsultantDashboard })));
+const GroupDashboard = lazy(() => import('./pages/GroupDashboard').then((m) => ({ default: m.GroupDashboard })));
+const GroupList = lazy(() => import('./pages/GroupList').then((m) => ({ default: m.GroupList })));
+const GroupDetail = lazy(() => import('./pages/GroupDetail').then((m) => ({ default: m.GroupDetail })));
+const ClientPortal = lazy(() => import('./pages/ClientPortal').then((m) => ({ default: m.ClientPortal })));
+const ClientList = lazy(() => import('./pages/ClientList').then((m) => ({ default: m.ClientList })));
+const ClientDetail = lazy(() => import('./pages/ClientDetail').then((m) => ({ default: m.ClientDetail })));
+const TeamSettings = lazy(() => import('./pages/TeamSettings').then((m) => ({ default: m.TeamSettings })));
+const ContentCalendar = lazy(() => import('./pages/ContentCalendar').then((m) => ({ default: m.ContentCalendar })));
+const MaterialLibrary = lazy(() => import('./pages/MaterialLibrary').then((m) => ({ default: m.MaterialLibrary })));
+const CaseStudyConsents = lazy(() => import('./pages/CaseStudyConsents').then((m) => ({ default: m.CaseStudyConsents })));
+const ContentDashboard = lazy(() => import('./pages/ContentDashboard').then((m) => ({ default: m.ContentDashboard })));
+const SecurityAuditPage = lazy(() => import('./pages/SecurityAuditPage').then((m) => ({ default: m.SecurityAuditPage })));
+const AccountApprovalPage = lazy(() => import('./pages/AccountApprovalPage').then((m) => ({ default: m.AccountApprovalPage })));
+const ActivityLog = lazy(() => import('./components/ActivityLog').then((m) => ({ default: m.ActivityLog })));
+const AttendancePage = lazy(() => import('./pages/AttendancePage').then((m) => ({ default: m.AttendancePage })));
+const SessionFormModal = lazy(() => import('./components/SessionFormModal').then((m) => ({ default: m.SessionFormModal })));
+const NewClientModal = lazy(() => import('./components/NewClientModal').then((m) => ({ default: m.NewClientModal })));
+
+const PageLoading = () => (
+  <div className="py-20 flex justify-center">
+    <div className="w-7 h-7 border-3 border-blue-200 border-t-[#00236f] rounded-full animate-spin" />
+  </div>
+);
 
 function MainApp() {
   const { userProfile, loading } = useAuth();
@@ -72,6 +80,7 @@ function MainApp() {
   // If user is on public landing page
   if (currentTab === 'landing') {
     return (
+      <Suspense fallback={<PageLoading />}>
       <PublicLanding
         onOpenLogin={() => setCurrentTab('login')}
         isLoggedIn={!!userProfile}
@@ -83,6 +92,7 @@ function MainApp() {
           }
         }}
       />
+      </Suspense>
     );
   }
 
@@ -189,6 +199,7 @@ function MainApp() {
 
         {/* Content Canvas */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Suspense fallback={<PageLoading />}>
           {/* GROUPS VIEWS (Universal across roles) */}
           {currentTab === 'groups' && (
             <GroupList
@@ -317,10 +328,13 @@ function MainApp() {
               <ClientPortal />
             </>
           )}
+          </Suspense>
         </main>
       </div>
 
-      {/* Global Modals */}
+      {/* Global Modals (dimuat saat dibuka) */}
+      <Suspense fallback={null}>
+      {showSessionModal && (
       <SessionFormModal
         isOpen={showSessionModal}
         onClose={() => {
@@ -332,7 +346,9 @@ function MainApp() {
         clientId={sessionTargetClientId}
         onSessionSaved={() => {}}
       />
+      )}
 
+      {showNewClientModal && (
       <NewClientModal
         isOpen={showNewClientModal}
         onClose={() => setShowNewClientModal(false)}
@@ -340,6 +356,8 @@ function MainApp() {
           handleSelectClient(newId);
         }}
       />
+      )}
+      </Suspense>
     </div>
   );
 }

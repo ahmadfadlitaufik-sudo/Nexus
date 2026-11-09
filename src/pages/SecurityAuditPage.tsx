@@ -1,3 +1,4 @@
+import { clearStoreCache } from '../services/store';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -75,6 +76,7 @@ export const SecurityAuditPage: React.FC = () => {
   }, [isOwner]);
 
   const handleRefresh = async () => {
+    clearStoreCache(); // ambil data terbaru, bukan dari cache
     setIsRefreshing(true);
     await loadData();
     setIsRefreshing(false);

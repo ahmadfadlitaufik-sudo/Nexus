@@ -1,4 +1,4 @@
-# Nexust Growth Partner — Client Hub
+# Nexus Growth Partner — Client Hub
 
 Hub klien dan manajemen konsultasi bisnis WFA (Pendampingan Fundamental & Mentoring Private).
 

@@ -35,7 +35,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const DEMO_STORAGE_KEY = 'nexust_active_user_id';
+const DEMO_STORAGE_KEY = 'nexus_active_user_id';
 
 async function api<T = any>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(path, {

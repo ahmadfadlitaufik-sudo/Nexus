@@ -1,5 +1,5 @@
 /**
- * Cloudflare Worker untuk Nexust Client Hub.
+ * Cloudflare Worker untuk Nexus Client Hub.
  * - /api/auth/*  -> login, daftar, sesi (worker/auth.ts, worker/google.ts)
  * - /api/data    -> baca/tulis database D1 dengan aturan akses (worker/data.ts)
  * - /api/ai/*    -> ringkasan sesi Gemini (worker/ai.ts)

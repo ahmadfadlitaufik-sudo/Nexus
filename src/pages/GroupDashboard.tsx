@@ -158,7 +158,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
         <div className="relative z-10 max-w-3xl space-y-2">
           <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-200 text-xs font-semibold border border-blue-400/30">
             <Layers className="w-3.5 h-3.5 text-blue-300" />
-            Dashboard Fasilitator Tim Grup • Nexust WFA Hub
+            Dashboard Fasilitator Tim Grup • Nexus WFA Hub
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-['Plus_Jakarta_Sans']">
             Pusat Kendali Mastermind &amp; Cohort

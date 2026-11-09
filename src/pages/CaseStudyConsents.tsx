@@ -167,7 +167,7 @@ export const CaseStudyConsents: React.FC = () => {
       const displayNameToUse =
         consent.status === 'Disetujui_Terbuka' && !consent.isAnonymizedDefault
           ? consent.businessName || consent.anonymizedName
-          : consent.anonymizedName || 'Brand Binaan Nexust';
+          : consent.anonymizedName || 'Brand Binaan Nexus';
 
       const newContentId = `content-${Date.now()}`;
       await saveContentItem({
@@ -560,7 +560,7 @@ export const CaseStudyConsents: React.FC = () => {
                   rows={3}
                   value={requestForm.caseStudySummary}
                   onChange={(e) => setRequestForm({ ...requestForm, caseStudySummary: e.target.value })}
-                  placeholder="Uraikan problem awal, solusi pendampingan Nexust, dan hasil terukur..."
+                  placeholder="Uraikan problem awal, solusi pendampingan Nexus, dan hasil terukur..."
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#00236f]/20 focus:border-[#00236f]"
                 />
               </div>

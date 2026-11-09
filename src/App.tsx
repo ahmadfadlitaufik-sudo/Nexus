@@ -61,8 +61,9 @@ function MainApp() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-500 font-['Inter']">
-        <div className="w-10 h-10 border-3 border-blue-200 border-t-[#00236f] rounded-full animate-spin mb-4" />
-        <p className="text-xs font-semibold tracking-wide">Menghubungkan ke Nexust Client Hub...</p>
+        <img src="/logo-nexus.png" alt="Nexus" className="h-14 w-auto mb-5" />
+        <div className="w-8 h-8 border-3 border-blue-200 border-t-[#00236f] rounded-full animate-spin mb-4" />
+        <p className="text-xs font-semibold tracking-wide">Menghubungkan ke Nexus Client Hub...</p>
       </div>
     );
   }

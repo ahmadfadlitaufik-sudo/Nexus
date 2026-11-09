@@ -72,7 +72,7 @@ const WORK_STATUSES: {
   {
     id: 'Kantor',
     label: 'Kantor Hub',
-    sub: 'On-site Nexust Hub',
+    sub: 'On-site Nexus Hub',
     icon: Building2,
     color: 'text-blue-700 border-blue-200 bg-blue-50',
     activeBg: 'bg-[#00236f] text-white border-[#00236f] shadow-xs',

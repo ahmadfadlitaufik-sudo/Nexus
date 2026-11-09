@@ -381,7 +381,7 @@ export const OwnerNotificationCenter: React.FC<OwnerNotificationCenterProps> = (
             </div>
 
             <p className="text-xs text-amber-900/80 mt-1 max-w-2xl leading-relaxed">
-              Terdapat calon anggota tim dan pendaftar baru yang memerlukan verifikasi hak akses sebelum dapat masuk ke sistem pendampingan Nexust:
+              Terdapat calon anggota tim dan pendaftar baru yang memerlukan verifikasi hak akses sebelum dapat masuk ke sistem pendampingan Nexus:
             </p>
 
             {/* Quick Chips of Pending Applicants */}

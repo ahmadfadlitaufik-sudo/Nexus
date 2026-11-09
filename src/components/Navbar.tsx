@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
-  Compass,
   LayoutDashboard,
   Users,
   CalendarCheck,
@@ -38,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
       <div className="bg-[#00236f] text-white px-4 py-1.5 text-xs flex flex-wrap items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="font-medium tracking-wide">Nexust Growth Partner • Hub Konsultasi WFA</span>
+          <span className="font-medium tracking-wide">Nexus Growth Partner • Hub Konsultasi WFA</span>
           <span className="hidden sm:inline text-blue-200">| Zona Waktu WITA (UTC+8)</span>
         </div>
 
@@ -108,12 +107,10 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenNe
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => onNavigate('dashboard')}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00236f] to-[#1e3a8a] text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-blue-900/20">
-              <Compass className="w-5 h-5 text-blue-200" />
-            </div>
+            <img src="/logo-mark.png" alt="" className="h-10 w-auto" />
             <div>
               <span className="text-lg font-bold text-slate-900 tracking-tight block leading-tight font-['Plus_Jakarta_Sans']">
-                Nexust Growth Partner
+                Nexus Growth Partner
               </span>
               <span className="text-[11px] font-medium text-slate-500 block leading-tight">
                 Client Hub • Pendampingan WFA

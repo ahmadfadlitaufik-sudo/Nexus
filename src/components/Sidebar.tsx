@@ -99,12 +99,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="flex items-center gap-3 cursor-pointer"
               onClick={() => handleNav(isClient ? 'portal' : 'dashboard')}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00236f] to-[#1e3a8a] text-white flex items-center justify-center font-bold text-lg shadow-sm shadow-blue-900/20 shrink-0">
-                <Compass className="w-5 h-5 text-blue-200" />
-              </div>
+              <img src="/logo-mark.png" alt="" className="h-10 w-auto shrink-0" />
               <div>
                 <span className="text-sm font-bold text-slate-900 tracking-tight block leading-tight font-['Plus_Jakarta_Sans']">
-                  Nexust Growth
+                  Nexus Growth
                 </span>
                 <span className="text-[10px] font-semibold text-[#0051d5] tracking-wide block uppercase">
                   Client & Team Hub

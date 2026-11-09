@@ -123,3 +123,38 @@ export function evaluateClientRisk(
 
   return { isAtRisk: false };
 }
+
+/** Tanggal hari ini (YYYY-MM-DD) menurut zona WITA (Asia/Makassar), bukan UTC. */
+export function todayWITA(): string {
+  return dateWITA(new Date());
+}
+
+/** Tanggal (YYYY-MM-DD) dari sebuah waktu, menurut zona WITA. */
+export function dateWITA(input: string | number | Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Makassar',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(input));
+}
+
+/** Jam:menit (HH.mm) menurut zona WITA. */
+export function timeWITA(input?: string | null): string {
+  if (!input) return '-';
+  const d = new Date(input);
+  if (isNaN(d.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Makassar',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
+/** Geser tanggal YYYY-MM-DD sebanyak n hari. */
+export function shiftDate(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  return dt.toISOString().slice(0, 10);
+}

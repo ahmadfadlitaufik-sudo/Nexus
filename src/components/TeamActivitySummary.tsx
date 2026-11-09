@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { TeamCheckin, UserProfile, WorkStatus, PlanItemStatus } from '../types';
 import { getTeamCheckins, getAllUsers, addHelpOfferToCheckin } from '../services/db';
-import { formatWITA } from '../utils/formatters';
+import { formatWITA, todayWITA } from '../utils/formatters';
 
 interface TeamActivitySummaryProps {
   title?: string;
@@ -45,7 +45,7 @@ export const TeamActivitySummary: React.FC<TeamActivitySummaryProps> = ({
   compact = false,
 }) => {
   const { userProfile } = useAuth();
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayDateStr = todayWITA();
 
   const [viewMode, setViewMode] = useState<'table' | 'cards'>(defaultView);
   const [selectedDate, setSelectedDate] = useState<string>(todayDateStr);

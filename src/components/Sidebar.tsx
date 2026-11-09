@@ -20,6 +20,7 @@ import {
   Clock,
   X,
   Camera,
+  CalendarCheck,
 } from 'lucide-react';
 import { AvatarPickerModal } from './AvatarPickerModal';
 import { DEMO_MODE } from '../config/appMode';
@@ -208,6 +209,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   >
                     <LayoutDashboard className="w-4 h-4 shrink-0" />
                     <span>Portal Bisnis Saya</span>
+                  </button>
+                )}
+
+                {/* Absen & To-Do Harian (semua tim internal) */}
+                {!isClient && (
+                  <button
+                    onClick={() => handleNav('attendance')}
+                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 transition cursor-pointer ${
+                      currentTab === 'attendance'
+                        ? 'bg-[#00236f] text-white font-semibold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <CalendarCheck className="w-4 h-4 shrink-0" />
+                    <span>Absen &amp; To-Do Harian</span>
                   </button>
                 )}
 

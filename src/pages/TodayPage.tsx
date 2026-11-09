@@ -33,7 +33,7 @@ import {
   getPlanItems,
   updatePlanItemStatus,
 } from '../services/db';
-import { formatWITA } from '../utils/formatters';
+import { formatWITA, todayWITA } from '../utils/formatters';
 
 interface TodayPageProps {
   onNavigate?: (tab: string) => void;
@@ -41,7 +41,7 @@ interface TodayPageProps {
 
 export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
   const { userProfile } = useAuth();
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayDateStr = todayWITA();
 
   const [loading, setLoading] = useState(true);
   const [checkin, setCheckin] = useState<TeamCheckin | null>(null);

@@ -43,7 +43,7 @@ import {
   getDailyAgendasForUser,
   AutoDailyAgenda,
 } from '../services/db';
-import { formatWITA } from '../utils/formatters';
+import { formatWITA, todayWITA } from '../utils/formatters';
 
 interface DailyActivityTrackerProps {
   title?: string;
@@ -113,7 +113,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
   compact = false,
 }) => {
   const { userProfile } = useAuth();
-  const todayDateStr = new Date().toISOString().split('T')[0];
+  const todayDateStr = todayWITA();
 
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
   const [activeTab, setActiveTab] = useState<'my-checkin' | 'team-activity'>('my-checkin');

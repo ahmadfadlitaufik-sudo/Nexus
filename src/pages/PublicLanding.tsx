@@ -1,6 +1,5 @@
 import { ArrowRight, BadgeCheck, CalendarDays, CheckCircle2, Clock, LineChart, Lock, MessageCircle, Network, RefreshCw } from 'lucide-react';
 import React, { useState } from 'react';
-import { formatRupiah } from '../utils/formatters';
 
 interface PublicLandingProps {
   onOpenLogin: () => void;
@@ -426,10 +425,16 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
 
                   {/* Price Box */}
                   <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                    <div className="text-xs text-slate-500 font-medium">Investasi Program:</div>
-                    <div className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-extrabold text-[#00236f] mt-0.5">
-                      {formatRupiah(18500000)}
-                    </div>
+                    <div className="text-xs text-slate-500 font-medium">Investasi Program</div>
+                    <a
+                      href={`https://wa.me/6282355522710?text=${encodeURIComponent('Halo Nexus Growth Partner, saya ingin tahu biaya program Pendampingan Fundamental.')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-[#00236f]/30 hover:border-[#00236f] text-[#00236f] text-sm font-bold transition"
+                    >
+                      <MessageCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+                      Tanya Harga via WhatsApp
+                    </a>
                     <div className="text-xs text-slate-500 mt-1">
                       Termasuk 12 sesi Google Meet, modul, template kerja, &amp; akses Client Hub.
                     </div>
@@ -500,10 +505,16 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
 
                   {/* Price Box */}
                   <div className="p-5 rounded-2xl bg-blue-50/70 border border-blue-200">
-                    <div className="text-xs text-[#00236f] font-medium">Investasi Program:</div>
-                    <div className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-extrabold text-[#00236f] mt-0.5">
-                      {formatRupiah(25000000)}
-                    </div>
+                    <div className="text-xs text-[#00236f] font-medium">Investasi Program</div>
+                    <a
+                      href={`https://wa.me/6282355522710?text=${encodeURIComponent('Halo Nexus Growth Partner, saya ingin tahu biaya program Mentoring Private.')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00236f] hover:bg-[#1e3a8a] text-white text-sm font-bold transition"
+                    >
+                      <MessageCircle className="w-4 h-4 shrink-0" aria-hidden="true" />
+                      Tanya Harga via WhatsApp
+                    </a>
                     <div className="text-xs text-slate-600 mt-1">
                       Sesi privat intensif dengan slot terbatas (maksimal 5 klien per kuartal).
                     </div>

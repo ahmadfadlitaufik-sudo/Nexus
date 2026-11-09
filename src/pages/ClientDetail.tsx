@@ -1066,8 +1066,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
       {/* MODAL FORM DIAGNOSIS 5 AREA */}
       {editingDiagnosis && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto font-['Inter']">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl my-8">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto font-['Inter']">
+          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl my-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <div>
                 <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
@@ -1340,8 +1340,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
       {/* MODAL EDIT / TAMBAH ROADMAP ITEM */}
       {editingRoadmapModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto font-['Inter']">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto font-['Inter']">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl my-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200">
               <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
                 {roadmapForm.id ? 'Edit Tahapan Roadmap' : 'Tambah Tahapan Roadmap Baru'}
@@ -1622,8 +1622,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
       {/* MODAL QUICK UPDATE KPI VALUE */}
       {quickUpdateKpi && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl my-auto">
             <h3 className="text-sm font-bold text-slate-900">
               Update Capaian: {quickUpdateKpi.nama || quickUpdateKpi.title}
             </h3>
@@ -1659,8 +1659,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
       {/* MODAL TAMBAH / EDIT FULL KPI */}
       {editingKpiModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl my-auto">
             <div className="flex items-center justify-between pb-2 border-b border-slate-200">
               <h3 className="text-sm font-bold text-slate-900">
                 {kpiForm.id ? 'Edit Metrik KPI' : 'Tambah Indikator KPI Baru'}
@@ -1993,8 +1993,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
           </div>
 
           {showNewTaskModal && (
-            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-              <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4">
+            <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+              <div className="bg-white rounded-2xl p-6 max-w-md w-full space-y-4 my-auto">
                 <h3 className="text-base font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
                   Tambah Tugas / Action Item Baru
                 </h3>
@@ -2089,8 +2089,8 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
       {/* Delete Client Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 space-y-4">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200 space-y-4 my-auto">
             <div className="flex items-start gap-3.5">
               <div className="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
                 <Trash2 className="w-5 h-5 text-rose-600" />

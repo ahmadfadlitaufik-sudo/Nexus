@@ -47,11 +47,15 @@ async function safeEqual(a: string, b: string): Promise<boolean> {
 export async function getSessionProfile(request: Request, env: Env): Promise<Profile | null> {
   const token = getCookie(request, SESSION_COOKIE);
   if (!token) return null;
-  const row = await env.DB.prepare('SELECT user_id FROM sessions WHERE token_hash = ? AND expires_at > ?')
+  // Satu query: cek sesi sekaligus ambil profil pengguna.
+  const row = await env.DB.prepare(
+    `SELECT d.data FROM sessions s
+     JOIN docs d ON d.collection = 'users' AND d.id = s.user_id
+     WHERE s.token_hash = ? AND s.expires_at > ?`
+  )
     .bind(await sha256(token), Date.now())
-    .first<{ user_id: string }>();
-  if (!row) return null;
-  return (await getDoc(env.DB, 'users', row.user_id)) as Profile | null;
+    .first<{ data: string }>();
+  return row ? (JSON.parse(row.data) as Profile) : null;
 }
 
 async function createSession(env: Env, request: Request, userId: string): Promise<string> {

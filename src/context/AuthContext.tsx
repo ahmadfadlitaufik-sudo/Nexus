@@ -3,6 +3,7 @@ import { UserProfile } from '../types';
 import { registerNewAccount, seedInitialDatabaseIfEmpty, getAllUsers } from '../services/db';
 import { SEED_USERS } from '../data/seedData';
 import { DEMO_MODE } from '../config/appMode';
+import { clearStoreCache } from '../services/store';
 
 type RegistrationData = Omit<UserProfile, 'id' | 'createdAt'> & {
   rawPassword?: string;
@@ -150,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     const res = await api<{ user: UserProfile }>('/api/auth/login', { email: email.trim(), password: pass });
+    clearStoreCache();
     setUserProfile(res.user);
   };
 
@@ -158,6 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const setPasswordWithLink = async (token: string, password: string) => {
     const res = await api<{ user: UserProfile }>('/api/auth/set-password', { token, password });
+    clearStoreCache();
     setUserProfile(res.user);
   };
 
@@ -213,6 +216,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    clearStoreCache();
     localStorage.removeItem(DEMO_STORAGE_KEY);
     setUserProfile(null);
     try {

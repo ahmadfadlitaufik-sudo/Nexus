@@ -1,3 +1,4 @@
+import { clearStoreCache } from '../services/store';
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -27,6 +28,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
   const isRejected = userProfile?.status === 'rejected';
 
   const handleRefresh = async () => {
+    clearStoreCache(); // ambil data terbaru, bukan dari cache
     setIsRefreshing(true);
     setRefreshMessage(null);
     try {

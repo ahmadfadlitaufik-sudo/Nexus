@@ -47,7 +47,8 @@ export async function queryDocs(
   db: D1Database,
   collection: string,
   filters: Filter[],
-  onlyClientId?: string
+  onlyClientId?: string,
+  latest?: number
 ): Promise<{ id: string; data: Doc }[]> {
   let sql = 'SELECT id, data FROM docs WHERE collection = ?';
   const params: unknown[] = [collection];
@@ -64,7 +65,8 @@ export async function queryDocs(
       params.push(typeof f.value === 'boolean' ? (f.value ? 1 : 0) : f.value);
     }
   }
-  sql += ' ORDER BY created_at, id LIMIT 5000';
+  // latest = ambil N dokumen terbaru saja (mis. log aktivitas).
+  sql += latest ? ` ORDER BY created_at DESC, id DESC LIMIT ${Math.min(Math.max(1, Math.floor(latest)), 1000)}` : ' ORDER BY created_at, id LIMIT 5000';
   const { results } = await db
     .prepare(sql)
     .bind(...params)

@@ -1,3 +1,4 @@
+import { clearStoreCache } from '../services/store';
 import { UserAvatar } from '../components/UserAvatar';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -231,7 +232,7 @@ export const AccountApprovalPage: React.FC<AccountApprovalPageProps> = ({ onNavi
 
           <div className="flex items-center gap-2 self-start md:self-center">
             <button
-              onClick={fetchUsers}
+              onClick={() => { clearStoreCache(); fetchUsers(); }}
               disabled={loading}
               className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl transition cursor-pointer disabled:opacity-50"
             >

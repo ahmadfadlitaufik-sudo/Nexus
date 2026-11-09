@@ -258,6 +258,7 @@ interface DataRequest {
   filters?: Filter[];
   data?: Doc;
   merge?: boolean;
+  limit?: number;
 }
 
 export async function handleData(request: Request, env: Env, me: Profile | null): Promise<Response> {
@@ -307,7 +308,8 @@ export async function handleData(request: Request, env: Env, me: Profile | null)
         onlyClientId = me.clientId || '__none__';
       }
     }
-    const docs = await queryDocs(db, collection, filters, onlyClientId);
+    const latest = typeof body.limit === 'number' ? body.limit : undefined;
+    const docs = await queryDocs(db, collection, filters, onlyClientId, latest);
     return json({ docs });
   }
 

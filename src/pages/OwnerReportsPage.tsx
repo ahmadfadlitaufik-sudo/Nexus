@@ -420,7 +420,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
         <div className="overflow-x-auto -mx-6 sm:-mx-7 px-6 sm:px-7 mt-2">
           <table className="w-full text-left text-xs whitespace-nowrap">
             <thead>
-              <tr className="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
+              <tr className="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
                 <th className="py-3 px-4 rounded-l-xl">Tanggal &amp; Waktu</th>
                 <th className="py-3 px-4">Klien / Entitas</th>
                 <th className="py-3 px-4">Konsultan Pembimbing</th>
@@ -432,7 +432,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
             <tbody className="divide-y divide-slate-100 text-slate-800">
               {filteredSessions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                  <td colSpan={6} className="py-8 text-center text-slate-500 text-xs">
                     Tidak ada sesi yang cocok dengan filter yang dipilih.
                   </td>
                 </tr>
@@ -456,7 +456,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
                           <span className="font-semibold text-slate-900">
                             {formatWITA(session.dateTime, false)}
                           </span>
-                          <span className="text-slate-500 text-[11px]">
+                          <span className="text-slate-500 text-xs">
                             {new Date(session.dateTime).toLocaleTimeString('id-ID', {
                               hour: '2-digit',
                               minute: '2-digit',
@@ -472,7 +472,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
                           <span className="font-bold text-slate-900">
                             {client?.namaBisnis || 'Klien'}
                           </span>
-                          <span className="text-slate-500 text-[11px]">
+                          <span className="text-slate-500 text-xs">
                             {client?.namaPemilik || 'Founder'}
                           </span>
                         </div>
@@ -480,7 +480,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
 
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-7 h-7 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center text-[10px] font-bold">
+                          <div className="w-7 h-7 rounded-full bg-[#1e3a8a] text-white flex items-center justify-center text-xs font-bold">
                             {initials}
                           </div>
                           <span className="font-medium text-slate-900">
@@ -491,7 +491,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
 
                       <td className="py-3.5 px-4">
                         <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
                             isIndividu
                               ? 'bg-slate-100 text-slate-700'
                               : 'bg-blue-100 text-[#00236f]'
@@ -503,7 +503,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
 
                       <td className="py-3.5 px-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
                             session.status === 'Selesai'
                               ? 'bg-blue-50 text-[#00236f]'
                               : session.status === 'Terjadwal'
@@ -531,7 +531,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
                               href={session.meetingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="px-2.5 py-1 rounded-lg bg-[#0051d5] hover:bg-[#00236f] text-white text-[11px] font-semibold transition inline-flex items-center gap-1 shadow-2xs"
+                              className="px-2.5 py-1 rounded-lg bg-[#0051d5] hover:bg-[#00236f] text-white text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
                               title="Buka Google Meet"
                             >
                               <Video className="w-3.5 h-3.5" />
@@ -540,7 +540,7 @@ export const OwnerReportsPage: React.FC<OwnerDashboardProps> = ({
                           )}
                           <button
                             onClick={() => setSelectedAuditSession(session)}
-                            className="p-1 rounded-lg hover:bg-emerald-50 text-slate-400 hover:text-emerald-700 transition cursor-pointer"
+                            className="p-1 rounded-lg hover:bg-emerald-50 text-slate-500 hover:text-emerald-700 transition cursor-pointer"
                             title="Audit Integritas Data & Akses Sesi"
                           >
                             <ShieldCheck className="w-4 h-4 text-emerald-600" />

@@ -133,7 +133,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#00236f] text-[11px] font-bold uppercase tracking-wider mb-1">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-50 text-[#00236f] text-xs font-bold uppercase tracking-wider mb-1">
             <Layers className="w-3.5 h-3.5 text-[#0051d5]" />
             Mastermind & Cohort Groups
           </div>
@@ -166,7 +166,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
             <div className="text-2xl font-extrabold text-[#00236f] font-['Plus_Jakarta_Sans'] mt-0.5">
               {groups.length}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               {activeGroupsCount} grup aktif berjalan
             </div>
           </div>
@@ -183,7 +183,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
             <div className="text-2xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
               {totalMembersCount}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               Klien dapat tergabung di &gt;1 grup
             </div>
           </div>
@@ -200,7 +200,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
             <div className="text-lg font-bold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
               WFA Mastermind
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               Zona Waktu WITA (UTC+8)
             </div>
           </div>
@@ -213,7 +213,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
       {/* Search & Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
             type="text"
             value={searchQuery}
@@ -243,7 +243,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
       {/* Group Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredGroups.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
+          <div className="col-span-full py-12 text-center text-slate-500 bg-white rounded-2xl border border-slate-200">
             <Layers className="w-8 h-8 mx-auto mb-2 text-slate-300" />
             Tidak ada grup yang sesuai dengan pencarian Anda.
           </div>
@@ -265,7 +265,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                      className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase ${
                         group.status === 'Aktif'
                           ? 'bg-emerald-100 text-emerald-800'
                           : group.status === 'Persiapan'
@@ -277,7 +277,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
                     </span>
 
                     {prog && (
-                      <span className="text-[10px] text-slate-500 bg-slate-100 px-2 py-0.5 rounded font-medium truncate max-w-[130px]">
+                      <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded font-medium truncate max-w-[130px]">
                         {prog.name}
                       </span>
                     )}
@@ -298,7 +298,7 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
                       <span className="font-semibold text-slate-800">{group.schedule || 'Setiap Selasa, 10:00 WITA'}</span>
                     </div>
                     <div className="flex items-center gap-2 text-slate-500">
-                      <UserCheck className="w-3.5 h-3.5 text-slate-400" />
+                      <UserCheck className="w-3.5 h-3.5 text-slate-500" />
                       <span>Fasilitator: <strong className="text-slate-700">{facilitator?.displayName || 'Belum ditentukan'}</strong></span>
                     </div>
                   </div>
@@ -321,12 +321,12 @@ export const GroupList: React.FC<GroupListProps> = ({ onSelectGroup }) => {
                 <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-700">
-                      <Users className="w-4 h-4 text-slate-400" />
+                      <Users className="w-4 h-4 text-slate-500" />
                       {groupMembers.length} Anggota
                     </span>
 
                     {passiveCount > 0 && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-rose-100 text-rose-800 flex items-center gap-1">
+                      <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-rose-100 text-rose-800 flex items-center gap-1">
                         <AlertTriangle className="w-3 h-3" />
                         {passiveCount} Pasif
                       </span>

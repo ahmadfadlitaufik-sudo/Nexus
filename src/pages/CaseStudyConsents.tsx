@@ -242,16 +242,12 @@ export const CaseStudyConsents: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#00236f] via-[#1e3a8a] to-[#0051d5] rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-blue-100 text-xs font-semibold backdrop-blur-xs mb-3">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-            <span>Client Data Privacy & Consent Engine</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-['Plus_Jakarta_Sans'] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
             Izin Publikasi Studi Kasus
           </h1>
-          <p className="text-sm text-blue-100 mt-1.5 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
             Persetujuan eksplisit dari klien sebelum data transformasi dan metrik pertumbuhan bisnis diolah menjadi konten edukasi publik. Secara bawaan (default), seluruh nama dan identitas disamarkan secara anonim.
           </p>
         </div>
@@ -259,7 +255,7 @@ export const CaseStudyConsents: React.FC = () => {
         {!isTimKonten && (
           <button
             onClick={handleOpenNewRequest}
-            className="inline-flex items-center gap-2 bg-white text-[#00236f] hover:bg-blue-50 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-2 bg-[#00236f] text-white hover:bg-[#1e3a8a] px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Ajukan Izin Studi Kasus</span>
@@ -281,7 +277,7 @@ export const CaseStudyConsents: React.FC = () => {
       {/* Filter Toolbar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[260px]">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Cari judul studi kasus, industri, atau narasi..."
@@ -292,7 +288,7 @@ export const CaseStudyConsents: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 text-xs">
-          <span className="text-slate-400 font-bold uppercase text-[10px]">Status:</span>
+          <span className="text-slate-500 font-bold uppercase text-xs">Status:</span>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -309,7 +305,7 @@ export const CaseStudyConsents: React.FC = () => {
 
       {/* List of Consents */}
       {loading ? (
-        <div className="p-12 text-center text-slate-400 text-xs">Memuat daftar perizinan...</div>
+        <div className="p-12 text-center text-slate-500 text-xs">Memuat daftar perizinan...</div>
       ) : filteredConsents.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
           <ShieldCheck className="w-10 h-10 text-slate-300 mx-auto" />
@@ -348,14 +344,14 @@ export const CaseStudyConsents: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <h3 className="text-sm font-bold text-slate-900">{consent.caseStudyTitle}</h3>
                         <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusBadge(
+                          className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getStatusBadge(
                             consent.status
                           )}`}
                         >
                           {getStatusLabel(consent.status)}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-xs text-slate-500">
                         Diminta oleh <span className="font-semibold">{consent.requestedBy}</span> pada{' '}
                         {formatDateIndo(consent.requestedAt)}
                       </p>
@@ -381,14 +377,14 @@ export const CaseStudyConsents: React.FC = () => {
                 {/* Identity Comparison: Real vs Sanitized Preview */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Tampilan Nama dalam Publikasi Konten:
                     </span>
                     <div className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                       <Building2 className="w-4 h-4 text-[#00236f]" />
                       <span>{isAnon ? consent.anonymizedName : consent.businessName || consent.anonymizedName}</span>
                     </div>
-                    <div className="text-slate-500 text-[11px]">
+                    <div className="text-slate-500 text-xs">
                       Identitas Founder:{' '}
                       <span className="font-semibold text-slate-700">
                         {isAnon ? consent.anonymizedOwnerName : consent.clientName || consent.anonymizedOwnerName}
@@ -397,20 +393,20 @@ export const CaseStudyConsents: React.FC = () => {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Saluran yang Diizinkan:
                     </span>
                     <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {(consent.allowedChannels || ['LinkedIn', 'Instagram']).map((ch, idx) => (
                         <span
                           key={idx}
-                          className="bg-white text-slate-700 font-semibold px-2 py-0.5 rounded-md border border-slate-200 text-[10px]"
+                          className="bg-white text-slate-700 font-semibold px-2 py-0.5 rounded-md border border-slate-200 text-xs"
                         >
                           {ch}
                         </span>
                       ))}
                     </div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-xs text-slate-500">
                       Industri: <span className="font-semibold text-slate-700">{consent.industry}</span> ({consent.city})
                     </div>
                   </div>
@@ -420,7 +416,7 @@ export const CaseStudyConsents: React.FC = () => {
                 <div className="space-y-2 text-xs">
                   {consent.keyMetricsAchievement && (
                     <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-xl">
-                      <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
                         Key Performance Growth Highlights:
                       </span>
                       <p className="font-bold text-emerald-950 mt-0.5 text-xs">
@@ -435,7 +431,7 @@ export const CaseStudyConsents: React.FC = () => {
 
                   {/* Client response feedback if any */}
                   {consent.clientNotes && (
-                    <div className="p-2.5 bg-slate-100 rounded-xl text-[11px] text-slate-700 border border-slate-200">
+                    <div className="p-2.5 bg-slate-100 rounded-xl text-xs text-slate-700 border border-slate-200">
                       <span className="font-bold text-slate-900">Catatan Khusus dari Klien: </span>
                       "{consent.clientNotes}"
                     </div>
@@ -444,7 +440,7 @@ export const CaseStudyConsents: React.FC = () => {
 
                 {/* Actions Footer */}
                 <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="text-[11px] text-slate-400">
+                  <div className="text-xs text-slate-500">
                     ID Ref: <span className="font-mono">{consent.id}</span>
                   </div>
 
@@ -477,12 +473,12 @@ export const CaseStudyConsents: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Ajukan Izin Publikasi Studi Kasus</h3>
-                  <p className="text-[11px] text-slate-500">Klien akan memverifikasi di portal sebelum konten tayang</p>
+                  <p className="text-xs text-slate-500">Klien akan memverifikasi di portal sebelum konten tayang</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsRequestModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

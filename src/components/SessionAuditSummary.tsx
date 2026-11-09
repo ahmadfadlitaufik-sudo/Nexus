@@ -147,11 +147,11 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                 <span className="font-bold text-sm text-white font-['Plus_Jakarta_Sans']">
                   Audit Integritas Data Sesi &amp; Aturan Akses Server
                 </span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-400/30">
                   RULES AKTIF
                 </span>
               </div>
-              <p className="text-[11px] text-blue-200 mt-0.5">
+              <p className="text-xs text-blue-200 mt-0.5">
                 Sesi ID: <span className="font-mono text-white">{sessionId}</span> • Entitas: {clientName}
               </p>
             </div>
@@ -180,36 +180,36 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
         {/* 3 Metric Badges */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-white/15">
           <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
-            <span className="text-[10px] text-blue-200 uppercase font-bold tracking-wider block">
+            <span className="text-xs text-blue-200 uppercase font-bold tracking-wider block">
               Pemisahan Dokumen
             </span>
             <div className="text-xs font-bold text-white flex items-center gap-1 mt-0.5">
               <Lock className="w-3.5 h-3.5 text-amber-300" />
               <span>2 Dokumen Terisolasi</span>
             </div>
-            <span className="text-[10px] text-slate-300">sessions vs session_internals</span>
+            <span className="text-xs text-slate-300">sessions vs session_internals</span>
           </div>
 
           <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
-            <span className="text-[10px] text-blue-200 uppercase font-bold tracking-wider block">
+            <span className="text-xs text-blue-200 uppercase font-bold tracking-wider block">
               Akses Terotorisasi
             </span>
             <div className="text-xs font-bold text-emerald-300 flex items-center gap-1 mt-0.5">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>{authorizedCount} Peristiwa Sah</span>
             </div>
-            <span className="text-[10px] text-slate-300">Sesuai RBAC Server</span>
+            <span className="text-xs text-slate-300">Sesuai RBAC Server</span>
           </div>
 
           <div className="bg-white/10 p-2.5 rounded-xl border border-white/10">
-            <span className="text-[10px] text-blue-200 uppercase font-bold tracking-wider block">
+            <span className="text-xs text-blue-200 uppercase font-bold tracking-wider block">
               Anomali / Akses Ilegal Dicegah
             </span>
             <div className="text-xs font-bold text-rose-300 flex items-center gap-1 mt-0.5">
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>{blockedCount} Upaya Terblokir</span>
             </div>
-            <span className="text-[10px] text-slate-300">Otomatis ditolak server</span>
+            <span className="text-xs text-slate-300">Otomatis ditolak server</span>
           </div>
         </div>
       </div>
@@ -217,17 +217,17 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
       {/* SIAPA YANG TERAKHIR MENGAKSES SESI (HIGHLIGHT CARD) */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-3">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
             <Activity className="w-3.5 h-3.5 text-[#00236f]" />
             Pengakses Terakhir Sesi Ini
           </span>
-          <span className="text-[10px] text-slate-400">Status Integritas Real-time</span>
+          <span className="text-xs text-slate-500">Status Integritas Real-time</span>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-slate-400">Memverifikasi log integritas sesi...</div>
+          <div className="p-6 text-center text-slate-500">Memverifikasi log integritas sesi...</div>
         ) : !lastLog ? (
-          <div className="p-6 text-center text-slate-400">Belum ada catatan aktivitas akses pada sesi ini.</div>
+          <div className="p-6 text-center text-slate-500">Belum ada catatan aktivitas akses pada sesi ini.</div>
         ) : (
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-start gap-3">
@@ -244,11 +244,11 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-sm font-bold text-slate-900">{lastLog.userName}</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 uppercase">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800 uppercase">
                     Peran: {lastLog.userRole}
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
                       lastLog.isAuthorized
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                         : 'bg-rose-50 text-rose-800 border-rose-200'
@@ -260,13 +260,13 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
 
                 <p className="text-xs text-slate-600 leading-relaxed">{lastLog.details}</p>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 pt-1">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 pt-1">
                   <span className="flex items-center gap-1 font-semibold text-slate-700">
                     <Clock className="w-3.5 h-3.5 text-blue-600" />
                     Waktu: {formatWITA(lastLog.accessedAt, true)}
                   </span>
                   <span>
-                    Koleksi: <code className="bg-slate-200/80 px-1.5 py-0.5 rounded text-[10px] font-mono">{lastLog.targetCollection}</code>
+                    Koleksi: <code className="bg-slate-200/80 px-1.5 py-0.5 rounded text-xs font-mono">{lastLog.targetCollection}</code>
                   </span>
                   {lastLog.clientIp && <span>IP / Lokasi: {lastLog.clientIp}</span>}
                 </div>
@@ -274,13 +274,13 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
             </div>
 
             <div className="p-3 rounded-xl bg-white border border-slate-200/90 text-right shrink-0 md:max-w-xs">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                 Aturan Akses Server
               </span>
-              <p className="font-mono text-[11px] font-bold text-[#00236f] truncate mt-0.5" title={lastLog.securityRuleMatched}>
+              <p className="font-mono text-xs font-bold text-[#00236f] truncate mt-0.5" title={lastLog.securityRuleMatched}>
                 {lastLog.securityRuleMatched}
               </p>
-              <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-block">
+              <span className="text-xs text-emerald-600 font-semibold mt-1 inline-block">
                 Tervalidasi Aturan Keamanan V2
               </span>
             </div>
@@ -296,7 +296,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
             <span>Matriks Otorisasi Akses Data Sesi Berdasarkan Aturan Akses Server</span>
           </h4>
           <p className="text-xs text-slate-500 mt-0.5">
-            Sistem memisahkan kolom data catatan internal ke dokumen terpisah agar Security Rules dapat mengisolasi hak baca secara absolut.
+            Sistem memisahkan kolom data catatan internal ke dokumen terpisah agar aturan akses dapat mengisolasi hak baca secara absolut.
           </p>
         </div>
 
@@ -313,7 +313,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
             <tbody className="divide-y divide-slate-100">
               <tr className="hover:bg-slate-50/50">
                 <td className="p-3 font-bold text-slate-900">
-                  <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-[10px] mr-1.5 uppercase">
+                  <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-900 font-bold text-xs mr-1.5 uppercase">
                     Owner
                   </span>
                   Semua Owner
@@ -325,7 +325,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" /> Baca &amp; Tulis Catatan Rahasia
                 </td>
                 <td className="p-3">
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold text-[10px] border border-emerald-200">
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold text-xs border border-emerald-200">
                     isOwner() → Full Access
                   </span>
                 </td>
@@ -333,7 +333,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
 
               <tr className="hover:bg-slate-50/50">
                 <td className="p-3 font-bold text-slate-900">
-                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-bold text-[10px] mr-1.5 uppercase">
+                  <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-bold text-xs mr-1.5 uppercase">
                     Konsultan
                   </span>
                   Konsultan Ditugaskan
@@ -345,7 +345,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                   <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" /> Catatan Internal Klien Binaan
                 </td>
                 <td className="p-3">
-                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 font-bold text-[10px] border border-blue-200">
+                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-800 font-bold text-xs border border-blue-200">
                     isConsultant() → Assigned Only
                   </span>
                 </td>
@@ -353,7 +353,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
 
               <tr className="bg-amber-50/20 hover:bg-amber-50/40">
                 <td className="p-3 font-bold text-slate-900">
-                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold text-[10px] mr-1.5 uppercase">
+                  <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold text-xs mr-1.5 uppercase">
                     Klien
                   </span>
                   Pemilik Bisnis UKM
@@ -365,7 +365,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                   <Lock className="w-3.5 h-3.5" /> DITOLAK KERAS (ISOLASI DOKUMEN)
                 </td>
                 <td className="p-3">
-                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-[10px] border border-amber-300">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
                     Strict Zero-Trust Separation
                   </span>
                 </td>
@@ -373,7 +373,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
 
               <tr className="bg-rose-50/20 hover:bg-rose-50/40">
                 <td className="p-3 font-bold text-slate-900">
-                  <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-900 font-bold text-[10px] mr-1.5 uppercase">
+                  <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-900 font-bold text-xs mr-1.5 uppercase">
                     Tim Konten
                   </span>
                   Media &amp; Copywriter
@@ -385,7 +385,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                   <XCircle className="w-3.5 h-3.5 inline mr-1" /> Ditolak (Koleksi Internal)
                 </td>
                 <td className="p-3">
-                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 font-bold text-[10px] border border-rose-200">
+                  <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 font-bold text-xs border border-rose-200">
                     !isTimKonten() Rule Active
                   </span>
                 </td>
@@ -406,7 +406,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
               <h4 className="text-sm font-bold text-slate-900">
                 Simulator Verifikasi Aturan Akses Server Real-Time
               </h4>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500">
                 Uji coba secara langsung apakah kombinasi peran dan target dokumen sesi lolos otorisasi aturan keamanan.
               </p>
             </div>
@@ -423,7 +423,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-3.5 bg-white rounded-xl border border-slate-200">
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">Pilih Peran Akun</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Pilih Peran Akun</label>
             <select
               value={simRole}
               onChange={(e) => {
@@ -442,7 +442,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">Target Dokumen</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Target Dokumen</label>
             <select
               value={simTarget}
               onChange={(e) => {
@@ -458,7 +458,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">Status Penugasan</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Status Penugasan</label>
             <select
               value={simAssigned ? 'yes' : 'no'}
               onChange={(e) => {
@@ -474,7 +474,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold text-slate-600 mb-1">Kepemilikan Akun Klien</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1">Kepemilikan Akun Klien</label>
             <select
               value={simClientSelf ? 'yes' : 'no'}
               onChange={(e) => {
@@ -510,10 +510,10 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-xs uppercase tracking-wider">
-                  Hasil Evaluasi Security Rules:
+                  Hasil Evaluasi Aturan Akses:
                 </span>
                 <span
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                     simResult.isAuthorized
                       ? 'bg-emerald-200 text-emerald-900'
                       : 'bg-rose-200 text-rose-900'
@@ -523,7 +523,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                 </span>
               </div>
               <p className="text-xs leading-relaxed font-medium">{simResult.explanation}</p>
-              <div className="text-[11px] font-mono opacity-80 pt-0.5">
+              <div className="text-xs font-mono opacity-80 pt-0.5">
                 Evaluated Rule: {simResult.ruleClause}
               </div>
             </div>
@@ -537,7 +537,7 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
           <span className="text-xs font-bold text-slate-800">
             Jejak Audit Akses Sesi ({auditLogs.length} Entri Tercatat)
           </span>
-          <span className="text-[10px] text-slate-400">Diurutkan berdasarkan waktu terbaru</span>
+          <span className="text-xs text-slate-500">Diurutkan berdasarkan waktu terbaru</span>
         </div>
 
         <div className="space-y-2.5 max-h-80 overflow-y-auto">
@@ -561,11 +561,11 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900">{log.userName}</span>
-                    <span className="text-[10px] px-1.5 py-0.2 bg-slate-100 text-slate-700 rounded font-semibold uppercase">
+                    <span className="text-xs px-1.5 py-0.2 bg-slate-100 text-slate-700 rounded font-semibold uppercase">
                       {log.userRole}
                     </span>
                     <span
-                      className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                      className={`text-xs font-bold px-1.5 py-0.2 rounded ${
                         log.isAuthorized
                           ? 'bg-emerald-100 text-emerald-800'
                           : 'bg-rose-100 text-rose-800'
@@ -574,8 +574,8 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                       {log.isAuthorized ? 'Terotorisasi' : 'Dicegah (Blocked)'}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600">{log.details}</p>
-                  <div className="text-[10px] text-slate-400 flex items-center gap-2">
+                  <p className="text-xs text-slate-600">{log.details}</p>
+                  <div className="text-xs text-slate-500 flex items-center gap-2">
                     <span>Target: {log.targetCollection}</span>
                     <span>•</span>
                     <span>Rule: {log.securityRuleMatched}</span>
@@ -583,9 +583,9 @@ export const SessionAuditSummary: React.FC<SessionAuditSummaryProps> = ({
                 </div>
               </div>
 
-              <div className="text-right shrink-0 text-[11px] text-slate-500">
+              <div className="text-right shrink-0 text-xs text-slate-500">
                 <span className="font-semibold text-slate-700 block">{formatWITA(log.accessedAt, true)}</span>
-                <span className="text-[10px] text-slate-400">{log.clientIp || 'Aplikasi Internal'}</span>
+                <span className="text-xs text-slate-500">{log.clientIp || 'Aplikasi Internal'}</span>
               </div>
             </div>
           ))}

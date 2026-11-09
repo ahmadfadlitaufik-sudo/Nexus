@@ -249,23 +249,19 @@ export const MaterialLibrary: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#00236f] via-[#1e3a8a] to-[#0051d5] rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-blue-100 text-xs font-semibold backdrop-blur-xs mb-3">
-            <Bookmark className="w-3.5 h-3.5 text-amber-300" />
-            <span>Knowledge Base &amp; Advisory Toolkits</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-['Plus_Jakarta_Sans'] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
             Perpustakaan Materi &amp; Framework
           </h1>
-          <p className="text-sm text-blue-100 mt-1.5 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
             Kumpulan master template SOP, kalkulator spreadsheet keuangan, pedoman delegasi, dan playbook yang dapat langsung dipasang ke roadmap transformasi klien atau dibagikan ke forum grup.
           </p>
         </div>
 
         <button
           onClick={() => setIsNewMaterialModalOpen(true)}
-          className="inline-flex items-center gap-2 bg-white text-[#00236f] hover:bg-blue-50 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm shrink-0 cursor-pointer"
+          className="inline-flex items-center gap-2 bg-[#00236f] text-white hover:bg-[#1e3a8a] px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-sm shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Tambah Materi / Template Baru</span>
@@ -277,7 +273,7 @@ export const MaterialLibrary: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-center gap-3">
           {/* Search Bar */}
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari materi, spreadsheet, SOP, atau tag..."
@@ -304,7 +300,7 @@ export const MaterialLibrary: React.FC = () => {
 
         {/* Category Pills */}
         <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 text-xs">
-          <span className="text-[11px] font-bold text-slate-400 mr-1 uppercase tracking-wider">Kategori:</span>
+          <span className="text-xs font-bold text-slate-500 mr-1 uppercase tracking-wider">Kategori:</span>
           {categories.map((cat) => (
             <button
               key={cat}
@@ -323,7 +319,7 @@ export const MaterialLibrary: React.FC = () => {
 
       {/* Materials Cards Grid */}
       {loading ? (
-        <div className="p-12 text-center text-slate-400 text-xs">Memuat perpustakaan materi...</div>
+        <div className="p-12 text-center text-slate-500 text-xs">Memuat perpustakaan materi...</div>
       ) : filteredMaterials.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
           <Bookmark className="w-10 h-10 text-slate-300 mx-auto" />
@@ -342,11 +338,11 @@ export const MaterialLibrary: React.FC = () => {
               <div className="space-y-3">
                 {/* Header Category & Format Badges */}
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-bold text-[#0051d5] uppercase tracking-wider">
+                  <span className="text-xs font-bold text-[#0051d5] uppercase tracking-wider">
                     {mat.category || 'Materi Umum'}
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getFormatBadge(
+                    className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getFormatBadge(
                       mat.format
                     )}`}
                   >
@@ -370,7 +366,7 @@ export const MaterialLibrary: React.FC = () => {
                     {mat.tags.map((t, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded-md font-medium border border-slate-100"
+                        className="text-xs bg-slate-50 text-slate-600 px-2 py-0.5 rounded-md font-medium border border-slate-100"
                       >
                         #{t}
                       </span>
@@ -381,7 +377,7 @@ export const MaterialLibrary: React.FC = () => {
 
               {/* Footer Meta & Actions */}
               <div className="pt-3 border-t border-slate-100 space-y-3">
-                <div className="flex items-center justify-between text-[11px] text-slate-400">
+                <div className="flex items-center justify-between text-xs text-slate-500">
                   <span className="font-semibold text-slate-600">
                     Oleh: {mat.authorName.split(',')[0]}
                   </span>
@@ -416,7 +412,7 @@ export const MaterialLibrary: React.FC = () => {
                     href={mat.fileUrl || mat.externalUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-1 text-[11px] text-slate-500 hover:text-[#00236f] hover:underline font-semibold pt-1"
+                    className="w-full inline-flex items-center justify-center gap-1 text-xs text-slate-500 hover:text-[#00236f] hover:underline font-semibold pt-1"
                   >
                     <span>Buka Lembar / Dokumen Template</span>
                     <ExternalLink className="w-3 h-3" />
@@ -439,12 +435,12 @@ export const MaterialLibrary: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Pasang ke Roadmap Klien</h3>
-                  <p className="text-[11px] text-slate-500">Materi akan otomatis menjadi item roadmap klien</p>
+                  <p className="text-xs text-slate-500">Materi akan otomatis menjadi item roadmap klien</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsClientModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -452,7 +448,7 @@ export const MaterialLibrary: React.FC = () => {
 
             <form onSubmit={handleConfirmAttachClient} className="space-y-3.5 mt-4 text-xs">
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Materi Terpilih:</div>
+                <div className="text-xs uppercase font-bold text-slate-500">Materi Terpilih:</div>
                 <div className="font-bold text-slate-900 mt-0.5">{selectedMaterial.title}</div>
               </div>
 
@@ -524,12 +520,12 @@ export const MaterialLibrary: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Bagikan ke Forum Grup</h3>
-                  <p className="text-[11px] text-slate-500">Materi akan dipasang di tab pengumuman grup</p>
+                  <p className="text-xs text-slate-500">Materi akan dipasang di tab pengumuman grup</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsGroupModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -537,7 +533,7 @@ export const MaterialLibrary: React.FC = () => {
 
             <form onSubmit={handleConfirmAttachGroup} className="space-y-3.5 mt-4 text-xs">
               <div className="p-3 bg-purple-50/50 rounded-xl border border-purple-100">
-                <div className="text-[10px] uppercase font-bold text-purple-500">Materi:</div>
+                <div className="text-xs uppercase font-bold text-purple-500">Materi:</div>
                 <div className="font-bold text-slate-900 mt-0.5">{selectedMaterial.title}</div>
               </div>
 
@@ -598,12 +594,12 @@ export const MaterialLibrary: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-slate-900">Tambah Materi Perpustakaan</h3>
-                  <p className="text-[11px] text-slate-500">Mendaftarkan template baru ke direktori internal</p>
+                  <p className="text-xs text-slate-500">Mendaftarkan template baru ke direktori internal</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsNewMaterialModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>

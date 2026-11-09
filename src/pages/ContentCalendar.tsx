@@ -291,27 +291,23 @@ export const ContentCalendar: React.FC = () => {
       )}
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#00236f] via-[#1e3a8a] to-[#0051d5] rounded-2xl p-6 sm:p-8 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-blue-100 text-xs font-semibold backdrop-blur-xs mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Content Pipeline & Production Engine</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-bold font-['Plus_Jakarta_Sans'] tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
             Kalender Konten &amp; Publikasi
           </h1>
-          <p className="text-sm text-blue-100 mt-1.5 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 max-w-2xl leading-relaxed">
             Kelola perencanaan materi program pembinaan, konten pemasaran media sosial, dan studi kasus pertumbuhan klien UKM dalam satu alur terpusat.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 shrink-0">
           {/* Switch View Toggle */}
-          <div className="bg-white/10 p-1 rounded-xl flex items-center border border-white/15">
+          <div className="bg-slate-200/70 p-1 rounded-xl flex items-center">
             <button
               onClick={() => setViewMode('board')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
-                viewMode === 'board' ? 'bg-white text-[#00236f] shadow-xs' : 'text-blue-100 hover:text-white'
+                viewMode === 'board' ? 'bg-white text-[#00236f] shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Kanban className="w-3.5 h-3.5" />
@@ -320,7 +316,7 @@ export const ContentCalendar: React.FC = () => {
             <button
               onClick={() => setViewMode('calendar')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
-                viewMode === 'calendar' ? 'bg-white text-[#00236f] shadow-xs' : 'text-blue-100 hover:text-white'
+                viewMode === 'calendar' ? 'bg-white text-[#00236f] shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <CalendarIcon className="w-3.5 h-3.5" />
@@ -330,7 +326,7 @@ export const ContentCalendar: React.FC = () => {
 
           <button
             onClick={() => handleOpenNewModal()}
-            className="inline-flex items-center gap-1.5 bg-white text-[#00236f] hover:bg-blue-50 px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
+            className="inline-flex items-center gap-1.5 bg-[#00236f] text-white hover:bg-[#1e3a8a] px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Buat Konten Baru</span>
@@ -343,7 +339,7 @@ export const ContentCalendar: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3 flex-1">
           {/* Search Box */}
           <div className="relative flex-1 min-w-[240px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               placeholder="Cari judul, topik, saluran, atau PIC..."
@@ -410,19 +406,19 @@ export const ContentCalendar: React.FC = () => {
             return (
               <div
                 key={col.id}
-                className={`${col.bg} border ${col.border} rounded-2xl p-3.5 flex flex-col min-h-[560px]`}
+                className={`${col.bg} border ${col.border} rounded-2xl p-3.5 flex flex-col md:min-h-[560px]`}
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-slate-900">{col.label}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${col.badge}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${col.badge}`}>
                       {colItems.length}
                     </span>
                   </div>
                   <button
                     onClick={() => handleOpenNewModal(col.id)}
-                    className="p-1 text-slate-400 hover:text-slate-700 hover:bg-white rounded-lg transition cursor-pointer"
+                    className="p-1 text-slate-500 hover:text-slate-700 hover:bg-white rounded-lg transition cursor-pointer"
                     title="Tambah ke status ini"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -432,11 +428,11 @@ export const ContentCalendar: React.FC = () => {
                 {/* Items in Column */}
                 <div className="space-y-3 flex-1 overflow-y-auto">
                   {colItems.length === 0 ? (
-                    <div className="h-32 border-2 border-dashed border-slate-200/80 rounded-xl flex flex-col items-center justify-center text-slate-400 text-center p-3">
-                      <p className="text-[11px] font-medium">Belum ada konten</p>
+                    <div className="h-32 border-2 border-dashed border-slate-200/80 rounded-xl flex flex-col items-center justify-center text-slate-500 text-center p-3">
+                      <p className="text-xs font-medium">Belum ada konten</p>
                       <button
                         onClick={() => handleOpenNewModal(col.id)}
-                        className="mt-1 text-[10px] font-semibold text-[#0051d5] hover:underline cursor-pointer"
+                        className="mt-1 text-xs font-semibold text-[#0051d5] hover:underline cursor-pointer"
                       >
                         + Tambah Ide
                       </button>
@@ -453,13 +449,13 @@ export const ContentCalendar: React.FC = () => {
                             <span className="p-1 rounded-md bg-slate-50 border border-slate-100 flex items-center justify-center">
                               {getChannelIcon(item.channel)}
                             </span>
-                            <span className="text-[10px] font-bold text-slate-600 truncate max-w-[85px]">
+                            <span className="text-xs font-bold text-slate-600 truncate max-w-[85px]">
                               {item.channel}
                             </span>
                           </div>
 
                           <span
-                            className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                            className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                               item.type === 'materi_program'
                                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
                                 : 'bg-purple-50 text-purple-700 border border-purple-200'
@@ -476,7 +472,7 @@ export const ContentCalendar: React.FC = () => {
 
                         {/* Description Preview */}
                         {item.description && (
-                          <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
+                          <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
                             {item.description}
                           </p>
                         )}
@@ -487,7 +483,7 @@ export const ContentCalendar: React.FC = () => {
                             {item.tags.slice(0, 2).map((t, idx) => (
                               <span
                                 key={idx}
-                                className="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium"
+                                className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium"
                               >
                                 #{t}
                               </span>
@@ -496,19 +492,19 @@ export const ContentCalendar: React.FC = () => {
                         )}
 
                         {/* Footer Info & PIC */}
-                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                           <div className="flex items-center gap-1 text-slate-600 font-medium">
-                            <Clock className="w-3 h-3 text-slate-400" />
+                            <Clock className="w-3 h-3 text-slate-500" />
                             <span>{item.publishDate ? formatDateIndo(item.publishDate) : '-'}</span>
                             {item.publishDate === todayWITA() && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 text-[9px] font-bold">
+                              <span className="px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 text-xs font-bold">
                                 Hari Ini
                               </span>
                             )}
                           </div>
 
                           <div className="flex items-center gap-1 text-slate-700 font-semibold truncate max-w-[80px]">
-                            <User className="w-3 h-3 text-slate-400" />
+                            <User className="w-3 h-3 text-slate-500" />
                             <span className="truncate">{item.authorName.split(' ')[0]}</span>
                           </div>
                         </div>
@@ -518,7 +514,7 @@ export const ContentCalendar: React.FC = () => {
                           <select
                             value={item.status}
                             onChange={(e) => handleStatusChange(item.id, e.target.value as ContentStatus)}
-                            className="text-[10px] font-semibold bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700 focus:outline-none cursor-pointer"
+                            className="text-xs font-semibold bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 text-slate-700 focus:outline-none cursor-pointer"
                           >
                             <option value="Ide">Ide</option>
                             <option value="Produksi">Produksi</option>
@@ -530,14 +526,14 @@ export const ContentCalendar: React.FC = () => {
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => handleOpenEditModal(item)}
-                              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition cursor-pointer"
                               title="Edit Konten"
                             >
                               <Edit2 className="w-3 h-3" />
                             </button>
                             <button
                               onClick={() => handlePromptDelete(item)}
-                              className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition cursor-pointer"
+                              className="p-1 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded transition cursor-pointer"
                               title="Hapus Konten"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -643,7 +639,7 @@ export const ContentCalendar: React.FC = () => {
                       <div
                         key={item.id}
                         onClick={() => handleOpenEditModal(item)}
-                        className={`p-1.5 rounded-lg border text-[10px] font-semibold flex items-center justify-between cursor-pointer hover:scale-[1.02] transition ${
+                        className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center justify-between cursor-pointer hover:scale-[1.02] transition ${
                           item.status === 'Terbit'
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
                             : item.status === 'Terjadwal'
@@ -685,7 +681,7 @@ export const ContentCalendar: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1.5 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -849,7 +845,7 @@ export const ContentCalendar: React.FC = () => {
               <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-200 flex items-center justify-between">
                 <div>
                   <div className="font-bold text-slate-900">Tambahkan ke Perpustakaan Materi?</div>
-                  <div className="text-[11px] text-slate-600">
+                  <div className="text-xs text-slate-600">
                     Materi ini dapat dicari dan dipasang langsung ke roadmap klien atau sesi grup.
                   </div>
                 </div>

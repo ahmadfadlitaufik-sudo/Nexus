@@ -218,7 +218,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
         <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
           <Calendar className="w-5 h-5 text-blue-200" />
           <div>
-            <div className="text-[10px] uppercase font-bold text-blue-200">Zona Waktu Kerja:</div>
+            <div className="text-xs uppercase font-bold text-blue-200">Zona Waktu Kerja:</div>
             <div className="text-xs font-bold text-white">{formatWITA(new Date().toISOString(), true)}</div>
           </div>
         </div>
@@ -244,7 +244,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
             </div>
             <div>
               <div className="text-xs font-bold">Check-in Pagi (Standup)</div>
-              <div className="text-[11px] text-slate-600">
+              <div className="text-xs text-slate-600">
                 {hasMorningCheckin
                   ? `Selesai pada ${formatWITA(checkin?.morningCheckinAt)} • Status: ${checkin?.workStatus}`
                   : 'Belum dilakukan hari ini. Mohon tentukan prioritas Anda.'}
@@ -253,7 +253,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
           </div>
 
           <span
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
+            className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase ${
               hasMorningCheckin ? 'bg-emerald-200 text-emerald-900' : 'bg-amber-200 text-amber-900'
             }`}
           >
@@ -279,7 +279,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
             </div>
             <div>
               <div className="text-xs font-bold">Check-out Sore (Refleksi)</div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-xs text-slate-500">
                 {hasEveningCheckout
                   ? `Terekam pada ${formatWITA(checkin?.eveningCheckoutAt)} • ${checkin?.completedCount || 0} Prioritas Tuntas`
                   : 'Lakukan di akhir jam kerja untuk review 3 prioritas.'}
@@ -288,7 +288,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
           </div>
 
           <span
-            className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
+            className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase ${
               hasEveningCheckout ? 'bg-purple-200 text-purple-900' : 'bg-slate-200 text-slate-600'
             }`}
           >
@@ -311,12 +311,12 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                   <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
                     1. Check-in Pagi &amp; 3 Prioritas Utama
                   </h3>
-                  <p className="text-[11px] text-slate-500">Tentukan status ketersediaan dan target terpenting hari ini</p>
+                  <p className="text-xs text-slate-500">Tentukan status ketersediaan dan target terpenting hari ini</p>
                 </div>
               </div>
 
               {hasMorningCheckin && (
-                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                   Tersimpan
                 </span>
               )}
@@ -356,7 +356,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                   <label className="font-bold text-slate-700">
                     3 Prioritas Utama Hari Ini <span className="text-red-500">*</span>
                   </label>
-                  <span className="text-[10px] text-slate-400">Pilih dari agenda samping atau ketik manual</span>
+                  <span className="text-xs text-slate-500">Pilih dari agenda samping atau ketik manual</span>
                 </div>
 
                 {/* Priority 1 */}
@@ -440,14 +440,14 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                   <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
                     2. Check-out Sore &amp; Refleksi Capaian
                   </h3>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Tandai status tiap prioritas (Selesai atau Pindah ke besok) dan catatan singkat
                   </p>
                 </div>
               </div>
 
               {hasEveningCheckout && (
-                <span className="text-[10px] font-bold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-full border border-purple-200">
+                <span className="text-xs font-bold text-purple-800 bg-purple-100 px-2.5 py-0.5 rounded-full border border-purple-200">
                   Sudah Check-out
                 </span>
               )}
@@ -470,7 +470,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                       className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
                     >
                       <div className="flex items-center gap-2 min-w-0">
-                        <span className="w-5 h-5 rounded-full bg-[#00236f] text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+                        <span className="w-5 h-5 rounded-full bg-[#00236f] text-white font-bold text-xs flex items-center justify-center shrink-0">
                           {idx + 1}
                         </span>
                         <span className="font-semibold text-slate-800 text-xs truncate">
@@ -483,7 +483,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                         <button
                           type="button"
                           onClick={() => setPStatuses({ ...pStatuses, [idx]: 'Selesai' })}
-                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
                             currentSt === 'Selesai'
                               ? 'bg-emerald-600 text-white shadow-xs'
                               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
@@ -496,7 +496,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                         <button
                           type="button"
                           onClick={() => setPStatuses({ ...pStatuses, [idx]: 'Pindah ke besok' })}
-                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition cursor-pointer ${
                             currentSt === 'Pindah ke besok'
                               ? 'bg-amber-600 text-white shadow-xs'
                               : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
@@ -550,7 +550,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                   <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
                     Agenda Hari Ini
                   </h3>
-                  <p className="text-[11px] text-slate-500">Terisi otomatis dari sesi, tugas &amp; konten</p>
+                  <p className="text-xs text-slate-500">Terisi otomatis dari sesi, tugas &amp; konten</p>
                 </div>
               </div>
             </div>
@@ -559,7 +559,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
               <div className="p-6 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-1.5">
                 <Calendar className="w-7 h-7 text-slate-300 mx-auto" />
                 <p className="text-xs font-bold text-slate-700">Tidak ada agenda terjadwal hari ini</p>
-                <p className="text-[11px] text-slate-400">
+                <p className="text-xs text-slate-500">
                   Anda dapat menyusun prioritas manual di panel check-in.
                 </p>
               </div>
@@ -572,7 +572,7 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                   >
                     <div className="flex items-center justify-between gap-1">
                       <span
-                        className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full uppercase ${
                           item.type === 'session'
                             ? 'bg-blue-100 text-blue-900 border border-blue-200'
                             : item.type === 'task'
@@ -587,21 +587,21 @@ export const TodayPage: React.FC<TodayPageProps> = ({ onNavigate }) => {
                           : 'Jadwal Konten'}
                       </span>
 
-                      <span className="text-[10px] text-slate-500 font-semibold">
+                      <span className="text-xs text-slate-500 font-semibold">
                         {item.timeOrDeadline ? formatWITA(item.timeOrDeadline) : 'Hari Ini'}
                       </span>
                     </div>
 
                     <h4 className="text-xs font-bold text-slate-900 leading-snug">{item.title}</h4>
 
-                    <div className="text-[11px] text-slate-500 flex items-center justify-between">
+                    <div className="text-xs text-slate-500 flex items-center justify-between">
                       <span className="font-semibold text-slate-700 truncate max-w-[130px]">
                         {item.clientOrGroupName}
                       </span>
 
                       <button
                         onClick={() => handleAddAgendaToPriority(item)}
-                        className="inline-flex items-center gap-1 text-[10px] font-bold bg-[#00236f] hover:bg-[#1e3a8a] text-white px-2.5 py-1 rounded-lg transition cursor-pointer shadow-xs"
+                        className="inline-flex items-center gap-1 text-xs font-bold bg-[#00236f] hover:bg-[#1e3a8a] text-white px-2.5 py-1 rounded-lg transition cursor-pointer shadow-xs"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Jadikan prioritas</span>

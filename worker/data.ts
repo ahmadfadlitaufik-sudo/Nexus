@@ -14,6 +14,7 @@ import { Doc, Env, Profile, isActive, isClient, isOwner, isTeam, ownerEmail } fr
 import { COLLECTION_RE, Filter, deleteDoc, getDoc, putDoc, queryDocs } from './docs';
 
 const TEAM_ONLY = new Set([
+  'content_items',
   'session_internals',
   'client_consultants',
   'group_attendance',
@@ -40,7 +41,8 @@ const CLIENT_SCOPED = new Set([
 ]);
 
 // Katalog yang boleh dibaca semua pengguna aktif.
-const ACTIVE_READ = new Set(['programs', 'groups', 'group_announcements', 'content_items']);
+// content_items = rencana konten & materi internal: khusus tim.
+const ACTIVE_READ = new Set(['programs', 'groups', 'group_announcements']);
 
 // Koleksi yang boleh diubah klien (untuk data miliknya sendiri).
 const CLIENT_UPDATABLE = new Set(['tasks', 'content_consents', 'feedback']);

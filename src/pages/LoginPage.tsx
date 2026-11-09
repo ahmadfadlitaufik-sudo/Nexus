@@ -287,7 +287,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
             Kembali ke Beranda Publik
           </button>
 
-          <span className="text-[11px] font-semibold text-slate-400">
+          <span className="text-xs font-semibold text-slate-500">
             Sistem WFA Terpadu • WITA Timezone
           </span>
         </div>
@@ -407,7 +407,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
               <button
                 type="button"
                 onClick={() => setLinkToken(null)}
-                className="w-full text-[11px] text-slate-500 hover:underline cursor-pointer"
+                className="w-full text-xs text-slate-500 hover:underline cursor-pointer"
               >
                 Batal, kembali ke halaman masuk
               </button>
@@ -443,7 +443,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                 <div className="flex justify-between">
                   <span className="text-slate-500">Status Akun:</span>
                   <span
-                    className={`font-bold px-2 py-0.5 rounded-full text-[10px] uppercase ${
+                    className={`font-bold px-2 py-0.5 rounded-full text-xs uppercase ${
                       registeredUser.status === 'active'
                         ? 'bg-emerald-100 text-emerald-800'
                         : 'bg-amber-100 text-amber-800'
@@ -491,7 +491,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                     Alamat Email
                   </label>
                   <div className="relative">
-                    <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                     <input
                       type="email"
                       value={email}
@@ -510,13 +510,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                     <button
                       type="button"
                       onClick={handleForgotPassword}
-                      className="text-[11px] text-[#0051d5] hover:underline cursor-pointer"
+                      className="text-xs text-[#0051d5] hover:underline cursor-pointer"
                     >
                       Lupa sandi?
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                    <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
                     <input
                       type="password"
                       value={password}
@@ -544,7 +544,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                     <div className="w-full border-t border-slate-200" />
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-3 text-slate-400 font-semibold tracking-wider text-[10px]">
+                    <span className="bg-white px-3 text-slate-500 font-semibold tracking-wider text-xs">
                       Atau masuk dengan
                     </span>
                   </div>
@@ -622,7 +622,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   >
                     <Shield className="w-5 h-5 text-purple-700" />
                     <span className="text-xs font-bold block leading-tight">Dewan Direksi</span>
-                    <span className="text-[10px] text-slate-500 block">BOD / Partner</span>
+                    <span className="text-xs text-slate-500 block">BOD / Partner</span>
                   </button>
 
                   <button
@@ -636,7 +636,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   >
                     <Briefcase className="w-5 h-5 text-[#0051d5]" />
                     <span className="text-xs font-bold block leading-tight">Staf &amp; Tim</span>
-                    <span className="text-[10px] text-slate-500 block">Konsultan / Tim</span>
+                    <span className="text-xs text-slate-500 block">Konsultan / Tim</span>
                   </button>
 
                   <button
@@ -650,7 +650,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   >
                     <Building2 className="w-5 h-5 text-teal-700" />
                     <span className="text-xs font-bold block leading-tight">Klien Bisnis</span>
-                    <span className="text-[10px] text-slate-500 block">Mitra UKM</span>
+                    <span className="text-xs text-slate-500 block">Mitra UKM</span>
                   </button>
                 </div>
               </div>
@@ -1003,10 +1003,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                   Akses Cepat Pengujian (1-Klik):
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400">Termasuk akun Pending Approval</span>
+              <span className="text-xs text-slate-500">Termasuk akun Pending Approval</span>
             </div>
 
-            <p className="text-[11px] text-slate-500 mb-3">
+            <p className="text-xs text-slate-500 mb-3">
               Klik profil di bawah untuk menguji alur hak akses dan fitur persetujuan Owner secara langsung:
             </p>
 
@@ -1041,16 +1041,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onBackToLanding, onLoginSu
                       </span>
                       <div className="flex items-center gap-1 shrink-0">
                         {isPending && (
-                          <span className="text-[9px] px-1.5 py-0.2 rounded font-bold uppercase bg-amber-200 text-amber-900">
+                          <span className="text-xs px-1.5 py-0.2 rounded font-bold uppercase bg-amber-200 text-amber-900">
                             Pending
                           </span>
                         )}
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold uppercase ${roleBadge}`}>
+                        <span className={`text-xs px-1.5 py-0.2 rounded font-bold uppercase ${roleBadge}`}>
                           {user.role}
                         </span>
                       </div>
                     </div>
-                    <span className="text-[11px] text-slate-500 truncate">
+                    <span className="text-xs text-slate-500 truncate">
                       {user.title || user.companyName || user.email}
                     </span>
                   </button>

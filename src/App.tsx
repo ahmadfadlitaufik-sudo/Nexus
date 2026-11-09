@@ -157,7 +157,7 @@ function MainApp() {
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Zona WITA (UTC+8)</span>
               <span className="text-slate-300">|</span>
-              <span className="text-slate-500 font-normal">WFA Business Advisory Hub</span>
+              <span className="text-slate-500 font-normal">Pusat Pendampingan Bisnis</span>
             </div>
           </div>
 
@@ -171,13 +171,17 @@ function MainApp() {
                     setCurrentTab(tab);
                   }}
                 />
-                <button
-                  onClick={() => setShowNewClientModal(true)}
-                  className="inline-flex items-center gap-1.5 bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Tambah Klien Baru</span>
-                </button>
+                {/* Tombol cepat hanya di Dashboard (Daftar Klien punya tombolnya sendiri). */}
+                {currentTab === 'dashboard' && (
+                  <button
+                    onClick={() => setShowNewClientModal(true)}
+                    aria-label="Tambah Klien Baru"
+                    className="inline-flex items-center gap-1.5 bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Tambah Klien Baru</span>
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -223,8 +227,8 @@ function MainApp() {
           {!isClient && currentTab === 'attendance' && <AttendancePage />}
 
           {/* UNIVERSAL CONTENT & MEDIA TABS */}
-          {currentTab === 'content-calendar' && <ContentCalendar />}
-          {currentTab === 'material-library' && <MaterialLibrary />}
+          {!isClient && currentTab === 'content-calendar' && <ContentCalendar />}
+          {!isClient && currentTab === 'material-library' && <MaterialLibrary />}
           {currentTab === 'case-study-consents' && <CaseStudyConsents />}
 
           {/* OWNER VIEWS */}

@@ -1,3 +1,4 @@
+import { UserAvatar } from '../components/UserAvatar';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -171,7 +172,7 @@ export const TeamBoardPage: React.FC = () => {
           {/* Summary Mini Bar */}
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4 text-xs">
             <div className="flex items-center gap-4">
-              <span className="font-bold text-slate-500 uppercase text-[10px]">Ringkasan Hari Ini:</span>
+              <span className="font-bold text-slate-500 uppercase text-xs">Ringkasan Hari Ini:</span>
               <span className="font-semibold text-slate-700">
                 {checkins.length} dari {teamUsers.length} anggota telah check-in
               </span>
@@ -210,19 +211,12 @@ export const TeamBoardPage: React.FC = () => {
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-2.5">
                       <div className="flex items-center gap-2.5">
-                        <img
-                          src={
-                            member.avatarUrl ||
-                            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-                          }
-                          alt={member.displayName}
-                          className="w-10 h-10 rounded-full object-cover ring-2 ring-slate-100 shrink-0"
-                        />
+                        <UserAvatar url={member.avatarUrl} name={member.displayName} className="w-10 h-10 rounded-full ring-2 ring-slate-100 shrink-0" />
                         <div className="min-w-0">
                           <h3 className="text-sm font-bold text-slate-900 truncate leading-snug">
                             {member.displayName}
                           </h3>
-                          <p className="text-[11px] text-slate-500 truncate">
+                          <p className="text-xs text-slate-500 truncate">
                             {member.title || member.role}
                           </p>
                         </div>
@@ -231,7 +225,7 @@ export const TeamBoardPage: React.FC = () => {
                       {/* Work Status Badge */}
                       {hasCheckin ? (
                         <span
-                          className={`text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 uppercase border ${
+                          className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 uppercase border ${
                             memberCheckin.workStatus === 'WFA'
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                               : memberCheckin.workStatus === 'Izin'
@@ -242,7 +236,7 @@ export const TeamBoardPage: React.FC = () => {
                           {memberCheckin.workStatus}
                         </span>
                       ) : (
-                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0 bg-red-50 text-red-700 border border-red-200 uppercase">
+                        <span className="text-xs font-bold px-2.5 py-1 rounded-full shrink-0 bg-red-50 text-red-700 border border-red-200 uppercase">
                           Belum Check-in
                         </span>
                       )}
@@ -251,7 +245,7 @@ export const TeamBoardPage: React.FC = () => {
                     {/* 3 Priorities List */}
                     {hasCheckin ? (
                       <div className="space-y-2 pt-1 text-xs">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block">
                           3 Prioritas Hari Ini:
                         </span>
 
@@ -261,7 +255,7 @@ export const TeamBoardPage: React.FC = () => {
                             return (
                               <div
                                 key={idx}
-                                className={`p-2.5 rounded-xl border text-[11px] flex items-start gap-2 ${
+                                className={`p-2.5 rounded-xl border text-xs flex items-start gap-2 ${
                                   status === 'Selesai'
                                     ? 'bg-emerald-50/50 border-emerald-200 text-emerald-950 font-medium'
                                     : status === 'Pindah ke besok'
@@ -270,7 +264,7 @@ export const TeamBoardPage: React.FC = () => {
                                 }`}
                               >
                                 <span
-                                  className={`w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 mt-0.5 ${
+                                  className={`w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
                                     status === 'Selesai'
                                       ? 'bg-emerald-600 text-white'
                                       : status === 'Pindah ke besok'
@@ -285,11 +279,11 @@ export const TeamBoardPage: React.FC = () => {
                             );
                           })
                         ) : (
-                          <div className="text-[11px] text-slate-400 italic">Belum mengisi prioritas</div>
+                          <div className="text-xs text-slate-500 italic">Belum mengisi prioritas</div>
                         )}
                       </div>
                     ) : (
-                      <div className="p-4 rounded-xl bg-slate-50 text-center text-slate-400 text-xs space-y-1">
+                      <div className="p-4 rounded-xl bg-slate-50 text-center text-slate-500 text-xs space-y-1">
                         <Clock className="w-5 h-5 mx-auto text-slate-300" />
                         <p className="font-medium">Menunggu check-in pagi</p>
                       </div>
@@ -302,7 +296,7 @@ export const TeamBoardPage: React.FC = () => {
                           <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
                           <span>Kendala / Hambatan:</span>
                         </div>
-                        <p className="text-[11px] text-rose-800 leading-relaxed font-medium">
+                        <p className="text-xs text-rose-800 leading-relaxed font-medium">
                           {memberCheckin.blockers}
                         </p>
                       </div>
@@ -311,13 +305,13 @@ export const TeamBoardPage: React.FC = () => {
                     {/* Help Offers List if any */}
                     {memberCheckin?.helpOffers && memberCheckin.helpOffers.length > 0 && (
                       <div className="space-y-1.5 pt-1">
-                        <span className="text-[10px] font-bold text-[#0051d5] uppercase tracking-wider block">
+                        <span className="text-xs font-bold text-[#0051d5] uppercase tracking-wider block">
                           Tawaran Bantuan dari Rekan:
                         </span>
                         {memberCheckin.helpOffers.map((ho: HelpOffer) => (
                           <div
                             key={ho.id}
-                            className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-100 text-[11px] text-blue-950 space-y-0.5"
+                            className="p-2.5 rounded-lg bg-blue-50/70 border border-blue-100 text-xs text-blue-950 space-y-0.5"
                           >
                             <span className="font-bold">{ho.helperName}: </span>
                             <span>"{ho.message}"</span>
@@ -331,7 +325,7 @@ export const TeamBoardPage: React.FC = () => {
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                     {hasCheckin ? (
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-xs text-slate-500">
                           Check-in: {formatWITA(memberCheckin.morningCheckinAt)}
                         </span>
 
@@ -346,7 +340,7 @@ export const TeamBoardPage: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex items-center justify-between w-full">
-                        <span className="text-[10px] text-amber-700 font-semibold">Belum hadir</span>
+                        <span className="text-xs text-amber-700 font-semibold">Belum hadir</span>
 
                         {/* Button Ingatkan (ONLY for Owner role on members who have not checked in) */}
                         {isOwner ? (
@@ -358,7 +352,7 @@ export const TeamBoardPage: React.FC = () => {
                             <span>Ingatkan</span>
                           </button>
                         ) : (
-                          <span className="text-[10px] text-slate-400 italic">Menunggu Owner</span>
+                          <span className="text-xs text-slate-500 italic">Menunggu Owner</span>
                         )}
                       </div>
                     )}
@@ -376,45 +370,45 @@ export const TeamBoardPage: React.FC = () => {
           {/* Top Aggregate Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4.5">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Total Check-in Minggu Ini
               </span>
               <div className="text-3xl font-bold font-['Plus_Jakarta_Sans'] text-slate-900">
                 {weeklyRecap.teamSummary.totalCheckins}
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">Standup tercatat seluruh tim</p>
+              <p className="text-xs text-slate-500 font-medium">Standup tercatat seluruh tim</p>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Tingkat Kehadiran WFA
               </span>
               <div className="text-3xl font-bold font-['Plus_Jakarta_Sans'] text-emerald-600">
                 {weeklyRecap.teamSummary.wfaRate}%
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">Rata-rata ketersediaan online tim</p>
+              <p className="text-xs text-slate-500 font-medium">Rata-rata ketersediaan online tim</p>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Penyelesaian 3 Prioritas
               </span>
               <div className="text-3xl font-bold font-['Plus_Jakarta_Sans'] text-[#00236f]">
                 {weeklyRecap.teamSummary.priorityCompletionRate}%
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 font-medium">
                 {weeklyRecap.teamSummary.completedPriorities} dari {weeklyRecap.teamSummary.totalPriorities} target tuntas
               </p>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 Kendala Terkomunikasikan
               </span>
               <div className="text-3xl font-bold font-['Plus_Jakarta_Sans'] text-rose-600">
                 {weeklyRecap.teamSummary.activeBlockersCount}
               </div>
-              <p className="text-[11px] text-slate-500 font-medium">Hambatan yang dibantu kolaborasi</p>
+              <p className="text-xs text-slate-500 font-medium">Hambatan yang dibantu kolaborasi</p>
             </div>
           </div>
 
@@ -438,7 +432,7 @@ export const TeamBoardPage: React.FC = () => {
 
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200">
+                <thead className="bg-slate-50 text-slate-500 font-bold uppercase text-xs tracking-wider border-b border-slate-200">
                   <tr>
                     <th className="px-5 py-3.5">Anggota Tim</th>
                     <th className="px-5 py-3.5">Peran</th>
@@ -451,18 +445,11 @@ export const TeamBoardPage: React.FC = () => {
                   {weeklyRecap.memberBreakdown.map((mb: WeeklyMemberRecapItem) => (
                     <tr key={mb.userId} className="hover:bg-slate-50/60 transition">
                       <td className="px-5 py-4 font-bold text-slate-900 flex items-center gap-2.5">
-                        <img
-                          src={
-                            mb.avatarUrl ||
-                            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
-                          }
-                          alt={mb.userName}
-                          className="w-7 h-7 rounded-full object-cover"
-                        />
+                        <UserAvatar url={mb.avatarUrl} name={mb.userName} className="w-7 h-7 rounded-full" />
                         <span>{mb.userName}</span>
                       </td>
 
-                      <td className="px-5 py-4 text-slate-600 uppercase text-[10px] font-bold">
+                      <td className="px-5 py-4 text-slate-600 uppercase text-xs font-bold">
                         {mb.userRole}
                       </td>
 
@@ -487,10 +474,10 @@ export const TeamBoardPage: React.FC = () => {
                           mb.blockersSummary ? (
                             <span className="text-slate-800 font-medium">{mb.blockersSummary}</span>
                           ) : (
-                            <span className="text-slate-400 italic">Tidak ada kendala</span>
+                            <span className="text-slate-500 italic">Tidak ada kendala</span>
                           )
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-slate-400 italic bg-slate-100 px-2 py-0.5 rounded text-[10px]">
+                          <span className="inline-flex items-center gap-1 text-slate-500 italic bg-slate-100 px-2 py-0.5 rounded text-xs">
                             <Lock className="w-3 h-3" />
                             <span>Privat (Khusus Anggota &amp; Owner)</span>
                           </span>
@@ -518,12 +505,12 @@ export const TeamBoardPage: React.FC = () => {
                   <h3 className="text-sm font-bold text-slate-900">
                     Tawarkan Bantuan ke {helpingCheckin.userName}
                   </h3>
-                  <p className="text-[11px] text-slate-500">Tuliskan solusi atau bantuan yang bisa Anda berikan</p>
+                  <p className="text-xs text-slate-500">Tuliskan solusi atau bantuan yang bisa Anda berikan</p>
                 </div>
               </div>
               <button
                 onClick={() => setHelpingCheckin(null)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
+                className="p-1 text-slate-500 hover:text-slate-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -532,7 +519,7 @@ export const TeamBoardPage: React.FC = () => {
             <form onSubmit={handleSendHelp} className="space-y-4 mt-4 text-xs">
               {helpingCheckin.blockers && (
                 <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl">
-                  <div className="text-[10px] font-bold text-rose-800 uppercase">Kendala yang dihadapi:</div>
+                  <div className="text-xs font-bold text-rose-800 uppercase">Kendala yang dihadapi:</div>
                   <div className="text-xs font-semibold text-rose-950 mt-0.5">
                     {helpingCheckin.blockers}
                   </div>

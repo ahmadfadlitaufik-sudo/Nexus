@@ -1,3 +1,4 @@
+import { UserAvatar } from '../components/UserAvatar';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -70,7 +71,7 @@ import {
   deleteRoadmapItem,
   saveTask,
 } from '../services/db';
-import { formatWITA, formatRupiah, isTaskOverdue, evaluateClientRisk, todayWITA, dateWITA } from '../utils/formatters';
+import { formatWITA, formatRupiah, isTaskOverdue, assessClientRisk, todayWITA, dateWITA } from '../utils/formatters';
 import { DiagnosisChart } from '../components/DiagnosisChart';
 import { SessionAuditSummary } from '../components/SessionAuditSummary';
 
@@ -207,7 +208,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
     );
   }
 
-  const riskAssessment = evaluateClientRisk(client.lastSessionDate, tasks);
+  const riskAssessment = assessClientRisk(client, client.lastSessionDate, tasks);
 
   // Status & Enrollment Handlers
   const handleUpdateClientStatus = async (newStatus: ClientStatus) => {
@@ -554,7 +555,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               </span>
               <span className="text-slate-300">•</span>
               <span className="text-xs text-slate-500 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                <MapPin className="w-3.5 h-3.5 text-slate-500" />
                 {client.kota} (WITA)
               </span>
 
@@ -564,7 +565,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                   <select
                     value={client.status}
                     onChange={(e) => handleUpdateClientStatus(e.target.value as any)}
-                    className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border cursor-pointer ${getStatusBadge(
+                    className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase border cursor-pointer ${getStatusBadge(
                       client.status
                     )}`}
                   >
@@ -577,7 +578,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 </div>
               ) : (
                 <span
-                  className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${getStatusBadge(
+                  className={`text-xs px-2.5 py-0.5 rounded-full font-bold uppercase border ${getStatusBadge(
                     client.status
                   )}`}
                 >
@@ -606,9 +607,9 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
           {/* Quick Action & Program info */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-left">
-              <div className="text-[10px] font-semibold text-slate-400 uppercase">Program Pendampingan</div>
+              <div className="text-xs font-semibold text-slate-500 uppercase">Program Pendampingan</div>
               <div className="text-xs font-bold text-[#00236f]">{program?.name || 'Fundamental'}</div>
-              <div className="text-[11px] text-slate-500 mt-0.5">
+              <div className="text-xs text-slate-500 mt-0.5">
                 Konsultan:{' '}
                 {assignedConsultants.length > 0
                   ? assignedConsultants.map((c) => c.displayName).join(', ')
@@ -758,19 +759,19 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="space-y-4">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block uppercase">Total Sesi</span>
+                    <span className="text-xs text-slate-500 block uppercase">Total Sesi</span>
                     <span className="text-lg font-bold text-slate-800">{enrollment.totalSessions}</span>
                   </div>
                   <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                    <span className="text-[10px] text-emerald-700 block uppercase">Selesai</span>
+                    <span className="text-xs text-emerald-700 block uppercase">Selesai</span>
                     <span className="text-lg font-bold text-emerald-800">{enrollment.completedSessions}</span>
                   </div>
                   <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                    <span className="text-[10px] text-[#0051d5] block uppercase">Sisa Sesi</span>
+                    <span className="text-xs text-[#0051d5] block uppercase">Sisa Sesi</span>
                     <span className="text-lg font-bold text-[#00236f]">{enrollment.remainingSessions}</span>
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <span className="text-[10px] text-slate-400 block uppercase">Durasi</span>
+                    <span className="text-xs text-slate-500 block uppercase">Durasi</span>
                     <span className="text-lg font-bold text-slate-800">{enrollment.durationWeeks} Mgg</span>
                   </div>
                 </div>
@@ -832,7 +833,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 )}
               </div>
             ) : (
-              <p className="text-xs text-slate-400">Belum ada catatan enrollment program.</p>
+              <p className="text-xs text-slate-500">Belum ada catatan enrollment program.</p>
             )}
           </div>
 
@@ -841,7 +842,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
               <h3 className="font-bold text-sm text-slate-900 font-['Plus_Jakarta_Sans'] flex items-center justify-between">
                 <span>Konsultan Pendamping</span>
-                <span className="text-[11px] font-normal text-slate-400">
+                <span className="text-xs font-normal text-slate-500">
                   {assignedConsultants.length} Konsultan
                 </span>
               </h3>
@@ -852,31 +853,27 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     const ccRel = clientConsultants.find((cc) => cc.consultantId === c.id);
                     return (
                       <div key={c.id} className="py-3 flex items-center gap-3">
-                        <img
-                          src={c.avatarUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'}
-                          alt={c.displayName}
-                          className="w-10 h-10 rounded-full object-cover shrink-0 ring-1 ring-slate-200"
-                        />
+                        <UserAvatar url={c.avatarUrl} name={c.displayName} className="w-10 h-10 rounded-full shrink-0 ring-1 ring-slate-200" />
                         <div className="overflow-hidden flex-1">
                           <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                             <span className="truncate">{c.displayName}</span>
                             {i === 0 && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-100 text-[#00236f] font-semibold">
+                              <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-[#00236f] font-semibold">
                                 Lead
                               </span>
                             )}
                           </div>
-                          <div className="text-[11px] text-slate-500">
+                          <div className="text-xs text-slate-500">
                             {ccRel?.role || c.title || 'Konsultan Bisnis'}
                           </div>
-                          <div className="text-[10px] text-blue-700 mt-0.5">{c.phone}</div>
+                          <div className="text-xs text-blue-700 mt-0.5">{c.phone}</div>
                         </div>
                       </div>
                     );
                   })}
                 </div>
               ) : (
-                <p className="text-xs text-slate-400">Belum ada konsultan yang ditugaskan.</p>
+                <p className="text-xs text-slate-500">Belum ada konsultan yang ditugaskan.</p>
               )}
             </div>
 
@@ -925,7 +922,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5]">
                 Audit & Diagnosis Bisnis 360°
               </span>
               <h2 className="text-xl font-bold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
@@ -962,7 +959,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="p-5 rounded-2xl border border-blue-100 bg-blue-50/30 space-y-3 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[#0051d5] uppercase tracking-wider">
+                    <span className="text-xs font-bold text-[#0051d5] uppercase tracking-wider">
                       Area 1: Finansial
                     </span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-[#00236f]">
@@ -974,7 +971,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     {diagnosis?.keuangan?.notes || 'Belum ada catatan detail keuangan.'}
                   </p>
                 </div>
-                <div className="text-[10px] text-slate-400 pt-2 border-t border-blue-100/60">
+                <div className="text-xs text-slate-500 pt-2 border-t border-blue-100/60">
                   Fokus: Arus Kas, COGS, Pemisahan Rekening
                 </div>
               </div>
@@ -983,7 +980,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="p-5 rounded-2xl border border-purple-100 bg-purple-50/30 space-y-3 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-purple-700 uppercase tracking-wider">
                       Area 2: Komersial
                     </span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800">
@@ -995,7 +992,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     {diagnosis?.pemasaran?.notes || 'Belum ada catatan detail pemasaran.'}
                   </p>
                 </div>
-                <div className="text-[10px] text-slate-400 pt-2 border-t border-purple-100/60">
+                <div className="text-xs text-slate-500 pt-2 border-t border-purple-100/60">
                   Fokus: Branding, Channel Penjualan, Retensi
                 </div>
               </div>
@@ -1004,7 +1001,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="p-5 rounded-2xl border border-sky-100 bg-sky-50/30 space-y-3 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-sky-700 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-sky-700 uppercase tracking-wider">
                       Area 3: Sistem
                     </span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">
@@ -1016,7 +1013,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     {diagnosis?.operasional?.notes || 'Belum ada catatan detail operasional.'}
                   </p>
                 </div>
-                <div className="text-[10px] text-slate-400 pt-2 border-t border-sky-100/60">
+                <div className="text-xs text-slate-500 pt-2 border-t border-sky-100/60">
                   Fokus: Standarisasi Mutu, Rantai Pasok, WFA Flow
                 </div>
               </div>
@@ -1025,7 +1022,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="p-5 rounded-2xl border border-rose-100 bg-rose-50/30 space-y-3 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-rose-700 uppercase tracking-wider">
                       Area 4: Organisasi
                     </span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800">
@@ -1037,7 +1034,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     {diagnosis?.sdm?.notes || 'Belum ada catatan detail SDM.'}
                   </p>
                 </div>
-                <div className="text-[10px] text-slate-400 pt-2 border-t border-rose-100/60">
+                <div className="text-xs text-slate-500 pt-2 border-t border-rose-100/60">
                   Fokus: KPI Karyawan, Delegasi, Supervisi
                 </div>
               </div>
@@ -1046,7 +1043,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <div className="p-5 rounded-2xl border border-emerald-100 bg-emerald-50/30 space-y-3 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">
                       Area 5: Penawaran
                     </span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
@@ -1058,7 +1055,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     {diagnosis?.produk?.notes || 'Belum ada catatan detail produk.'}
                   </p>
                 </div>
-                <div className="text-[10px] text-slate-400 pt-2 border-t border-emerald-100/60">
+                <div className="text-xs text-slate-500 pt-2 border-t border-emerald-100/60">
                   Fokus: Kualitas Produk, USP, Kepuasan Pelanggan
                 </div>
               </div>
@@ -1082,7 +1079,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               </div>
               <button
                 onClick={() => setEditingDiagnosis(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-slate-500 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1190,7 +1187,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5]">
                 Roadmap Transformasi Bisnis Klien
               </span>
               <h2 className="text-xl font-bold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
@@ -1214,7 +1211,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           <div className="space-y-4">
             {roadmap.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">
+              <div className="p-8 text-center text-slate-500 text-xs">
                 Belum ada tahapan roadmap untuk klien ini. Klik tombol "Tambah Tahapan Roadmap".
               </div>
             ) : (
@@ -1234,7 +1231,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                         0{item.urutan || item.order || idx + 1}
                       </div>
                       <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold text-[#0051d5] uppercase tracking-wider">
+                        <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-[#0051d5] uppercase tracking-wider">
                           <span>{tahapanTitle}</span>
                           <span>•</span>
                           <span className="text-slate-500 font-semibold flex items-center gap-1">
@@ -1268,7 +1265,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                             <button
                               type="button"
                               onClick={() => handleOpenEditRoadmap(item)}
-                              className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-400 hover:text-[#0051d5] transition cursor-pointer"
+                              className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-[#0051d5] transition cursor-pointer"
                               title="Tambahkan link Google Drive untuk tahapan ini"
                             >
                               <Plus className="w-3 h-3" />
@@ -1325,7 +1322,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                           </button>
                           <button
                             onClick={() => handleDeleteRoadmapItem(item.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
                             title="Hapus Tahapan"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -1351,7 +1348,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               </h3>
               <button
                 onClick={() => setEditingRoadmapModal(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg text-slate-500 hover:text-slate-600"
               >
                 ✕
               </button>
@@ -1437,7 +1434,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     <ExternalLink className="w-3.5 h-3.5 text-[#0051d5]" />
                     <span>Link Google Drive (Folder / Dokumen Deliverable)</span>
                   </label>
-                  <span className="text-[10px] text-slate-400 font-normal">Opsional</span>
+                  <span className="text-xs text-slate-500 font-normal">Opsional</span>
                 </div>
                 <input
                   type="url"
@@ -1452,7 +1449,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                   placeholder="https://drive.google.com/drive/folders/... atau https://docs.google.com/..."
                   className="w-full px-3 py-2 border border-slate-300 rounded-xl"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Tautkan folder Google Drive, dokumen SOP, template Excel, atau worksheet yang menjadi deliverable tahapan ini.
                 </p>
               </div>
@@ -1482,7 +1479,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#0051d5]">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#0051d5]">
                 Key Performance Indicators
               </span>
               <h2 className="text-xl font-bold text-slate-900 font-['Plus_Jakarta_Sans'] mt-0.5">
@@ -1535,21 +1532,21 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                         {kpi.kategori || 'Metrik Bisnis'}
                       </span>
                       {isConsultantOrOwner && (
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => handleOpenEditKpi(kpi)}
-                            className="p-1 text-slate-400 hover:text-slate-700"
+                            className="p-1 text-slate-500 hover:text-slate-700"
                             title="Edit KPI"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteKpi(kpi.id)}
-                            className="p-1 text-slate-400 hover:text-red-600"
+                            className="p-1 text-slate-500 hover:text-red-600"
                             title="Hapus KPI"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1562,19 +1559,19 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
                     <div className="grid grid-cols-3 gap-2 text-center pt-1">
                       <div className="p-2 rounded-xl bg-white border border-slate-100">
-                        <div className="text-[10px] text-slate-400">Awal</div>
+                        <div className="text-xs text-slate-500">Awal</div>
                         <div className="text-xs font-semibold text-slate-700 truncate">
                           {baseline} {unit}
                         </div>
                       </div>
                       <div className="p-2 rounded-xl bg-blue-50 border border-blue-100">
-                        <div className="text-[10px] text-[#0051d5] font-semibold">Saat Ini</div>
+                        <div className="text-xs text-[#0051d5] font-semibold">Saat Ini</div>
                         <div className="text-xs font-bold text-[#00236f] truncate">
                           {current} {unit}
                         </div>
                       </div>
                       <div className="p-2 rounded-xl bg-white border border-slate-100">
-                        <div className="text-[10px] text-slate-400">Target</div>
+                        <div className="text-xs text-slate-500">Target</div>
                         <div className="text-xs font-semibold text-emerald-700 truncate">
                           {target} {unit}
                         </div>
@@ -1582,7 +1579,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                     </div>
 
                     <div className="pt-2">
-                      <div className="flex justify-between text-[11px] text-slate-600 mb-1 font-medium">
+                      <div className="flex justify-between text-xs text-slate-600 mb-1 font-medium">
                         <span>Bilah Progres Capaian</span>
                         <span className="font-bold text-[#00236f]">{displayProgress}%</span>
                       </div>
@@ -1598,7 +1595,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                           style={{ width: `${displayProgress}%` }}
                         />
                       </div>
-                      <div className="text-[10px] text-slate-400 mt-1 flex items-center justify-between">
+                      <div className="text-xs text-slate-500 mt-1 flex items-center justify-between">
                         <span>Pembaruan: {dateStr}</span>
                       </div>
                     </div>
@@ -1668,7 +1665,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
               <h3 className="text-sm font-bold text-slate-900">
                 {kpiForm.id ? 'Edit Metrik KPI' : 'Tambah Indikator KPI Baru'}
               </h3>
-              <button onClick={() => setEditingKpiModal(false)} className="text-slate-400">
+              <button onClick={() => setEditingKpiModal(false)} className="text-slate-500">
                 ✕
               </button>
             </div>
@@ -1801,7 +1798,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           <div className="space-y-5">
             {sessions.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">Belum ada riwayat sesi.</div>
+              <div className="p-8 text-center text-slate-500 text-xs">Belum ada riwayat sesi.</div>
             ) : (
               sessions.map((session) => {
                 const internal = sessionInternals[session.id];
@@ -1815,7 +1812,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                            className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
                               session.status === 'Selesai'
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : session.status === 'Terjadwal'
@@ -1868,7 +1865,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
                     {session.catatanDibagikan && (
                       <div className="p-4 rounded-xl bg-blue-50/30 border border-blue-100 text-xs text-slate-700 space-y-1">
-                        <div className="font-bold text-[#00236f] flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                        <div className="font-bold text-[#00236f] flex items-center gap-1.5 text-xs uppercase tracking-wider">
                           <Eye className="w-3.5 h-3.5" />
                           Catatan Dibagikan (Terlihat Klien):
                         </div>
@@ -1878,13 +1875,13 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
                     {isConsultantOrOwner && internal?.catatanInternal && (
                       <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-200 text-xs text-amber-900 space-y-1">
-                        <div className="font-bold text-amber-800 flex items-center gap-1.5 text-[11px] uppercase tracking-wider">
+                        <div className="font-bold text-amber-800 flex items-center gap-1.5 text-xs uppercase tracking-wider">
                           <Lock className="w-3.5 h-3.5 text-amber-700" />
                           Catatan Internal Tim (Rahasia Dari Klien):
                         </div>
                         <p className="whitespace-pre-line leading-relaxed italic">{internal.catatanInternal}</p>
                         {internal.keyObservations && (
-                          <div className="pt-1 text-[11px] text-amber-700 font-medium">
+                          <div className="pt-1 text-xs text-amber-700 font-medium">
                             Key Observation: {internal.keyObservations}
                           </div>
                         )}
@@ -1924,7 +1921,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
 
           <div className="space-y-3">
             {tasks.length === 0 ? (
-              <div className="p-8 text-center text-slate-400 text-xs">Belum ada tugas tercatat.</div>
+              <div className="p-8 text-center text-slate-500 text-xs">Belum ada tugas tercatat.</div>
             ) : (
               tasks.map((task) => {
                 const isOverdue = task.status === 'Terlambat' || isTaskOverdue(task.deadline, task.status);
@@ -1960,7 +1957,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
                             href={task.proofUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline font-semibold"
+                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline font-semibold"
                           >
                             <ExternalLink className="w-3 h-3" />
                             Bukti Unggahan / Hasil Eksekusi
@@ -2119,7 +2116,7 @@ export const ClientDetail: React.FC<ClientDetailProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold text-slate-600">
+              <label className="block text-xs font-bold text-slate-600">
                 Ketik <span className="font-mono text-rose-600 select-all font-extrabold">HAPUS</span> untuk mengonfirmasi:
               </label>
               <input

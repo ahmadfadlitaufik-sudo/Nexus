@@ -224,7 +224,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
           Akses Log Aktivitas Dibatasi
         </h3>
         <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-          Komponen <strong>ActivityLog</strong> dan jejak audit forensik operasi sensitif hanya dapat diakses oleh Dewan Direksi (BOD / Owner) untuk menjaga integritas dan kerahasiaan data.
+          Log aktivitas dan jejak audit operasi sensitif hanya dapat diakses oleh Dewan Direksi (BOD / Owner) untuk menjaga integritas dan kerahasiaan data.
         </p>
       </div>
     );
@@ -277,7 +277,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                 <h2 className="text-lg sm:text-xl font-bold text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
                   Log Aktivitas &amp; Jejak Audit Operasi Sensitif
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#00236f] border border-blue-200 uppercase">
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#00236f] border border-blue-200 uppercase">
                   BOD Secure View
                 </span>
               </div>
@@ -318,46 +318,46 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-5 border-t border-slate-100">
             <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
               <div className="flex items-center justify-between text-slate-600 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Total Jejak Audit</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Total Jejak Audit</span>
                 <Activity className="w-3.5 h-3.5 text-slate-500" />
               </div>
               <div className="text-xl font-black text-slate-900 font-['Plus_Jakarta_Sans']">
                 {logs.length}
               </div>
-              <p className="text-[10px] text-slate-400 mt-0.5">Rekaman operasi tersimpan</p>
+              <p className="text-xs text-slate-500 mt-0.5">Rekaman operasi tersimpan</p>
             </div>
 
             <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80">
               <div className="flex items-center justify-between text-emerald-800 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Persetujuan Akun</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Persetujuan Akun</span>
                 <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
               </div>
               <div className="text-xl font-black text-emerald-900 font-['Plus_Jakarta_Sans']">
                 {approvalsCount}
               </div>
-              <p className="text-[10px] text-emerald-700 mt-0.5">Pendaftaran disetujui / ditolak</p>
+              <p className="text-xs text-emerald-700 mt-0.5">Pendaftaran disetujui / ditolak</p>
             </div>
 
             <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/80">
               <div className="flex items-center justify-between text-blue-800 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Klien Baru</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Klien Baru</span>
                 <Building2 className="w-3.5 h-3.5 text-blue-600" />
               </div>
               <div className="text-xl font-black text-blue-900 font-['Plus_Jakarta_Sans']">
                 {clientsCount}
               </div>
-              <p className="text-[10px] text-blue-700 mt-0.5">Kemitraan baru dibuat</p>
+              <p className="text-xs text-blue-700 mt-0.5">Kemitraan baru dibuat</p>
             </div>
 
             <div className="p-3 bg-purple-50/70 rounded-xl border border-purple-200/80">
               <div className="flex items-center justify-between text-purple-800 mb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider">Peran &amp; Akses Tim</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Peran &amp; Akses Tim</span>
                 <Key className="w-3.5 h-3.5 text-purple-600" />
               </div>
               <div className="text-xl font-black text-purple-900 font-['Plus_Jakarta_Sans']">
                 {rolesCount}
               </div>
-              <p className="text-[10px] text-purple-700 mt-0.5">Modifikasi hak akses</p>
+              <p className="text-xs text-purple-700 mt-0.5">Modifikasi hak akses</p>
             </div>
           </div>
         )}
@@ -442,7 +442,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
           </div>
 
           <div className="relative sm:w-64 shrink-0">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3" />
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-3" />
             <input
               type="text"
               value={searchQuery}
@@ -459,17 +459,17 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
 
       {/* Log Items Stream */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-xs text-slate-400">
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center text-xs text-slate-500">
           <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-[#00236f]" />
           Memuat rekam jejak audit operasi...
         </div>
       ) : filteredLogs.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-2">
             <Activity className="w-5 h-5" />
           </div>
           <p className="text-xs font-bold text-slate-800">Tidak ada log aktivitas ditemukan</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">
+          <p className="text-xs text-slate-500 mt-0.5">
             Coba sesuaikan kata kunci pencarian atau ganti filter kategori.
           </p>
         </div>
@@ -497,7 +497,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                         {log.action}
                       </span>
                       <span
-                        className={`text-[9px] font-bold px-1.5 py-0.2 rounded-md uppercase border ${meta.badgeClass}`}
+                        className={`text-xs font-bold px-1.5 py-0.2 rounded-md uppercase border ${meta.badgeClass}`}
                       >
                         {meta.categoryLabel}
                       </span>
@@ -507,9 +507,9 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                       {log.details}
                     </p>
 
-                    <div className="flex flex-wrap items-center gap-y-1 gap-x-2 text-[11px] text-slate-500 pt-0.5">
+                    <div className="flex flex-wrap items-center gap-y-1 gap-x-2 text-xs text-slate-500 pt-0.5">
                       <span className="font-semibold text-slate-800 inline-flex items-center gap-1">
-                        <User className="w-3 h-3 text-slate-400" />
+                        <User className="w-3 h-3 text-slate-500" />
                         {log.actorName}
                       </span>
                       <span className="text-slate-300">•</span>
@@ -524,8 +524,8 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                         </>
                       )}
                       <span className="text-slate-300">•</span>
-                      <span className="inline-flex items-center gap-1 text-slate-400">
-                        <Clock className="w-3 h-3 text-slate-400" />
+                      <span className="inline-flex items-center gap-1 text-slate-500">
+                        <Clock className="w-3 h-3 text-slate-500" />
                         {formatWITA(log.createdAt)}
                       </span>
                     </div>
@@ -538,7 +538,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                     onClick={() => setSelectedLogDetail(log)}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition cursor-pointer"
                   >
-                    <Eye className="w-3.5 h-3.5 text-slate-400" />
+                    <Eye className="w-3.5 h-3.5 text-slate-500" />
                     <span>Detail Audit</span>
                   </button>
                 </div>
@@ -594,7 +594,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                   <h3 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
                     Rincian Forensik Jejak Audit
                   </h3>
-                  <p className="text-[11px] text-slate-500 font-mono">
+                  <p className="text-xs text-slate-500 font-mono">
                     ID: {selectedLogDetail.id}
                   </p>
                 </div>
@@ -603,7 +603,7 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
               <button
                 type="button"
                 onClick={() => setSelectedLogDetail(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1 rounded-lg text-slate-500 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -641,12 +641,12 @@ export const ActivityLog: React.FC<ActivityLogProps> = ({
                 <label className="block text-slate-500 font-semibold mb-1">
                   Deskripsi &amp; Detail Operasi:
                 </label>
-                <div className="p-3 bg-white rounded-xl border border-slate-200 text-slate-700 leading-relaxed font-mono text-[11px]">
+                <div className="p-3 bg-white rounded-xl border border-slate-200 text-slate-700 leading-relaxed font-mono text-xs">
                   {selectedLogDetail.details}
                 </div>
               </div>
 
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2">
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 <span>
                   <strong>Validasi Akuntabilitas:</strong> Rekaman ini tersimpan secara permanen di database Cloudflare D1 dan tidak dapat diedit atau dihapus oleh staf untuk memastikan integritas audit kepatuhan.

@@ -108,21 +108,24 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
         .filter((s) => s.clientId === c.id && s.status === 'Selesai')
         .sort((a, b) => new Date(b.dateTime).getTime() - new Date(a.dateTime).getTime())[0];
 
-      const daysSince = lastCompletedSession
-        ? getDaysDiff(lastCompletedSession.dateTime)
-        : c.lastSessionDate
-        ? getDaysDiff(c.lastSessionDate)
-        : 99;
+      const lastDate = lastCompletedSession?.dateTime || c.lastSessionDate;
+      const daysSince = lastDate ? getDaysDiff(lastDate) : null;
+      const inScope = c.status === 'Aktif' || c.status === 'Onboarding';
+      const ageDays = c.createdAt ? (Date.now() - new Date(c.createdAt).getTime()) / 86400000 : Infinity;
 
       let reason = '';
-      if (overdueTasks.length > 0 && daysSince >= 14) {
-        reason = `${overdueTasks.length} tugas terlambat & tidak ada sesi ≥ 14 hari`;
-      } else if (overdueTasks.length > 0) {
-        reason = `${overdueTasks.length} tugas melewati batas tenggat`;
-      } else if (daysSince >= 14) {
-        reason = `Tidak ada sesi sejak ${daysSince} hari lalu`;
-      } else if (daysSince >= 10) {
-        reason = `Sudah ${daysSince} hari sejak sesi terakhir`;
+      if (inScope) {
+        if (overdueTasks.length > 0 && (daysSince === null || daysSince >= 14)) {
+          reason = `${overdueTasks.length} tugas terlambat & ${daysSince === null ? 'belum pernah ada sesi' : 'tidak ada sesi ≥ 14 hari'}`;
+        } else if (overdueTasks.length > 0) {
+          reason = `${overdueTasks.length} tugas melewati batas tenggat`;
+        } else if (daysSince === null && ageDays >= 14) {
+          reason = 'Belum pernah ada sesi pendampingan';
+        } else if (daysSince !== null && daysSince >= 14) {
+          reason = `Tidak ada sesi sejak ${daysSince} hari lalu`;
+        } else if (daysSince !== null && daysSince >= 10) {
+          reason = `Sudah ${daysSince} hari sejak sesi terakhir`;
+        }
       }
 
       return {
@@ -130,7 +133,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
         overdueCount: overdueTasks.length,
         daysSinceLastSession: daysSince,
         attentionReason: reason,
-        needsAttention: overdueTasks.length > 0 || daysSince >= 10,
+        needsAttention: reason !== '',
       };
     })
     .filter((c) => c.needsAttention);
@@ -162,7 +165,6 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
         </div>
       </div>
 
-      {/* Daily Activity Tracker for Consultant Standup & Check-in */}
       {/* Grid: 1. Sesi Minggu Ini & 2. Tugas Jatuh Tempo */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Kolom 1: Sesi Minggu Ini (7 cols) */}
@@ -208,7 +210,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                             {client?.namaBisnis || 'Klien Binaan'}
                           </span>
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                            className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase ${
                               session.status === 'Selesai'
                                 ? 'bg-emerald-100 text-emerald-800'
                                 : session.status === 'Terjadwal'
@@ -218,7 +220,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                           >
                             {session.status}
                           </span>
-                          <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                          <span className="text-xs px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
                             {session.jenis || 'Individu'}
                           </span>
                         </div>
@@ -232,7 +234,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                           <Clock className="w-3.5 h-3.5" />
                           {formatWITA(session.dateTime, true)}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
+                        <div className="text-xs text-slate-500 mt-0.5">
                           Durasi: {session.durationMinutes} Menit
                         </div>
                       </div>
@@ -251,7 +253,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
-                        <span className="text-slate-400">Tautan meet belum diatur</span>
+                        <span className="text-slate-500">Tautan meet belum diatur</span>
                       )}
 
                       <div className="flex items-center gap-2 ml-auto">
@@ -303,7 +305,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <div className="text-[11px] font-bold text-slate-500 uppercase">
+                        <div className="text-xs font-bold text-slate-500 uppercase">
                           {client?.namaBisnis || 'Klien'}
                         </div>
                         <h4 className="text-xs font-semibold text-slate-900 mt-0.5 leading-snug">
@@ -311,7 +313,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                         </h4>
                       </div>
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${
+                        className={`text-xs px-2 py-0.5 rounded-full font-bold uppercase shrink-0 ${
                           isOverdue
                             ? 'bg-red-100 text-red-800'
                             : 'bg-amber-100 text-amber-800'
@@ -369,7 +371,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                 <div>
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-sm text-slate-900">{client.namaBisnis}</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-[#00236f]">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-[#00236f]">
                       {client.status}
                     </span>
                   </div>
@@ -378,7 +380,7 @@ export const ConsultantDashboard: React.FC<ConsultantDashboardProps> = ({
                   </div>
 
                   <div className="mt-2.5 p-2 rounded-lg bg-white border border-amber-200 text-xs text-amber-900 space-y-0.5">
-                    <div className="font-semibold text-[11px] text-amber-800 flex items-center gap-1">
+                    <div className="font-semibold text-xs text-amber-800 flex items-center gap-1">
                       <AlertCircle className="w-3 h-3 text-amber-600" />
                       {client.attentionReason}
                     </div>

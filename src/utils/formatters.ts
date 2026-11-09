@@ -158,3 +158,20 @@ export function shiftDate(dateStr: string, days: number): string {
   const dt = new Date(Date.UTC(y, m - 1, d + days));
   return dt.toISOString().slice(0, 10);
 }
+
+/**
+ * Penilaian risiko klien yang dipakai di semua halaman:
+ * - hanya klien berstatus Aktif / Onboarding yang dinilai;
+ * - klien baru (< 14 hari) tanpa sesi & tanpa tugas terlambat belum dianggap berisiko.
+ */
+export function assessClientRisk(
+  client: { status?: string; createdAt?: string },
+  lastSessionDate: string | undefined,
+  tasks: Array<{ status: string; deadline: string }> = []
+): { isAtRisk: boolean; reason?: string } {
+  if (client.status !== 'Aktif' && client.status !== 'Onboarding') return { isAtRisk: false };
+  const ageDays = client.createdAt ? (Date.now() - new Date(client.createdAt).getTime()) / 86400000 : Infinity;
+  const anyOverdue = tasks.some((t) => t.status === 'Terlambat' || isTaskOverdue(t.deadline, t.status));
+  if (!lastSessionDate && ageDays < 14 && !anyOverdue) return { isAtRisk: false };
+  return evaluateClientRisk(lastSessionDate, tasks);
+}

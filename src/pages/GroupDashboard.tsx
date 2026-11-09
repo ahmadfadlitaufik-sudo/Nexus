@@ -152,23 +152,17 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
   return (
     <div className="space-y-6 pb-12 animate-in fade-in">
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#00236f] to-[#1e3a8a] text-white p-6 sm:p-7 rounded-2xl shadow-lg relative overflow-hidden">
-        <div className="absolute right-0 top-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div className="relative z-10 max-w-3xl space-y-2">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-200 text-xs font-semibold border border-blue-400/30">
-            <Layers className="w-3.5 h-3.5 text-blue-300" />
-            Dashboard Fasilitator Tim Grup • Nexus WFA Hub
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight font-['Plus_Jakarta_Sans']">
-            Pusat Kendali Mastermind &amp; Cohort
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 font-['Plus_Jakarta_Sans'] tracking-tight">
+            Dashboard Grup &amp; Mastermind
           </h1>
-          <p className="text-xs sm:text-sm text-blue-100 font-normal">
+          <p className="text-xs sm:text-sm text-slate-500 font-normal">
             Pantau kehadiran para direktur &amp; pemilik bisnis, deteksi anggota pasif lebih dini, dan fasilitasi sesi bimbingan kelompok.
           </p>
         </div>
       </div>
 
-      {/* Daily Activity Tracker for Group Team Standup & Check-in */}
 
       {/* 4 Core Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -181,7 +175,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
             <div className="text-3xl font-extrabold text-[#00236f] font-['Plus_Jakarta_Sans'] mt-1">
               {activeGroupsCount}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               Dari total {groups.length} grup
             </div>
           </div>
@@ -199,7 +193,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
             <div className="text-3xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans'] mt-1">
               {totalMembersCount}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               Pemilik bisnis terhubung
             </div>
           </div>
@@ -217,7 +211,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
             <div className="text-3xl font-extrabold text-slate-900 font-['Plus_Jakarta_Sans'] mt-1">
               {sessionsThisWeek.length}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               Pertemuan breakout WITA
             </div>
           </div>
@@ -235,7 +229,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
             <div className="text-3xl font-extrabold text-rose-600 font-['Plus_Jakarta_Sans'] mt-1">
               {passiveMembersList.length}
             </div>
-            <div className="text-[11px] text-slate-500 mt-0.5">
+            <div className="text-xs text-slate-500 mt-0.5">
               2x absen berturut-turut / tugas macet
             </div>
           </div>
@@ -285,7 +279,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-sm text-slate-900">{cl?.namaBisnis || 'Klien'}</span>
                       <span className="text-xs text-slate-500 font-medium">({cl?.namaPemilik})</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-[#00236f] font-semibold truncate max-w-[150px]">
+                      <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-[#00236f] font-semibold truncate max-w-[150px]">
                         {grp.name}
                       </span>
                     </div>
@@ -295,7 +289,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
                       <span>{reason}</span>
                     </div>
 
-                    <div className="text-[11px] text-slate-500 flex items-center gap-3 pt-0.5">
+                    <div className="text-xs text-slate-500 flex items-center gap-3 pt-0.5">
                       <span>Kehadiran: <strong>{attendanceRate}%</strong></span>
                       <span>•</span>
                       <span>Kontak: {cl?.kontak || '-'}</span>
@@ -308,14 +302,14 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
                         href={`https://wa.me/${cl.kontak.replace(/[^0-9]/g, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
+                        className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-slate-900 text-xs font-semibold transition inline-flex items-center gap-1 shadow-2xs"
                       >
                         <Phone className="w-3.5 h-3.5" /> WA PIC
                       </a>
                     )}
                     <button
                       onClick={() => onSelectGroup(grp.id)}
-                      className="px-3 py-1.5 rounded-lg bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold transition shadow-2xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg bg-[#00236f] hover:bg-[#1e3a8a] text-slate-900 text-xs font-semibold transition shadow-2xs cursor-pointer"
                     >
                       Buka Grup
                     </button>
@@ -337,7 +331,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
             </div>
 
             {sessionsThisWeek.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-xs">
+              <div className="py-8 text-center text-slate-500 text-xs">
                 Tidak ada jadwal sesi grup dalam 7 hari ke depan.
               </div>
             ) : (
@@ -354,7 +348,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
                           <Clock className="w-3.5 h-3.5" />
                           {formatWITA(s.dateTime, true)}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-blue-100 text-[#00236f] uppercase">
+                        <span className="text-xs px-2 py-0.5 rounded-full font-bold bg-blue-100 text-[#00236f] uppercase">
                           {s.status}
                         </span>
                       </div>
@@ -370,7 +364,7 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
                             href={s.meetingUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full py-2 px-3 rounded-lg bg-[#00236f] hover:bg-[#1e3a8a] text-white text-xs font-semibold text-center inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                            className="w-full py-2 px-3 rounded-lg bg-[#00236f] hover:bg-[#1e3a8a] text-slate-900 text-xs font-semibold text-center inline-flex items-center justify-center gap-1.5 shadow-2xs"
                           >
                             <Video className="w-3.5 h-3.5" /> Buka Google Meet Room
                           </a>
@@ -400,9 +394,9 @@ export const GroupDashboard: React.FC<GroupDashboardProps> = ({
                   >
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">{grp.name}</h4>
-                      <span className="text-[11px] text-slate-500">{grpMembersCount} Klien Terdaftar</span>
+                      <span className="text-xs text-slate-500">{grpMembersCount} Klien Terdaftar</span>
                     </div>
-                    <ArrowRight className="w-4 h-4 text-slate-400" />
+                    <ArrowRight className="w-4 h-4 text-slate-500" />
                   </div>
                 );
               })}

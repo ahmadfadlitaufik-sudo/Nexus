@@ -173,7 +173,7 @@ export const DiagnosisChart: React.FC<DiagnosisChartProps> = ({ diagnosis }) => 
                         y={labelCoord.y}
                         textAnchor="middle"
                         dominantBaseline="central"
-                        className="text-[10px] font-bold fill-slate-700 select-none"
+                        className="text-xs font-bold fill-slate-700 select-none"
                       >
                         {item.label} ({val})
                       </text>

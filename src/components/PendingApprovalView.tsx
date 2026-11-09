@@ -163,7 +163,7 @@ export const PendingApprovalView: React.FC<PendingApprovalViewProps> = () => {
             )}
 
             <a
-              href="https://wa.me/6281199887766?text=Halo%20Owner%20Nexus,%20saya%20sudah%20mendaftar%20akun%20di%20Client%20Hub%20dan%20menunggu%20approval."
+              href="https://wa.me/6282355522710?text=Halo%20Owner%20Nexus,%20saya%20sudah%20mendaftar%20akun%20di%20Client%20Hub%20dan%20menunggu%20approval."
               target="_blank"
               rel="noopener noreferrer"
               className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm cursor-pointer"

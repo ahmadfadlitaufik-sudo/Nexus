@@ -13,7 +13,7 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
   onGoToDashboard,
 }) => {
   const whatsappUrl =
-    'https://wa.me/628118902200?text=Halo%20Nexus%20Growth%20Partner,%20saya%20tertarik%20untuk%20konsultasi%20pendampingan%20bisnis%20WFA.';
+    'https://wa.me/6282355522710?text=Halo%20Nexus%20Growth%20Partner,%20saya%20tertarik%20untuk%20konsultasi%20pendampingan%20bisnis%20WFA.';
 
   const [activeSection, setActiveSection] = useState<string>('tentang');
 
@@ -184,27 +184,6 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                   </button>
                 </div>
 
-                {/* Quantitative Trust Bar */}
-                <div className="grid grid-cols-3 gap-6 pt-6 mt-4 border-t border-slate-200/80">
-                  <div className="flex flex-col">
-                    <span className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-bold text-[#00236f] tabular-nums">
-                      98%
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium mt-0.5">Tingkat Kepuasan Klien</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-bold text-[#00236f] tabular-nums">
-                      150+
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium mt-0.5">Bisnis &amp; Cabang Tumbuh</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="font-['Plus_Jakarta_Sans'] text-2xl lg:text-3xl font-bold text-[#00236f]">
-                      1-on-1
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium mt-0.5">Pendampingan Intensif</span>
-                  </div>
-                </div>
               </div>
 
               {/* Right Column: High-Fidelity Client Hub Preview Card */}
@@ -233,9 +212,9 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                       </div>
                       <div>
                         <h4 className="text-sm font-bold text-slate-900 font-['Plus_Jakarta_Sans']">
-                          Aditama Multi Prima
+                          Contoh: Usaha Anda
                         </h4>
-                        <p className="text-xs text-slate-500">Retail &amp; Distribusi Nasional</p>
+                        <p className="text-xs text-slate-500">Ilustrasi tampilan Client Hub</p>
                       </div>
                     </div>
                     <div className="text-right">
@@ -729,10 +708,9 @@ export const PublicLanding: React.FC<PublicLandingProps> = ({
                     rel="noopener noreferrer"
                     className="hover:text-white"
                   >
-                    +62 811 890 2200 (WhatsApp)
+                    +62 823-5552-2710 (WhatsApp)
                   </a>
                 </li>
-                <li>advisory@nexusgrowth.com</li>
                 <li>Hub WFA: Denpasar · Balikpapan · Makassar (WITA)</li>
               </ul>
             </div>
